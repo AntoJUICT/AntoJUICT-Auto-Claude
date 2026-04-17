@@ -1,10 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 Auto Claude is an autonomous multi-agent coding framework that plans, builds, and validates software for you. It's a monorepo with a Python backend (CLI + agent logic) and an Electron/React frontend (desktop UI).
 
-> **Deep-dive reference:** [ARCHITECTURE.md](shared_docs/ARCHITECTURE.md) | **Frontend contributing:** [apps/frontend/CONTRIBUTING.md](apps/frontend/CONTRIBUTING.md)
+> **Frontend contributing:** [apps/frontend/CONTRIBUTING.md](apps/frontend/CONTRIBUTING.md)
+
+> **Upstream:** this repository is a copy of [AndyMik90/Aperant](https://github.com/AndyMik90/Aperant) `main`.
 
 ## Product Overview
 
@@ -38,7 +40,7 @@ Auto Claude is a desktop application (+ CLI) where users describe a goal and AI 
 
 **No time estimates** — Never provide duration predictions. Use priority-based ordering instead.
 
-**PR target** — Always target the `develop` branch for PRs to AndyMik90/Auto-Claude, NOT `main`.
+**PR target** — In this fork (`AntoJUICT/AntoJUICT-Auto-Claude`), PRs go to the branch specified by the harness (currently `claude/copy-aperant-main-cMFRy`). For upstream contributions to AndyMik90/Auto-Claude, target `develop`, not `main`.
 
 **No console.log for debugging production issues** — `console.log` output is not visible in bundled/packaged versions of the Electron app. Use Sentry for error tracking and diagnostics in production. Reserve `console.log` for development only.
 
@@ -162,7 +164,7 @@ Each spec in `.auto-claude/specs/XXX-name/` contains: `spec.md`, `requirements.j
 
 ### Memory System (Graphiti)
 
-Graph-based semantic memory in `integrations/graphiti/`. Configured through the Electron app's onboarding/settings UI (CLI users can alternatively set `GRAPHITI_ENABLED=true` in `.env`). See [ARCHITECTURE.md](shared_docs/ARCHITECTURE.md#memory-system) for details.
+Graph-based semantic memory in `integrations/graphiti/`. Configured through the Electron app's onboarding/settings UI (CLI users can alternatively set `GRAPHITI_ENABLED=true` in `.env`).
 
 ## Frontend Development
 
@@ -278,7 +280,7 @@ Supports Windows, macOS, Linux. CI tests all three.
 | `findExecutable(name)` | Cross-platform executable lookup |
 | `requiresShell(command)` | `.cmd/.bat` shell detection (Win) |
 
-Never hardcode paths. Use `findExecutable()` and `joinPaths()`. See [ARCHITECTURE.md](shared_docs/ARCHITECTURE.md#cross-platform-development) for extended guide.
+Never hardcode paths. Use `findExecutable()` and `joinPaths()`.
 
 ## E2E Testing (Electron MCP)
 
@@ -288,7 +290,7 @@ QA agents can interact with the running Electron app via Chrome DevTools Protoco
 2. Set `ELECTRON_MCP_ENABLED=true` in `apps/backend/.env`
 3. Run QA: `python run.py --spec 001 --qa`
 
-Tools: `take_screenshot`, `click_by_text`, `fill_input`, `get_page_structure`, `send_keyboard_shortcut`, `eval`. See [ARCHITECTURE.md](shared_docs/ARCHITECTURE.md#end-to-end-testing) for full capabilities.
+Tools: `take_screenshot`, `click_by_text`, `fill_input`, `get_page_structure`, `send_keyboard_shortcut`, `eval`.
 
 ## Running the Application
 
