@@ -171,6 +171,8 @@ _bmad-output/
 /docs/superpowers/*
 !/docs/superpowers/specs
 !/docs/superpowers/specs/**
+!/docs/superpowers/plans
+!/docs/superpowers/plans/**
 OPUS_ANALYSIS_AND_IDEAS.md
 /.github/agents
 
