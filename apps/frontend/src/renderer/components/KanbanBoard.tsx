@@ -27,7 +27,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { TaskCard } from './TaskCard';
 import { SortableTaskCard } from './SortableTaskCard';
 import { QueueSettingsModal } from './QueueSettingsModal';
-import { TASK_STATUS_COLUMNS, TASK_STATUS_LABELS } from '../../shared/constants';
+import { TASK_STATUS_COLUMNS, TASK_STATUS_LABELS, type TaskStatusColumn } from '../../shared/constants';
 import { cn } from '../lib/utils';
 import { persistTaskStatus, forceCompleteTask, archiveTasks, deleteTasks, useTaskStore, isQueueAtCapacity, DEFAULT_MAX_PARALLEL_TASKS } from '../stores/task-store';
 import { updateProjectSettings, useProjectStore } from '../stores/project-store';
@@ -56,10 +56,12 @@ function isValidDropColumn(id: string): id is typeof TASK_STATUS_COLUMNS[number]
 
 /**
  * Get the visual column for a task status.
- * All statuses now map directly to a column in TASK_STATUS_COLUMNS.
+ * Most statuses map directly to a column in TASK_STATUS_COLUMNS.
+ * The 'error' status has no dedicated column — error tasks are dropped from the board.
  * This is used to compare visual positions during drag-and-drop operations.
  */
-function getVisualColumn(status: TaskStatus): typeof TASK_STATUS_COLUMNS[number] {
+function getVisualColumn(status: TaskStatus): TaskStatusColumn | null {
+  if (status === 'error') return null;
   return status;
 }
 
@@ -722,7 +724,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   const taskOrder = useTaskStore((state) => state.taskOrder);
 
   const tasksByStatus = useMemo(() => {
-    const grouped: Record<typeof TASK_STATUS_COLUMNS[number], Task[]> = {
+    const grouped: Record<TaskStatusColumn, Task[]> = {
       backlog: [],
       brainstorming: [],
       spec_review: [],
@@ -732,13 +734,12 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
       preview: [],
       pr_ready: [],
       done: [],
-      error: []
     };
 
     filteredTasks.forEach((task) => {
-      // Map pr_created tasks to the done column, error tasks to human_review
+      // Map task status to a visible column; error tasks have no column and are omitted
       const targetColumn = getVisualColumn(task.status);
-      if (grouped[targetColumn]) {
+      if (targetColumn && grouped[targetColumn]) {
         grouped[targetColumn].push(task);
       }
     });
@@ -1369,7 +1370,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         const overTaskVisualColumn = getVisualColumn(overTask.status);
 
         // Same visual column: reorder within column
-        if (taskVisualColumn === overTaskVisualColumn) {
+        if (taskVisualColumn !== null && taskVisualColumn === overTaskVisualColumn) {
           // Ensure both tasks are in the order array before reordering
           // This handles tasks that existed before ordering was enabled
           const currentColumnOrder = taskOrder?.[taskVisualColumn] ?? [];
@@ -1398,7 +1399,9 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         // Different visual column: move to that task's column (status change)
         // Use the visual column key for ordering to ensure consistency
         newStatus = overTask.status;
-        moveTaskToColumnTop(activeTaskId, overTaskVisualColumn, taskVisualColumn);
+        if (overTaskVisualColumn !== null && taskVisualColumn !== null) {
+          moveTaskToColumnTop(activeTaskId, overTaskVisualColumn, taskVisualColumn);
+        }
 
         // Persist task order
         if (projectId) {
