@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Play, Square, Clock, Zap, Target, Shield, Gauge, Palette, FileCode, Bug, Wrench, Loader2, AlertTriangle, RotateCcw, Archive, GitPullRequest, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
+import { PreviewBadge } from './PreviewBadge';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import {
@@ -15,6 +16,8 @@ import {
 } from './ui/dropdown-menu';
 import { cn, formatRelativeTime, sanitizeMarkdownForDisplay } from '../lib/utils';
 import { PhaseProgressIndicator } from './PhaseProgressIndicator';
+import { SubtaskProgress } from './SubtaskProgress';
+import { ApprovalActions } from './ApprovalActions';
 import {
   TASK_CATEGORY_LABELS,
   TASK_CATEGORY_COLORS,
@@ -33,7 +36,7 @@ import {
 } from '../../shared/constants';
 import { stopTask, checkTaskRunning, recoverStuckTask, isIncompleteHumanReview, archiveTasks, hasRecentActivity, startTaskOrQueue } from '../stores/task-store';
 import { useToast } from '../hooks/use-toast';
-import type { Task, TaskCategory, ReviewReason, TaskStatus } from '../../shared/types';
+import type { Task, TaskCategory, TaskStatus } from '../../shared/types';
 
 // Category icon mapping
 const CategoryIcon: Record<TaskCategory, typeof Zap> = {
@@ -96,7 +99,6 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.title === nextTask.title &&
     prevTask.description === nextTask.description &&
     prevTask.updatedAt === nextTask.updatedAt &&
-    prevTask.reviewReason === nextTask.reviewReason &&
     prevTask.executionProgress?.phase === nextTask.executionProgress?.phase &&
     prevTask.executionProgress?.phaseProgress === nextTask.executionProgress?.phaseProgress &&
     prevTask.subtasks.length === nextTask.subtasks.length &&
@@ -263,6 +265,17 @@ export const TaskCard = memo(function TaskCard({
     }
   };
 
+  const handleApprove = async () => {
+    if (task.status === 'spec_review') await window.electronAPI.approveSpec(task.id);
+    else if (task.status === 'plan_review') await window.electronAPI.approvePlan(task.id);
+    else if (task.status === 'preview') await window.electronAPI.approvePreview(task.id);
+  };
+
+  const handleSendBack = async () => {
+    const target = task.status === 'preview' ? ('plan_review' as const) : (task.status === 'plan_review' ? ('spec_review' as const) : ('spec_review' as const));
+    await window.electronAPI.sendBack(task.id, target);
+  };
+
   const handleViewPR = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (task.metadata?.prUrl && window.electronAPI?.openExternal) {
@@ -300,7 +313,7 @@ export const TaskCard = memo(function TaskCard({
     }
   };
 
-  const getReviewReasonLabel = (reason?: ReviewReason): { label: string; variant: 'success' | 'destructive' | 'warning' } | null => {
+  const getReviewReasonLabel = (reason?: string): { label: string; variant: 'success' | 'destructive' | 'warning' } | null => {
     if (!reason) return null;
     switch (reason) {
       case 'completed':
@@ -318,11 +331,8 @@ export const TaskCard = memo(function TaskCard({
     }
   };
 
-  // When executionPhase is 'complete', always show 'completed' badge regardless of reviewReason
-  // This ensures the user sees "Complete" when the task finished successfully
-  const effectiveReviewReason: ReviewReason | undefined =
-    executionPhase === 'complete' ? 'completed' : task.reviewReason;
-  const reviewReasonInfo = task.status === 'human_review' ? getReviewReasonLabel(effectiveReviewReason) : null;
+  // Show review reason info when task is in preview (awaiting human review)
+  const reviewReasonInfo = task.status === 'preview' ? getReviewReasonLabel('completed') : null;
 
   const isArchived = !!task.metadata?.archivedAt;
 
@@ -501,6 +511,8 @@ export const TaskCard = memo(function TaskCard({
                 {task.metadata.securitySeverity} {t('metadata.severity')}
               </Badge>
             )}
+            {/* Preview status badge - shows when dev server is active */}
+            <PreviewBadge taskId={task.id} />
           </div>
         )}
 
@@ -516,6 +528,18 @@ export const TaskCard = memo(function TaskCard({
             />
           </div>
         )}
+        {task.status === 'in_progress' && task.executionProgress?.subtaskProgress && (
+          <SubtaskProgress
+            currentIndex={task.executionProgress.subtaskProgress.currentIndex}
+            total={task.executionProgress.subtaskProgress.total}
+            agentPhase={task.executionProgress.subtaskProgress.agentPhase}
+          />
+        )}
+        <ApprovalActions
+          status={task.status}
+          onApprove={handleApprove}
+          onSendBack={handleSendBack}
+        />
 
         {/* Footer */}
         <div className="mt-4 flex items-center justify-between">

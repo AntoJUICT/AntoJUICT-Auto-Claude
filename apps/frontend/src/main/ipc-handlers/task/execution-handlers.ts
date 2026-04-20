@@ -1,5 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS, AUTO_BUILD_PATHS, getSpecsDir } from '../../../shared/constants';
+import * as pipeline from '../../pipeline';
 import type { IPCResult, TaskStartOptions, TaskStatus, ImageAttachment } from '../../../shared/types';
 import path from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
@@ -175,7 +176,7 @@ export function registerTaskExecutionHandlers(
         return;
       }
 
-      console.warn('[TASK_START] Found task:', task.specId, 'status:', task.status, 'reviewReason:', task.reviewReason, 'subtasks:', task.subtasks.length);
+      console.warn('[TASK_START] Found task:', task.specId, 'status:', task.status, 'subtasks:', task.subtasks.length);
 
       // Clear stale tracking state from any previous execution so that:
       // - terminalEventSeen doesn't suppress future PROCESS_EXITED events
@@ -208,7 +209,7 @@ export function registerTaskExecutionHandlers(
       // - human_review/error: User resuming, send USER_RESUMED
       // - backlog/other: Fresh start, send PLANNING_STARTED
       const currentXState = taskStateManager.getCurrentState(taskId);
-      console.warn('[TASK_START] Current XState:', currentXState, '| Task status:', task.status, task.reviewReason);
+      console.warn('[TASK_START] Current XState:', currentXState, '| Task status:', task.status);
 
       if (currentXState === 'plan_review') {
         // XState says plan_review - send PLAN_APPROVED
@@ -219,8 +220,8 @@ export function registerTaskExecutionHandlers(
         // Uses planHasSubtasks from implementation_plan.json (more reliable than task.subtasks.length).
         console.warn('[TASK_START] XState: error with no plan subtasks -> planning via PLANNING_STARTED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLANNING_STARTED' }, task, project);
-      } else if (currentXState === 'human_review' || currentXState === 'error') {
-        // XState says human_review or error - send USER_RESUMED
+      } else if (currentXState === 'preview' || currentXState === 'error') {
+        // XState says preview or error - send USER_RESUMED
         console.warn('[TASK_START] XState:', currentXState, '-> coding via USER_RESUMED');
         taskStateManager.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
       } else if (currentXState) {
@@ -228,7 +229,7 @@ export function registerTaskExecutionHandlers(
         // This shouldn't happen normally, but handle gracefully
         console.warn('[TASK_START] XState in unexpected state:', currentXState, '- sending PLANNING_STARTED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLANNING_STARTED' }, task, project);
-      } else if (task.status === 'human_review' && task.reviewReason === 'plan_review') {
+      } else if (task.status === 'plan_review') {
         // No XState actor - fallback to task data (e.g., after app restart)
         console.warn('[TASK_START] No XState actor, task data: plan_review -> coding via PLAN_APPROVED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLAN_APPROVED' }, task, project);
@@ -237,7 +238,7 @@ export function registerTaskExecutionHandlers(
         // Uses planHasSubtasks from implementation_plan.json (more reliable than task.subtasks.length).
         console.warn('[TASK_START] No XState actor, error with no plan subtasks -> planning via PLANNING_STARTED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLANNING_STARTED' }, task, project);
-      } else if (task.status === 'human_review' || task.status === 'error') {
+      } else if (task.status === 'preview' || task.status === 'error') {
         // No XState actor - fallback to task data for resuming
         console.warn('[TASK_START] No XState actor, task data:', task.status, '-> coding via USER_RESUMED');
         taskStateManager.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
@@ -559,6 +560,51 @@ export function registerTaskExecutionHandlers(
   );
 
   /**
+   * Approve spec — advances task from spec_review to planning phase
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_SPEC, async (_event, taskId: string) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.approveSpec(win, taskId);
+    return { success: true };
+  });
+
+  /**
+   * Approve plan — advances task from plan_review to in_progress phase
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PLAN, async (_event, taskId: string) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.approvePlan(win, taskId);
+    return { success: true };
+  });
+
+  /**
+   * Approve preview — advances task from preview to pr_ready phase
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PREVIEW, async (_event, taskId: string) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.approvePreview(win, taskId);
+    return { success: true };
+  });
+
+  /**
+   * Send back — returns task to a previous review phase for rework
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_SEND_BACK, async (
+    _event,
+    taskId: string,
+    target: 'spec_review' | 'plan_review',
+    note?: string
+  ) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.sendBack(win, taskId, target, note);
+    return { success: true };
+  });
+
+  /**
    * Update task status manually
    * Options:
    * - forceCleanup: When setting to 'done' with a worktree present, delete the worktree first
@@ -655,9 +701,9 @@ export function registerTaskExecutionHandlers(
         }
       }
 
-      // Validate status transition - 'human_review' requires actual work to have been done
+      // Validate status transition - 'preview' requires actual work to have been done
       // This prevents tasks from being incorrectly marked as ready for review when execution failed
-      if (status === 'human_review') {
+      if (status === 'preview') {
         const specsBaseDirForValidation = getSpecsDir(project.autoBuildPath);
         const specDirForValidation = path.join(
           project.path,
@@ -1029,9 +1075,9 @@ export function registerTaskExecutionHandlers(
 
           if (totalCount > 0) {
             if (allCompleted) {
-              // All subtasks completed - should go to review (ai_review or human_review based on source)
-              // For recovery, human_review is safer as it requires manual verification
-              newStatus = 'human_review';
+              // All subtasks completed - should go to review (preview = human review before PR)
+              // For recovery, preview is safer as it requires manual verification
+              newStatus = 'preview';
             } else if (completedCount > 0) {
               // Some subtasks completed, some still pending - task is in progress
               newStatus = 'in_progress';
@@ -1045,8 +1091,8 @@ export function registerTaskExecutionHandlers(
           plan.status = newStatus;
           plan.planStatus = newStatus === 'done' ? 'completed'
             : newStatus === 'in_progress' ? 'in_progress'
-            : newStatus === 'ai_review' ? 'review'
-            : newStatus === 'human_review' ? 'review'
+            : newStatus === 'preview' ? 'review'
+            : newStatus === 'pr_ready' ? 'review'
             : 'pending';
           plan.updated_at = new Date().toISOString();
 
@@ -1057,10 +1103,10 @@ export function registerTaskExecutionHandlers(
           const { allCompleted } = checkSubtasksCompletion(plan);
 
           if (allCompleted) {
-            console.log('[Recovery] Task is fully complete (all subtasks done), setting to human_review without restart');
+            console.log('[Recovery] Task is fully complete (all subtasks done), setting to preview without restart');
             // Don't reset any subtasks - task is done!
             // Just update status in plan file (project store reads from file, no separate update needed)
-            plan.status = 'human_review';
+            plan.status = 'preview';
             plan.planStatus = 'review';
 
             // Write to ALL plan file locations to ensure consistency
@@ -1093,7 +1139,7 @@ export function registerTaskExecutionHandlers(
               data: {
                 taskId,
                 recovered: true,
-                newStatus: 'human_review',
+                newStatus: 'preview',
                 message: 'Task is complete and ready for review',
                 autoRestarted: false
               }

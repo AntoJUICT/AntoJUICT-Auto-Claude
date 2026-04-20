@@ -26,6 +26,7 @@ from core.platform import (
     is_windows,
     validate_cli_path,
 )
+from core.superpowers import SuperpowersNotInstalledError, verify_superpowers_installed  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -585,6 +586,17 @@ def create_client(
        (see security.py for ALLOWED_COMMANDS)
     4. Tool filtering - Each agent type only sees relevant tools (prevents misuse)
     """
+    _KANBAN_AGENT_TYPES = {"planner", "coder", "qa_reviewer", "qa_fixer"}
+    if agent_type in _KANBAN_AGENT_TYPES:
+        try:
+            verify_superpowers_installed()
+        except SuperpowersNotInstalledError:
+            logger.error(
+                f"Superpowers check failed for agent_type={agent_type!r}. "
+                "Install with: /plugin install superpowers@claude-plugins-official"
+            )
+            raise
+
     # Collect env vars to pass to SDK (ANTHROPIC_BASE_URL, CLAUDE_CONFIG_DIR, etc.)
     sdk_env = get_sdk_env_vars()
 
@@ -938,7 +950,15 @@ def create_client(
     # Build options dict, conditionally including output_format
     options_kwargs: dict[str, Any] = {
         "model": model,
-        "system_prompt": base_prompt,
+        # Use system list with cache_control for prompt caching optimization
+        # Ephemeral cache reduces token costs for repeated agent invocations
+        "system": [
+            {
+                "type": "text",
+                "text": base_prompt,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
         "allowed_tools": allowed_tools_list,
         "mcp_servers": mcp_servers,
         "hooks": {

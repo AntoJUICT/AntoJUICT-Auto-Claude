@@ -46,7 +46,6 @@ import type {
   TaskLogs,
   TaskLogStreamChunk,
   ImageAttachment,
-  ReviewReason,
   MergeProgress
 } from './task';
 import type {
@@ -201,6 +200,10 @@ export interface ElectronAPI {
   startTask: (taskId: string, options?: TaskStartOptions) => void;
   stopTask: (taskId: string) => void;
   submitReview: (taskId: string, approved: boolean, feedback?: string, images?: ImageAttachment[]) => Promise<IPCResult>;
+  approveSpec: (taskId: string) => Promise<IPCResult>;
+  approvePlan: (taskId: string) => Promise<IPCResult>;
+  approvePreview: (taskId: string) => Promise<IPCResult>;
+  sendBack: (taskId: string, target: import('./task').SendBackTarget, note?: string) => Promise<IPCResult>;
   updateTaskStatus: (taskId: string, status: TaskStatus, options?: { forceCleanup?: boolean }) => Promise<IPCResult & { worktreeExists?: boolean; worktreePath?: string }>;
   recoverStuckTask: (taskId: string, options?: TaskRecoveryOptions) => Promise<IPCResult<TaskRecoveryResult>>;
   checkTaskRunning: (taskId: string) => Promise<IPCResult<boolean>>;
@@ -235,7 +238,7 @@ export interface ElectronAPI {
   onTaskProgress: (callback: (taskId: string, plan: ImplementationPlan, projectId?: string) => void) => () => void;
   onTaskError: (callback: (taskId: string, error: string, projectId?: string) => void) => () => void;
   onTaskLog: (callback: (taskId: string, log: string, projectId?: string) => void) => () => void;
-  onTaskStatusChange: (callback: (taskId: string, status: TaskStatus, projectId?: string, reviewReason?: ReviewReason) => void) => () => void;
+  onTaskStatusChange: (callback: (taskId: string, status: TaskStatus, projectId?: string) => void) => () => void;
   onTaskExecutionProgress: (callback: (taskId: string, progress: ExecutionProgress, projectId?: string) => void) => () => void;
 
   // Terminal operations
@@ -921,6 +924,15 @@ export interface ElectronAPI {
   // Screenshot capture operations
   getSources: () => Promise<IPCResult<ScreenshotSource[]> & { devMode?: boolean }>;
   capture: (options: { sourceId: string }) => Promise<IPCResult<string>>;
+
+  // Preview operations (dev server control and visual preview)
+  preview: {
+    start: (taskId: string, worktreePath: string, command: string) => Promise<{ port: number; url: string }>;
+    stop: (taskId: string) => Promise<void>;
+    status: (taskId: string) => Promise<{ status: string; port: number | null; url: string | null; lastError: string | null }>;
+    detect: (projectPath: string) => Promise<string | null>;
+    keepAlive: (taskId: string) => Promise<void>;
+  };
 
   // Queue Routing API (rate limit recovery)
   queue: import('../../preload/api/queue-api').QueueAPI;

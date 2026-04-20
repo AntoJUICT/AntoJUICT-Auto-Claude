@@ -75,20 +75,17 @@ export function TaskHeader({
           ) : (
             <>
               <Badge
-                variant={task.status === 'done' ? 'success' : task.status === 'human_review' ? 'purple' : task.status === 'in_progress' ? 'info' : 'secondary'}
+                variant={task.status === 'done' ? 'success' : task.status === 'preview' ? 'purple' : task.status === 'in_progress' ? 'info' : 'secondary'}
                 className={cn('text-xs', (task.status === 'in_progress' && !isStuck) && 'status-running')}
               >
                 {t(TASK_STATUS_LABELS[task.status])}
               </Badge>
-              {task.status === 'human_review' && task.reviewReason && (
+              {task.status === 'preview' && (
                 <Badge
-                  variant={task.reviewReason === 'completed' ? 'success' : task.reviewReason === 'errors' ? 'destructive' : 'warning'}
+                  variant="success"
                   className="text-xs"
                 >
-                  {task.reviewReason === 'completed' ? 'Completed' :
-                   task.reviewReason === 'errors' ? 'Has Errors' :
-                   task.reviewReason === 'plan_review' ? 'Approve Plan' :
-                   task.reviewReason === 'stopped' ? 'Stopped' : 'QA Issues'}
+                  Completed
                 </Badge>
               )}
             </>

@@ -27,12 +27,14 @@ function createTestTask(overrides: Partial<Task> = {}): Task {
 function createTestTaskOrder(overrides: Partial<TaskOrderState> = {}): TaskOrderState {
   return {
     backlog: [],
-    queue: [],
+    brainstorming: [],
+    spec_review: [],
+    planning: [],
+    plan_review: [],
     in_progress: [],
-    ai_review: [],
-    human_review: [],
+    preview: [],
+    pr_ready: [],
     done: [],
-    pr_created: [],
     error: [],
     ...overrides
   };
@@ -95,9 +97,8 @@ describe('Task Order State Management', () => {
       const order = createTestTaskOrder({
         backlog: ['task-1'],
         in_progress: ['task-2'],
-        ai_review: ['task-3'],
-        human_review: ['task-4'],
-        queue: ['task-5'],
+        preview: ['task-3'],
+        pr_ready: ['task-4'],
         done: ['task-6']
       });
 
@@ -105,9 +106,8 @@ describe('Task Order State Management', () => {
 
       expect(useTaskStore.getState().taskOrder?.backlog).toEqual(['task-1']);
       expect(useTaskStore.getState().taskOrder?.in_progress).toEqual(['task-2']);
-      expect(useTaskStore.getState().taskOrder?.ai_review).toEqual(['task-3']);
-      expect(useTaskStore.getState().taskOrder?.human_review).toEqual(['task-4']);
-      expect(useTaskStore.getState().taskOrder?.queue).toEqual(['task-5']);
+      expect(useTaskStore.getState().taskOrder?.preview).toEqual(['task-3']);
+      expect(useTaskStore.getState().taskOrder?.pr_ready).toEqual(['task-4']);
       expect(useTaskStore.getState().taskOrder?.done).toEqual(['task-6']);
     });
   });
@@ -247,12 +247,14 @@ describe('Task Order State Management', () => {
 
       expect(useTaskStore.getState().taskOrder).toEqual({
         backlog: [],
-        queue: [],
+        brainstorming: [],
+        spec_review: [],
+        planning: [],
+        plan_review: [],
         in_progress: [],
-        ai_review: [],
-        human_review: [],
+        preview: [],
+        pr_ready: [],
         done: [],
-        pr_created: [],
         error: []
       });
     });
@@ -278,12 +280,14 @@ describe('Task Order State Management', () => {
       // Should fall back to empty order state
       expect(useTaskStore.getState().taskOrder).toEqual({
         backlog: [],
-        queue: [],
+        brainstorming: [],
+        spec_review: [],
+        planning: [],
+        plan_review: [],
         in_progress: [],
-        ai_review: [],
-        human_review: [],
+        preview: [],
+        pr_ready: [],
         done: [],
-        pr_created: [],
         error: []
       });
     });
@@ -295,21 +299,25 @@ describe('Task Order State Management', () => {
         throw new Error('Storage quota exceeded');
       });
 
-      useTaskStore.getState().loadTaskOrder('project-1');
+      try {
+        useTaskStore.getState().loadTaskOrder('project-1');
 
-      // Should fall back to empty order state
-      expect(useTaskStore.getState().taskOrder).toEqual({
-        backlog: [],
-        queue: [],
-        in_progress: [],
-        ai_review: [],
-        human_review: [],
-        done: [],
-        pr_created: [],
-        error: []
-      });
-
-      localStorage.getItem = originalGetItem;
+        // Should fall back to empty order state
+        expect(useTaskStore.getState().taskOrder).toEqual({
+          backlog: [],
+          brainstorming: [],
+          spec_review: [],
+          planning: [],
+          plan_review: [],
+          in_progress: [],
+          preview: [],
+          pr_ready: [],
+          done: [],
+          error: []
+        });
+      } finally {
+        localStorage.getItem = originalGetItem;
+      }
     });
   });
 
@@ -487,16 +495,9 @@ describe('Task Order State Management', () => {
 
     it('should initialize target column if it does not exist in order', () => {
       // Create order with partial columns (simulating missing column)
-      const order = {
-        backlog: ['task-1'],
-        in_progress: [],
-        ai_review: [],
-        human_review: [],
-        queue: [],
-        done: [],
-        pr_created: [],
-        error: []
-      } as TaskOrderState;
+      const order = createTestTaskOrder({
+        backlog: ['task-1']
+      }) as TaskOrderState;
       useTaskStore.setState({ taskOrder: order });
 
       useTaskStore.getState().moveTaskToColumnTop('task-1', 'in_progress', 'backlog');
@@ -588,12 +589,14 @@ describe('Task Order State Management', () => {
       // Empty string causes JSON.parse to throw - should fall back to empty order
       expect(useTaskStore.getState().taskOrder).toEqual({
         backlog: [],
-        queue: [],
+        brainstorming: [],
+        spec_review: [],
+        planning: [],
+        plan_review: [],
         in_progress: [],
-        ai_review: [],
-        human_review: [],
+        preview: [],
+        pr_ready: [],
         done: [],
-        pr_created: [],
         error: []
       });
 
@@ -640,9 +643,7 @@ describe('Task Order State Management', () => {
       const order = createTestTaskOrder({
         backlog: ['task-1', 'task-2', 'task-3'],
         in_progress: ['task-4'],
-        ai_review: [],
-        human_review: ['task-5', 'task-6'],
-        queue: [],
+        preview: ['task-5', 'task-6'],
         done: ['task-7', 'task-8', 'task-9', 'task-10']
       });
       useTaskStore.setState({ taskOrder: order });
@@ -993,19 +994,19 @@ describe('Task Order State Management', () => {
 
     it('should move task to top of target column preserving target order', () => {
       const order = createTestTaskOrder({
-        ai_review: ['review-1', 'review-2', 'review-3'],
-        human_review: ['human-1', 'human-2']
+        in_progress: ['review-1', 'review-2', 'review-3'],
+        preview: ['human-1', 'human-2']
       });
       useTaskStore.setState({ taskOrder: order });
 
-      // Move from ai_review to human_review
-      useTaskStore.getState().moveTaskToColumnTop('review-2', 'human_review', 'ai_review');
+      // Move from in_progress to preview
+      useTaskStore.getState().moveTaskToColumnTop('review-2', 'preview', 'in_progress');
 
       const updatedOrder = useTaskStore.getState().taskOrder;
-      // Should be at top of human_review
-      expect(updatedOrder?.human_review[0]).toBe('review-2');
+      // Should be at top of preview
+      expect(updatedOrder?.preview[0]).toBe('review-2');
       // Existing tasks pushed down
-      expect(updatedOrder?.human_review).toEqual(['review-2', 'human-1', 'human-2']);
+      expect(updatedOrder?.preview).toEqual(['review-2', 'human-1', 'human-2']);
     });
 
     it('should handle moving to empty column', () => {
@@ -1042,7 +1043,7 @@ describe('Task Order State Management', () => {
       const order = createTestTaskOrder({
         backlog: ['task-1'],
         in_progress: [],
-        ai_review: [],
+        preview: [],
         done: []
       });
       useTaskStore.setState({ taskOrder: order });
@@ -1054,16 +1055,16 @@ describe('Task Order State Management', () => {
       expect(updatedOrder?.backlog).toEqual([]);
       expect(updatedOrder?.in_progress).toEqual(['task-1']);
 
-      useTaskStore.getState().moveTaskToColumnTop('task-1', 'ai_review', 'in_progress');
+      useTaskStore.getState().moveTaskToColumnTop('task-1', 'preview', 'in_progress');
 
       updatedOrder = useTaskStore.getState().taskOrder;
       expect(updatedOrder?.in_progress).toEqual([]);
-      expect(updatedOrder?.ai_review).toEqual(['task-1']);
+      expect(updatedOrder?.preview).toEqual(['task-1']);
 
-      useTaskStore.getState().moveTaskToColumnTop('task-1', 'done', 'ai_review');
+      useTaskStore.getState().moveTaskToColumnTop('task-1', 'done', 'preview');
 
       updatedOrder = useTaskStore.getState().taskOrder;
-      expect(updatedOrder?.ai_review).toEqual([]);
+      expect(updatedOrder?.preview).toEqual([]);
       expect(updatedOrder?.done).toEqual(['task-1']);
     });
 
@@ -1092,8 +1093,8 @@ describe('Task Order State Management', () => {
       const order = createTestTaskOrder({
         backlog: ['backlog-1', 'backlog-2'],
         in_progress: ['progress-1'],
-        ai_review: ['review-1', 'review-2'],
-        human_review: ['human-1'],
+        preview: ['review-1', 'review-2'],
+        pr_ready: ['human-1'],
         done: ['done-1', 'done-2', 'done-3']
       });
       useTaskStore.setState({ taskOrder: order });
@@ -1106,8 +1107,8 @@ describe('Task Order State Management', () => {
       expect(updatedOrder?.backlog).toEqual(['backlog-2']);
       expect(updatedOrder?.in_progress).toEqual(['backlog-1', 'progress-1']);
       // Unaffected columns preserved exactly
-      expect(updatedOrder?.ai_review).toEqual(['review-1', 'review-2']);
-      expect(updatedOrder?.human_review).toEqual(['human-1']);
+      expect(updatedOrder?.preview).toEqual(['review-1', 'review-2']);
+      expect(updatedOrder?.pr_ready).toEqual(['human-1']);
       expect(updatedOrder?.done).toEqual(['done-1', 'done-2', 'done-3']);
     });
   });

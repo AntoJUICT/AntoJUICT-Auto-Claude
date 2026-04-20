@@ -173,7 +173,6 @@ export function registerAgenteventsHandlers(
 
     console.debug(`[agent-events-handlers] Task state before handleTaskEvent:`, {
       status: task.status,
-      reviewReason: task.reviewReason,
       phase: task.executionProgress?.phase
     });
 
@@ -287,9 +286,9 @@ export function registerAgenteventsHandlers(
     if (currentXState && !planWithStatus.xstateState && task && project) {
       console.debug(`[agent-events-handlers] Re-stamping XState status on plan file for ${taskId} (state: ${currentXState})`);
       const mainPlanPath = getPlanPath(project, task);
-      const { status, reviewReason } = mapStateToLegacy(currentXState);
+      const { status } = mapStateToLegacy(currentXState);
       const phase = XSTATE_TO_PHASE[currentXState] || 'idle';
-      persistPlanStatusAndReasonSync(mainPlanPath, status, reviewReason, project.id, currentXState, phase);
+      persistPlanStatusAndReasonSync(mainPlanPath, status, undefined, project.id, currentXState, phase);
 
       // Also re-stamp worktree copy if it exists
       const worktreePath = findTaskWorktree(project.path, task.specId);
@@ -302,7 +301,7 @@ export function registerAgenteventsHandlers(
           AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN
         );
         if (existsSync(worktreePlanPath)) {
-          persistPlanStatusAndReasonSync(worktreePlanPath, status, reviewReason, project.id, currentXState, phase);
+          persistPlanStatusAndReasonSync(worktreePlanPath, status, undefined, project.id, currentXState, phase);
         }
       }
     }

@@ -78,15 +78,20 @@ export function getPlanPath(project: Project, task: Task): string {
  */
 export function mapStatusToPlanStatus(status: TaskStatus): string {
   switch (status) {
-    case 'queue':
-      return 'queued';
+    case 'brainstorming':
+    case 'spec_review':
+    case 'planning':
+    case 'plan_review':
+      return 'planning';
     case 'in_progress':
       return 'in_progress';
-    case 'ai_review':
-    case 'human_review':
+    case 'preview':
+    case 'pr_ready':
       return 'review';
     case 'done':
       return 'completed';
+    case 'error':
+      return 'failed';
     default:
       return 'pending';
   }
@@ -315,9 +320,9 @@ export function persistPlanPhaseSync(
     const phaseToStatus: Record<string, TaskStatus> = {
       'planning': 'in_progress',
       'coding': 'in_progress',
-      'qa_review': 'ai_review',
-      'qa_fixing': 'ai_review',
-      'complete': 'human_review',
+      'qa_review': 'in_progress',
+      'qa_fixing': 'in_progress',
+      'complete': 'preview',
       'failed': 'error'
     };
     const mappedStatus = phaseToStatus[phase];

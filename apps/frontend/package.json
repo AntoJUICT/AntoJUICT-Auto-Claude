@@ -2,7 +2,7 @@
   "name": "auto-claude-ui",
   "version": "2.7.6",
   "type": "module",
-  "description": "Desktop UI for Auto Claude autonomous coding framework",
+  "description": "Desktop UI for JUICT agentic OS",
   "homepage": "https://github.com/AndyMik90/Auto-Claude",
   "repository": {
     "type": "git",
@@ -38,9 +38,9 @@
     "package:flatpak": "node scripts/package-with-python.cjs --linux flatpak",
     "verify:linux": "node scripts/verify-linux-packages.cjs dist",
     "test:verify-linux": "node --test scripts/verify-linux-packages.test.mjs",
-    "start:packaged:mac": "open dist/mac-arm64/Auto-Claude.app || open dist/mac/Auto-Claude.app",
-    "start:packaged:win": "start \"\" \"dist\\win-unpacked\\Auto-Claude.exe\"",
-    "start:packaged:linux": "./dist/linux-unpacked/auto-claude",
+    "start:packaged:mac": "open dist/mac-arm64/JUICT\\ agentic\\ OS.app || open dist/mac/JUICT\\ agentic\\ OS.app",
+    "start:packaged:win": "start \"\" \"dist\\win-unpacked\\JUICT agentic OS.exe\"",
+    "start:packaged:linux": "./dist/linux-unpacked/juict-agentic-os",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -142,8 +142,8 @@
     "@electron/rebuild": "4.0.2"
   },
   "build": {
-    "appId": "com.autoclaude.ui",
-    "productName": "Auto-Claude",
+    "appId": "com.juict.agentic-os",
+    "productName": "JUICT agentic OS",
     "npmRebuild": false,
     "artifactName": "${productName}-${version}-${platform}-${arch}.${ext}",
     "publish": [

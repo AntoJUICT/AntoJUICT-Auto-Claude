@@ -350,6 +350,45 @@ AGENT_CONFIGS = {
         "auto_claude_tools": [],
         "thinking_default": "high",
     },
+    # ═══════════════════════════════════════════════════════════════════════
+    # SUPERPOWERS PIPELINE PHASES
+    # ═══════════════════════════════════════════════════════════════════════
+    "brainstorming": {
+        "tools": BASE_READ_TOOLS + WEB_TOOLS,
+        "mcp_servers": ["context7"],
+        "auto_claude_tools": [],
+        "thinking_default": "high",
+    },
+    "sp_planning": {
+        "tools": BASE_READ_TOOLS + BASE_WRITE_TOOLS + WEB_TOOLS,
+        "mcp_servers": ["context7"],
+        "auto_claude_tools": [],
+        "thinking_default": "high",
+    },
+    "sp_implementer": {
+        "tools": BASE_READ_TOOLS + BASE_WRITE_TOOLS + WEB_TOOLS,
+        "mcp_servers": ["context7"],
+        "auto_claude_tools": [],
+        "thinking_default": "low",
+    },
+    "sp_spec_reviewer": {
+        "tools": BASE_READ_TOOLS,
+        "mcp_servers": [],
+        "auto_claude_tools": [],
+        "thinking_default": "medium",
+    },
+    "sp_quality_reviewer": {
+        "tools": BASE_READ_TOOLS + BASE_WRITE_TOOLS,
+        "mcp_servers": [],
+        "auto_claude_tools": [],
+        "thinking_default": "high",
+    },
+    "sp_final_reviewer": {
+        "tools": BASE_READ_TOOLS,
+        "mcp_servers": [],
+        "auto_claude_tools": [],
+        "thinking_default": "high",
+    },
 }
 
 

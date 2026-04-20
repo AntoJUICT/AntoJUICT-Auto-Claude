@@ -244,6 +244,15 @@ const browserMockAPI: ElectronAPI = {
     onPRStatusUpdate: () => () => {}
   },
 
+  // Preview operations (dev server control and visual preview)
+  preview: {
+    start: async () => ({ port: 3000, url: 'http://localhost:3000' }),
+    stop: async () => {},
+    status: async () => ({ status: 'stopped', port: null, url: null, lastError: null }),
+    detect: async () => null,
+    keepAlive: async () => {}
+  },
+
   // Queue Routing API (rate limit recovery)
   queue: {
     getRunningTasksByProfile: async () => ({ success: true, data: { byProfile: {}, totalRunning: 0 } }),

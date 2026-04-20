@@ -193,40 +193,37 @@ describe('Task Store', () => {
       );
     });
 
-    it('should apply reviewReason when provided', () => {
+    it('should update task to plan_review status', () => {
       useTaskStore.setState({
         tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'human_review', 'plan_review');
+      useTaskStore.getState().updateTaskStatus('task-1', 'plan_review');
 
       const task = useTaskStore.getState().tasks[0];
-      expect(task.status).toBe('human_review');
-      expect(task.reviewReason).toBe('plan_review');
+      expect(task.status).toBe('plan_review');
     });
 
-    it('should clear reviewReason when not provided', () => {
+    it('should update task from plan_review to in_progress', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'human_review', reviewReason: 'plan_review' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'plan_review' })]
       });
 
       useTaskStore.getState().updateTaskStatus('task-1', 'in_progress');
 
       const task = useTaskStore.getState().tasks[0];
       expect(task.status).toBe('in_progress');
-      expect(task.reviewReason).toBeUndefined();
     });
 
-    it('should update when only reviewReason changes', () => {
+    it('should update task to preview status', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'human_review', reviewReason: 'plan_review' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'human_review', 'completed');
+      useTaskStore.getState().updateTaskStatus('task-1', 'preview');
 
       const task = useTaskStore.getState().tasks[0];
-      expect(task.status).toBe('human_review');
-      expect(task.reviewReason).toBe('completed');
+      expect(task.status).toBe('preview');
     });
   });
 
@@ -310,32 +307,30 @@ describe('Task Store', () => {
 
     it('should NOT modify status from plan (XState is source of truth)', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'ai_review' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
       });
 
       const plan = createTestPlan({
-        status: 'human_review',
-        reviewReason: 'completed'
+        status: 'preview'
       });
 
       useTaskStore.getState().updateTaskFromPlan('task-1', plan);
 
       // Status should remain unchanged - XState controls status via TASK_STATUS_CHANGE
-      expect(useTaskStore.getState().tasks[0].status).toBe('ai_review');
+      expect(useTaskStore.getState().tasks[0].status).toBe('in_progress');
     });
 
-    it('should preserve existing status and reviewReason when plan has different values', () => {
+    it('should preserve existing status when plan has different values', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'human_review', reviewReason: 'errors' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'preview' })]
       });
 
-      const plan = createTestPlan({ status: 'ai_review' });
+      const plan = createTestPlan({ status: 'in_progress' });
 
       useTaskStore.getState().updateTaskFromPlan('task-1', plan);
 
-      // Status and reviewReason should remain unchanged - XState is source of truth
-      expect(useTaskStore.getState().tasks[0].status).toBe('human_review');
-      expect(useTaskStore.getState().tasks[0].reviewReason).toBe('errors');
+      // Status should remain unchanged - XState is source of truth
+      expect(useTaskStore.getState().tasks[0].status).toBe('preview');
     });
 
     it('should skip update when plan is invalid', () => {
@@ -578,7 +573,7 @@ describe('Task Store', () => {
     });
 
     it('should filter by each status type', () => {
-      const statuses: TaskStatus[] = ['backlog', 'in_progress', 'ai_review', 'human_review', 'done'];
+      const statuses: TaskStatus[] = ['backlog', 'in_progress', 'preview', 'pr_ready', 'done'];
 
       useTaskStore.setState({
         tasks: statuses.map((status) => createTestTask({ id: `task-${status}`, status }))

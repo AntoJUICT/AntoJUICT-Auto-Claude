@@ -11,10 +11,10 @@ import { XSTATE_SETTLED_STATES, XSTATE_TO_PHASE, TASK_STATE_NAMES } from '../../
 describe('XSTATE_SETTLED_STATES', () => {
   it('should contain the expected settled states', () => {
     expect(XSTATE_SETTLED_STATES.has('plan_review')).toBe(true);
-    expect(XSTATE_SETTLED_STATES.has('human_review')).toBe(true);
+    expect(XSTATE_SETTLED_STATES.has('preview')).toBe(true);
     expect(XSTATE_SETTLED_STATES.has('error')).toBe(true);
     expect(XSTATE_SETTLED_STATES.has('creating_pr')).toBe(true);
-    expect(XSTATE_SETTLED_STATES.has('pr_created')).toBe(true);
+    expect(XSTATE_SETTLED_STATES.has('pr_ready')).toBe(true);
     expect(XSTATE_SETTLED_STATES.has('done')).toBe(true);
   });
 
@@ -49,9 +49,9 @@ describe('settled state guard behavior', () => {
     expect(shouldBlockExecutionProgress('plan_review')).toBe(true);
   });
 
-  it('should block execution-progress when XState is in human_review', () => {
+  it('should block execution-progress when XState is in preview', () => {
     // After QA_PASSED, any stale events from the dying process must be blocked
-    expect(shouldBlockExecutionProgress('human_review')).toBe(true);
+    expect(shouldBlockExecutionProgress('preview')).toBe(true);
   });
 
   it('should block execution-progress when XState is in error', () => {
@@ -93,10 +93,10 @@ describe('XSTATE_TO_PHASE', () => {
   it('should map settled states to non-active phases', () => {
     // Settled states should map to phases that indicate completion or stoppage
     expect(XSTATE_TO_PHASE['plan_review']).toBe('planning');
-    expect(XSTATE_TO_PHASE['human_review']).toBe('complete');
+    expect(XSTATE_TO_PHASE['preview']).toBe('complete');
     expect(XSTATE_TO_PHASE['error']).toBe('failed');
     expect(XSTATE_TO_PHASE['done']).toBe('complete');
-    expect(XSTATE_TO_PHASE['pr_created']).toBe('complete');
+    expect(XSTATE_TO_PHASE['pr_ready']).toBe('complete');
     expect(XSTATE_TO_PHASE['creating_pr']).toBe('complete');
   });
 

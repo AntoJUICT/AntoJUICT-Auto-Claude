@@ -35,13 +35,12 @@ describe('taskMachine', () => {
       const actor = createActor(taskMachine);
       actor.start();
       const snapshot = actor.getSnapshot();
-      expect(snapshot.context.reviewReason).toBeUndefined();
       expect(snapshot.context.error).toBeUndefined();
       actor.stop();
     });
   });
 
-  describe('happy path: backlog → planning → coding → qa_review → human_review → done', () => {
+  describe('happy path: backlog → planning → coding → qa_review → preview → done', () => {
     it('should transition through the standard workflow', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
@@ -53,10 +52,9 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('done');
-      expect(snapshot.context.reviewReason).toBe('completed');
     });
 
-    it('should set reviewReason to completed when QA passes', () => {
+    it('should go to preview when QA passes', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 3, requireReviewBeforeCoding: false },
@@ -65,8 +63,7 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('completed');
+      expect(snapshot.value).toBe('preview');
     });
   });
 
@@ -79,7 +76,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('plan_review');
-      expect(snapshot.context.reviewReason).toBe('plan_review');
     });
 
     it('should transition from plan_review to coding on PLAN_APPROVED', () => {
@@ -91,7 +87,7 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('coding');
-      expect(snapshot.context.reviewReason).toBeUndefined();
+      expect(snapshot.context.error).toBeUndefined();
     });
 
     it('should complete full flow with plan_review', () => {
@@ -148,8 +144,7 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('completed');
+      expect(snapshot.value).toBe('preview');
     });
   });
 
@@ -162,7 +157,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('error');
-      expect(snapshot.context.reviewReason).toBe('errors');
       expect(snapshot.context.error).toBe('Test error');
     });
 
@@ -175,7 +169,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('error');
-      expect(snapshot.context.reviewReason).toBe('errors');
       expect(snapshot.context.error).toBe('Coding error');
     });
 
@@ -189,7 +182,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('error');
-      expect(snapshot.context.reviewReason).toBe('errors');
     });
 
     it('should transition to error on QA_AGENT_ERROR', () => {
@@ -202,7 +194,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('error');
-      expect(snapshot.context.reviewReason).toBe('errors');
     });
 
     it('should allow recovery from error via USER_RESUMED', () => {
@@ -214,7 +205,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('coding');
-      expect(snapshot.context.reviewReason).toBeUndefined();
       expect(snapshot.context.error).toBeUndefined();
     });
 
@@ -241,18 +231,17 @@ describe('taskMachine', () => {
       expect(snapshot.value).toBe('backlog');
     });
 
-    it('should go to human_review when stopped during planning with plan', () => {
+    it('should go to preview when stopped during planning with plan', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'USER_STOPPED', hasPlan: true }
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('stopped');
+      expect(snapshot.value).toBe('preview');
     });
 
-    it('should go to human_review when stopped during coding', () => {
+    it('should go to preview when stopped during coding', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 1, requireReviewBeforeCoding: false },
@@ -260,11 +249,10 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('stopped');
+      expect(snapshot.value).toBe('preview');
     });
 
-    it('should go to human_review when stopped during qa_review', () => {
+    it('should go to preview when stopped during qa_review', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 1, requireReviewBeforeCoding: false },
@@ -273,11 +261,10 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('stopped');
+      expect(snapshot.value).toBe('preview');
     });
 
-    it('should resume from human_review to coding', () => {
+    it('should resume from preview to coding', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 1, requireReviewBeforeCoding: false },
@@ -287,7 +274,7 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('coding');
-      expect(snapshot.context.reviewReason).toBeUndefined();
+      expect(snapshot.context.error).toBeUndefined();
     });
   });
 
@@ -305,7 +292,7 @@ describe('taskMachine', () => {
       expect(snapshot.value).toBe('creating_pr');
     });
 
-    it('should transition to pr_created on PR_CREATED', () => {
+    it('should transition to pr_ready on PR_CREATED', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 1, requireReviewBeforeCoding: false },
@@ -316,10 +303,10 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('pr_created');
+      expect(snapshot.value).toBe('pr_ready');
     });
 
-    it('should transition from pr_created to done on MARK_DONE', () => {
+    it('should transition from pr_ready to done on MARK_DONE', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 1, requireReviewBeforeCoding: false },
@@ -344,7 +331,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('error');
-      expect(snapshot.context.reviewReason).toBe('errors');
     });
 
     it('should go to error on unexpected process exit during coding', () => {
@@ -356,7 +342,6 @@ describe('taskMachine', () => {
 
       const snapshot = runEvents(events);
       expect(snapshot.value).toBe('error');
-      expect(snapshot.context.reviewReason).toBe('errors');
     });
 
     it('should NOT go to error on expected process exit (unexpected=false)', () => {
@@ -418,8 +403,7 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('completed');
+      expect(snapshot.value).toBe('preview');
     });
 
     it('should allow QA_PASSED from coding (missed QA_STARTED)', () => {
@@ -430,13 +414,12 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('completed');
+      expect(snapshot.value).toBe('preview');
     });
   });
 
-  describe('qa_rejected flow', () => {
-    it('should set reviewReason to qa_rejected when QA fails in qa_fixing', () => {
+  describe('qa_fixing second fail goes to preview', () => {
+    it('should go to preview when QA fails in qa_fixing (second fail)', () => {
       const events: TaskEvent[] = [
         { type: 'PLANNING_STARTED' },
         { type: 'PLANNING_COMPLETE', hasSubtasks: true, subtaskCount: 1, requireReviewBeforeCoding: false },
@@ -446,8 +429,7 @@ describe('taskMachine', () => {
       ];
 
       const snapshot = runEvents(events);
-      expect(snapshot.value).toBe('human_review');
-      expect(snapshot.context.reviewReason).toBe('qa_rejected');
+      expect(snapshot.value).toBe('preview');
     });
   });
 
@@ -460,9 +442,9 @@ describe('taskMachine', () => {
         { initialState: 'coding', expectedState: 'coding' },
         { initialState: 'qa_review', expectedState: 'qa_review' },
         { initialState: 'qa_fixing', expectedState: 'qa_fixing' },
-        { initialState: 'human_review', expectedState: 'human_review' },
+        { initialState: 'preview', expectedState: 'preview' },
         { initialState: 'error', expectedState: 'error' },
-        { initialState: 'pr_created', expectedState: 'pr_created' },
+        { initialState: 'pr_ready', expectedState: 'pr_ready' },
         { initialState: 'done', expectedState: 'done' }
       ];
 

@@ -545,7 +545,7 @@ export function App() {
     const qaReportChanged =
       JSON.stringify(selectedTask.qaReport || {}) !==
       JSON.stringify(updatedTask.qaReport || {});
-    const reviewReasonChanged = selectedTask.reviewReason !== updatedTask.reviewReason;
+    const reviewReasonChanged = false; // reviewReason field removed from Task
     const logsChanged =
       JSON.stringify(selectedTask.logs || []) !==
       JSON.stringify(updatedTask.logs || []);

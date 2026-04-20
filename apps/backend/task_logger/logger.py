@@ -8,7 +8,7 @@ from pathlib import Path
 from core.debug import debug, debug_error, debug_info, debug_success, is_debug_enabled
 
 from .ansi import strip_ansi_codes
-from .models import LogEntry, LogEntryType, LogPhase
+from .models import LogEntry, LogEntryType, LogPhase, TokenUsage
 from .storage import LogStorage
 from .streaming import emit_marker
 
@@ -552,6 +552,18 @@ class TaskLogger:
     def get_phase_logs(self, phase: LogPhase) -> dict:
         """Get logs for a specific phase."""
         return self.storage.get_phase_data(phase.value)
+
+    def log_token_usage(self, usage: TokenUsage) -> None:
+        """Log token usage for a single SDK response to token_usage.jsonl."""
+        import json
+        record = usage.to_dict()
+        record["timestamp"] = self._timestamp()
+        log_path = self.spec_dir / "token_usage.jsonl"
+        try:
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record) + "\n")
+        except OSError as e:
+            logger.warning(f"Failed to write token usage log: {e}")
 
     def clear(self) -> None:
         """Clear all logs (useful for testing)."""

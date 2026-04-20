@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { readFileSync, existsSync, mkdirSync, readdirSync, Dirent } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import type { Project, ProjectSettings, Task, TaskStatus, TaskMetadata, ImplementationPlan, ReviewReason, PlanSubtask, KanbanPreferences, ExecutionPhase } from '../shared/types';
+import type { Project, ProjectSettings, Task, TaskStatus, TaskMetadata, ImplementationPlan, PlanSubtask, KanbanPreferences, ExecutionPhase } from '../shared/types';
 import { DEFAULT_PROJECT_SETTINGS, AUTO_BUILD_PATHS, getSpecsDir, JSON_ERROR_PREFIX, JSON_ERROR_TITLE_SUFFIX, TASK_STATUS_PRIORITY } from '../shared/constants';
 import { getAutoBuildPath, isInitialized } from './project-initializer';
 import { getTaskWorktreeDir } from './worktree-paths';
@@ -10,6 +10,20 @@ import { findAllSpecPaths } from './utils/spec-path-helpers';
 import { ensureAbsolutePath } from './utils/path-helpers';
 import { writeFileAtomicSync } from './utils/atomic-file';
 import { updateRoadmapFeatureOutcome, revertRoadmapFeatureOutcome } from './utils/roadmap-utils';
+
+/**
+ * Migrate legacy task status values to superpowers pipeline statuses.
+ * Called when loading tasks from disk so old stored values map correctly.
+ */
+export function migrateTaskStatus(status: string): TaskStatus {
+  const migrations: Record<string, TaskStatus> = {
+    queue: 'backlog',
+    ai_review: 'in_progress',
+    pr_created: 'pr_ready',
+    human_review: 'plan_review',
+  };
+  return (migrations[status] ?? status) as TaskStatus;
+}
 
 interface TabState {
   openProjectIds: string[];
@@ -492,9 +506,9 @@ export class ProjectStore {
         const finalDescription = hasJsonError
           ? `${JSON_ERROR_PREFIX}${jsonErrorMessage}`
           : description;
-        // Tasks with JSON errors go to human_review with errors reason
-        const { status: finalStatus, reviewReason: finalReviewReason } = hasJsonError
-          ? { status: 'human_review' as TaskStatus, reviewReason: 'errors' as ReviewReason }
+        // Tasks with JSON errors go to preview (needs human attention)
+        const { status: finalStatus } = hasJsonError
+          ? { status: 'preview' as TaskStatus }
           : this.determineTaskStatusAndReason(plan);
 
         // Extract subtasks from plan (handle both 'subtasks' and 'chunks' naming)
@@ -509,11 +523,11 @@ export class ProjectStore {
           }));
         }) || [];
 
-        // Auto-correct status to human_review if all subtasks are completed
+        // Auto-correct status to preview if all subtasks are completed
         // This handles cases where task completed but app restarted before XState persisted the status
         // (e.g., QA_PASSED event emitted but not processed before shutdown)
-        const { status: correctedStatus, reviewReason: correctedReviewReason } = this.correctStaleTaskStatus(
-          subtasks, hasJsonError, finalStatus, finalReviewReason, plan, planPath, dir.name
+        const { status: correctedStatus } = this.correctStaleTaskStatus(
+          subtasks, hasJsonError, finalStatus, plan, planPath, dir.name
         );
 
         // Extract staged status from plan (set when changes are merged with --no-commit)
@@ -561,7 +575,6 @@ export class ProjectStore {
           subtasks,
           logs: [],
           metadata,
-          ...(correctedReviewReason !== undefined && { reviewReason: correctedReviewReason }),
           ...(executionProgress && { executionProgress }),
           stagedInMainProject,
           stagedAt,
@@ -591,22 +604,21 @@ export class ProjectStore {
     subtasks: { status: string }[],
     hasJsonError: boolean,
     finalStatus: TaskStatus,
-    finalReviewReason: ReviewReason | undefined,
     plan: ImplementationPlan | null,
     planPath: string,
     taskName: string
-  ): { status: TaskStatus; reviewReason: ReviewReason | undefined } {
+  ): { status: TaskStatus } {
     if (subtasks.length === 0 || hasJsonError) {
-      return { status: finalStatus, reviewReason: finalReviewReason };
+      return { status: finalStatus };
     }
 
     const completedCount = subtasks.filter(s => s.status === 'completed').length;
     const allCompleted = completedCount === subtasks.length;
 
     // Only auto-correct if all subtasks are done and status is in an incomplete coding state.
-    // Preserve ai_review (QA in progress), error (needs investigation), human_review, done, pr_created.
-    if (!allCompleted || finalStatus === 'human_review' || finalStatus === 'done' || finalStatus === 'pr_created' || finalStatus === 'ai_review' || finalStatus === 'error') {
-      return { status: finalStatus, reviewReason: finalReviewReason };
+    // Preserve preview (user review), error (needs investigation), done, pr_ready.
+    if (!allCompleted || finalStatus === 'preview' || finalStatus === 'done' || finalStatus === 'pr_ready' || finalStatus === 'error') {
+      return { status: finalStatus };
     }
 
     // Skip auto-correction if plan was recently updated (backend may still be writing)
@@ -614,21 +626,20 @@ export class ProjectStore {
       const updatedAt = new Date(plan.updated_at).getTime();
       const ageMs = Date.now() - updatedAt;
       if (ageMs < 30_000) {
-        return { status: finalStatus, reviewReason: finalReviewReason };
+        return { status: finalStatus };
       }
     }
 
-    console.warn(`[ProjectStore] Auto-correcting task ${taskName}: all ${subtasks.length} subtasks completed but status was ${finalStatus}. Setting to human_review.`);
+    console.warn(`[ProjectStore] Auto-correcting task ${taskName}: all ${subtasks.length} subtasks completed but status was ${finalStatus}. Setting to preview.`);
 
     if (plan) {
       // Clone before mutation — only apply to the original plan object if the write succeeds
       const correctedPlan = {
         ...plan,
-        status: 'human_review' as const,
+        status: 'preview' as const,
         planStatus: 'review',
-        reviewReason: 'completed' as ReviewReason,
         updated_at: new Date().toISOString(),
-        xstateState: 'human_review',
+        xstateState: 'preview',
         executionPhase: 'complete'
       };
       try {
@@ -642,11 +653,11 @@ export class ProjectStore {
         // Write failed — leave the plan object unchanged and return the original status
         // so there's no memory/disk inconsistency
         console.error(`[ProjectStore] Failed to persist corrected status for task ${taskName}:`, writeError);
-        return { status: finalStatus, reviewReason: finalReviewReason };
+        return { status: finalStatus };
       }
     }
 
-    return { status: 'human_review', reviewReason: 'completed' };
+    return { status: 'preview' };
   }
 
   /**
@@ -658,7 +669,7 @@ export class ProjectStore {
    */
   private determineTaskStatusAndReason(
     plan: ImplementationPlan | null
-  ): { status: TaskStatus; reviewReason?: ReviewReason } {
+  ): { status: TaskStatus } {
     if (!plan?.status) {
       return { status: 'backlog' };
     }
@@ -668,22 +679,28 @@ export class ProjectStore {
       'planning': 'in_progress',
       'in_progress': 'in_progress',
       'coding': 'in_progress',
-      'review': 'ai_review',
+      'review': 'in_progress',
       'completed': 'done',
       'done': 'done',
-      'human_review': 'human_review',
-      'ai_review': 'ai_review',
-      'pr_created': 'pr_created',
+      'human_review': 'preview',
+      'ai_review': 'in_progress',
+      'pr_created': 'pr_ready',
       'backlog': 'backlog',
       'error': 'error',
-      'queue': 'queue',
-      'queued': 'queue'
+      'queue': 'backlog',
+      'queued': 'backlog',
+      'brainstorming': 'brainstorming',
+      'spec_review': 'spec_review',
+      'plan_review': 'plan_review',
+      'preview': 'preview',
+      'pr_ready': 'pr_ready'
     };
 
-    const storedStatus = statusMap[plan.status] || 'backlog';
-    const reviewReason = storedStatus === 'human_review' ? plan.reviewReason : undefined;
+    // Apply legacy status migration first, then map through statusMap
+    const migratedStatus = migrateTaskStatus(plan.status);
+    const storedStatus = statusMap[migratedStatus] ?? migratedStatus;
 
-    return { status: storedStatus, reviewReason };
+    return { status: storedStatus };
   }
 
   /**

@@ -56,6 +56,7 @@ import { initializeClaudeProfileManager, getClaudeProfileManager } from './claud
 import { isProfileAuthenticated } from './claude-profile/profile-utils';
 import { isMacOS, isWindows } from './platform';
 import { ptyDaemonClient } from './terminal/pty-daemon-client';
+import { stopAllPreviews } from './preview';
 import type { AppSettings, AuthFailureInfo } from '../shared/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -339,10 +340,10 @@ function createWindow(): void {
 }
 
 // Set app name before ready (for dock tooltip on macOS in dev mode)
-app.setName('Auto Claude');
+app.setName('JUICT agentic OS');
 if (isMacOS()) {
   // Force the name to appear in dock on macOS
-  app.name = 'Auto Claude';
+  app.name = 'JUICT agentic OS';
 }
 
 // Fix Windows GPU cache permission errors (0x5 Access Denied)
@@ -355,7 +356,7 @@ if (isWindows()) {
 // Initialize the application
 app.whenReady().then(() => {
   // Set app user model id for Windows
-  electronApp.setAppUserModelId('com.autoclaude.ui');
+  electronApp.setAppUserModelId('com.juict.agentic-os');
 
   // Clear cache on Windows to prevent permission errors from stale cache
   if (isWindows()) {
@@ -616,6 +617,9 @@ app.on('before-quit', (event) => {
 
   // Pause quit to perform async cleanup
   event.preventDefault();
+
+  // Stop all preview servers
+  stopAllPreviews();
 
   // Stop synchronous services immediately
   stopPeriodicUpdates();

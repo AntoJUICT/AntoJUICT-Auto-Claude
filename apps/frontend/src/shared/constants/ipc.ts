@@ -28,6 +28,10 @@ export const IPC_CHANNELS = {
   TASK_START: 'task:start',
   TASK_STOP: 'task:stop',
   TASK_REVIEW: 'task:review',
+  TASK_APPROVE_SPEC: 'task:approveSpec',
+  TASK_APPROVE_PLAN: 'task:approvePlan',
+  TASK_APPROVE_PREVIEW: 'task:approvePreview',
+  TASK_SEND_BACK: 'task:sendBack',
   TASK_UPDATE_STATUS: 'task:updateStatus',
   TASK_RECOVER_STUCK: 'task:recoverStuck',
   TASK_CHECK_RUNNING: 'task:checkRunning',
@@ -585,5 +589,12 @@ export const IPC_CHANNELS = {
   // Queue routing events (main -> renderer)
   QUEUE_PROFILE_SWAPPED: 'queue:profileSwapped',      // Task switched to different profile
   QUEUE_SESSION_CAPTURED: 'queue:sessionCaptured',    // Session ID captured from running task
-  QUEUE_BLOCKED_NO_PROFILES: 'queue:blockedNoProfiles' // All profiles unavailable
+  QUEUE_BLOCKED_NO_PROFILES: 'queue:blockedNoProfiles', // All profiles unavailable
+
+  // Preview (dev server control and visual preview)
+  PREVIEW_START: 'preview:start',
+  PREVIEW_STOP: 'preview:stop',
+  PREVIEW_STATUS: 'preview:status',
+  PREVIEW_DETECT: 'preview:detect',
+  PREVIEW_KEEP_ALIVE: 'preview:keepAlive',
 } as const;

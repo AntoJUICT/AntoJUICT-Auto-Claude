@@ -7,7 +7,7 @@
   "sections": {
     "appearance": {
       "title": "Apparence",
-      "description": "Personnalisez l'apparence de Auto Claude"
+      "description": "Personnalisez l'apparence de JUICT agentic OS"
     },
     "display": {
       "title": "Affichage",
@@ -35,7 +35,7 @@
     },
     "updates": {
       "title": "Mises à jour",
-      "description": "Mises à jour Auto Claude"
+      "description": "Mises à jour JUICT agentic OS"
     },
     "notifications": {
       "title": "Notifications",

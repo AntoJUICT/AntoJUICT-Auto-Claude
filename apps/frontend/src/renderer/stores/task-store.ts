@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { arrayMove } from '@dnd-kit/sortable';
-import type { Task, TaskStatus, SubtaskStatus, ImplementationPlan, Subtask, TaskMetadata, ExecutionProgress, ExecutionPhase, ReviewReason, TaskDraft, ImageAttachment, TaskOrderState } from '../../shared/types';
+import type { Task, TaskStatus, SubtaskStatus, ImplementationPlan, Subtask, TaskMetadata, ExecutionProgress, ExecutionPhase, TaskDraft, ImageAttachment, TaskOrderState } from '../../shared/types';
 import { debugLog, debugWarn } from '../../shared/utils/debug-logger';
 import { useProjectStore } from './project-store';
 
@@ -21,7 +21,7 @@ interface TaskState {
   setTasks: (tasks: Task[]) => void;
   addTask: (task: Task) => void;
   updateTask: (taskId: string, updates: Partial<Task>) => void;
-  updateTaskStatus: (taskId: string, status: TaskStatus, reviewReason?: ReviewReason) => void;
+  updateTaskStatus: (taskId: string, status: TaskStatus) => void;
   updateTaskFromPlan: (taskId: string, plan: ImplementationPlan) => void;
   updateExecutionProgress: (taskId: string, progress: Partial<ExecutionProgress>) => void;
   appendLog: (taskId: string, log: string) => void;
@@ -181,12 +181,14 @@ function getTaskOrderKey(projectId: string): string {
 function createEmptyTaskOrder(): TaskOrderState {
   return {
     backlog: [],
-    queue: [],
+    brainstorming: [],
+    spec_review: [],
+    planning: [],
+    plan_review: [],
     in_progress: [],
-    ai_review: [],
-    human_review: [],
+    preview: [],
+    pr_ready: [],
     done: [],
-    pr_created: [],
     error: []
   };
 }
@@ -263,7 +265,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       };
     }),
 
-  updateTaskStatus: (taskId, status, reviewReason) => {
+  updateTaskStatus: (taskId, status) => {
     // Record activity for stuck detection — status changes prove the task is alive
     recordTaskActivity(taskId);
 
@@ -277,9 +279,9 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     const oldTask = state.tasks[index];
     const oldStatus = oldTask.status;
 
-    // Skip if status AND reviewReason are the same
-    if (oldStatus === status && oldTask.reviewReason === reviewReason) {
-      debugLog('[updateTaskStatus] Status and reviewReason unchanged, skipping:', { taskId, status, reviewReason });
+    // Skip if status is the same
+    if (oldStatus === status) {
+      debugLog('[updateTaskStatus] Status unchanged, skipping:', { taskId, status });
       return;
     }
 
@@ -321,7 +323,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
             newPhase: executionProgress?.phase
           });
 
-          return { ...t, status, reviewReason, executionProgress, updatedAt: new Date() };
+          return { ...t, status, executionProgress, updatedAt: new Date() };
         })
       };
     });
@@ -599,12 +601,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         const emptyOrder = createEmptyTaskOrder();
         const validatedOrder: TaskOrderState = {
           backlog: isValidColumnArray(parsed.backlog) ? parsed.backlog : emptyOrder.backlog,
-          queue: isValidColumnArray(parsed.queue) ? parsed.queue : emptyOrder.queue,
+          brainstorming: isValidColumnArray(parsed.brainstorming) ? parsed.brainstorming : emptyOrder.brainstorming,
+          spec_review: isValidColumnArray(parsed.spec_review) ? parsed.spec_review : emptyOrder.spec_review,
+          planning: isValidColumnArray(parsed.planning) ? parsed.planning : emptyOrder.planning,
+          plan_review: isValidColumnArray(parsed.plan_review) ? parsed.plan_review : emptyOrder.plan_review,
           in_progress: isValidColumnArray(parsed.in_progress) ? parsed.in_progress : emptyOrder.in_progress,
-          ai_review: isValidColumnArray(parsed.ai_review) ? parsed.ai_review : emptyOrder.ai_review,
-          human_review: isValidColumnArray(parsed.human_review) ? parsed.human_review : emptyOrder.human_review,
+          preview: isValidColumnArray(parsed.preview) ? parsed.preview : emptyOrder.preview,
+          pr_ready: isValidColumnArray(parsed.pr_ready) ? parsed.pr_ready : emptyOrder.pr_ready,
           done: isValidColumnArray(parsed.done) ? parsed.done : emptyOrder.done,
-          pr_created: isValidColumnArray(parsed.pr_created) ? parsed.pr_created : emptyOrder.pr_created,
           error: isValidColumnArray(parsed.error) ? parsed.error : emptyOrder.error
         };
 
@@ -869,7 +873,7 @@ export async function startTaskOrQueue(taskId: string): Promise<StartTaskOrQueue
   const excludeId = task?.status === 'in_progress' ? taskId : undefined;
 
   if (isQueueAtCapacity(excludeId)) {
-    const result = await persistTaskStatus(taskId, 'queue');
+    const result = await persistTaskStatus(taskId, 'backlog');
     if (!result.success) {
       console.error('[Queue] Failed to queue task:', taskId, result.error);
       return { action: 'queued', success: false, error: result.error };
@@ -1183,13 +1187,9 @@ export function getTaskByGitHubIssue(issueNumber: number): Task | undefined {
  * and should be resumed rather than reviewed.
  */
 export function isIncompleteHumanReview(task: Task): boolean {
-  if (task.status !== 'human_review') return false;
+  if (task.status !== 'preview') return false;
 
-  // JSON error tasks are intentionally in human_review with no subtasks - not incomplete
-  // plan_review tasks are waiting for human approval before coding - not incomplete
-  if (task.reviewReason === 'errors' || task.reviewReason === 'stopped' || task.reviewReason === 'plan_review') return false;
-
-  // If no subtasks defined, task hasn't been planned yet (shouldn't be in human_review)
+  // If no subtasks defined, task hasn't been planned yet (shouldn't be in preview)
   if (!task.subtasks || task.subtasks.length === 0) return true;
 
   // Check if any subtasks are completed

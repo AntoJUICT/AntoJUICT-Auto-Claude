@@ -28,6 +28,10 @@ export interface ProjectSettings {
   useClaudeMd?: boolean;
   /** Maximum parallel tasks allowed (default: 3) */
   maxParallelTasks?: number;
+  /** Dev server command for visual preview (e.g., 'npm run dev'). Persisted per project. */
+  devCommand?: string;
+  /** Last used dev server port hint; actual port is allocated at runtime. */
+  devPort?: number;
 }
 
 export interface NotificationSettings {

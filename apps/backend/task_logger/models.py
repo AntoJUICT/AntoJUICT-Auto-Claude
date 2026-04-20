@@ -2,7 +2,7 @@
 Data models for task logging.
 """
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 
 
@@ -75,3 +75,18 @@ class PhaseLog:
             "completed_at": self.completed_at,
             "entries": self.entries,
         }
+
+
+@dataclass
+class TokenUsage:
+    """Token usage for a single SDK response."""
+
+    agent_stage: str  # planner | coder | qa_reviewer | qa_fixer
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cache_creation_input_tokens: int = 0
+    cache_read_input_tokens: int = 0
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+

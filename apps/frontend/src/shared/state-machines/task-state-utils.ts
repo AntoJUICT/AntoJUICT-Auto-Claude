@@ -5,7 +5,7 @@
  * derived from the task machine definition. Used by task-state-manager and
  * agent-events-handlers to avoid duplicate constants.
  */
-import type { TaskStatus, ReviewReason, ExecutionPhase } from '../types';
+import type { TaskStatus, ExecutionPhase } from '../types';
 
 /**
  * All XState task state names.
@@ -15,8 +15,8 @@ import type { TaskStatus, ReviewReason, ExecutionPhase } from '../types';
  */
 export const TASK_STATE_NAMES = [
   'backlog', 'planning', 'plan_review', 'coding',
-  'qa_review', 'qa_fixing', 'human_review', 'error',
-  'creating_pr', 'pr_created', 'done'
+  'qa_review', 'qa_fixing', 'preview', 'error',
+  'creating_pr', 'pr_ready', 'done'
 ] as const;
 
 export type TaskStateName = typeof TASK_STATE_NAMES[number];
@@ -33,7 +33,7 @@ export type TaskStateName = typeof TASK_STATE_NAMES[number];
  * blocks — new execution-progress events flow through normally.
  */
 export const XSTATE_SETTLED_STATES: ReadonlySet<string> = new Set<TaskStateName>([
-  'plan_review', 'human_review', 'error', 'creating_pr', 'pr_created', 'done'
+  'plan_review', 'preview', 'error', 'creating_pr', 'pr_ready', 'done'
 ]);
 
 /** Maps XState states to execution phases. */
@@ -44,46 +44,49 @@ export const XSTATE_TO_PHASE: Record<TaskStateName, ExecutionPhase> & Record<str
   'coding': 'coding',
   'qa_review': 'qa_review',
   'qa_fixing': 'qa_fixing',
-  'human_review': 'complete',
+  'preview': 'complete',
   'error': 'failed',
   'creating_pr': 'complete',
-  'pr_created': 'complete',
+  'pr_ready': 'complete',
   'done': 'complete'
 };
 
 /**
- * Convert XState state to legacy status/reviewReason pair.
- *
- * When reviewReason is provided (from XState context), it's used for the
- * human_review state. Otherwise defaults to 'completed' (used by re-stamp
- * callers that don't have access to the XState context).
+ * Convert XState state to TaskStatus.
  */
-export function mapStateToLegacy(
-  state: string,
-  reviewReason?: ReviewReason
-): { status: TaskStatus; reviewReason?: ReviewReason } {
+export function mapStateToStatus(state: string): TaskStatus {
   switch (state) {
     case 'backlog':
-      return { status: 'backlog' };
+      return 'backlog';
     case 'planning':
     case 'coding':
-      return { status: 'in_progress' };
+      return 'in_progress';
     case 'plan_review':
-      return { status: 'human_review', reviewReason: 'plan_review' };
+      return 'plan_review';
     case 'qa_review':
     case 'qa_fixing':
-      return { status: 'ai_review' };
-    case 'human_review':
-      return { status: 'human_review', reviewReason: reviewReason ?? 'completed' };
+      return 'in_progress';
+    case 'preview':
+      return 'preview';
     case 'error':
-      return { status: 'human_review', reviewReason: 'errors' };
+      return 'error';
     case 'creating_pr':
-      return { status: 'human_review', reviewReason: 'completed' };
-    case 'pr_created':
-      return { status: 'pr_created' };
+      return 'preview';
+    case 'pr_ready':
+      return 'pr_ready';
     case 'done':
-      return { status: 'done' };
+      return 'done';
     default:
-      return { status: 'backlog' };
+      return 'backlog';
   }
+}
+
+/**
+ * @deprecated Use mapStateToStatus instead.
+ * Convert XState state to legacy status pair (kept for backward compat).
+ */
+export function mapStateToLegacy(
+  state: string
+): { status: TaskStatus } {
+  return { status: mapStateToStatus(state) };
 }

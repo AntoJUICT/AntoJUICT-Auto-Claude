@@ -204,8 +204,8 @@ describe('TaskEditDialog Logic', () => {
       expect(isEditDisabled).toBe(false);
     });
 
-    it('should be enabled for tasks in human_review', () => {
-      const task = createTestTask({ status: 'human_review' });
+    it('should be enabled for tasks in preview', () => {
+      const task = createTestTask({ status: 'preview' });
       const isRunning = task.status === 'in_progress';
       const isStuck = false;
 

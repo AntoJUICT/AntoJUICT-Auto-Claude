@@ -38,9 +38,7 @@ export function NoWorkspaceMessage({ task, onClose }: NoWorkspaceMessageProps) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const isPlanReview =
-    task?.status === 'human_review' &&
-    task.reviewReason === 'plan_review';
+  const isPlanReview = task?.status === 'plan_review';
 
   const handleMarkDone = async () => {
     if (!task) return;
@@ -111,7 +109,7 @@ export function NoWorkspaceMessage({ task, onClose }: NoWorkspaceMessageProps) {
             </>
           )}
         </Button>
-      ) : task && task.status === 'human_review' && (
+      ) : task && task.status === 'preview' && (
         <Button
           onClick={handleMarkDone}
           disabled={isMarkingDone}

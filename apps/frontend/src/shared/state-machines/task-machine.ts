@@ -1,8 +1,6 @@
 import { assign, createMachine } from 'xstate';
-import type { ReviewReason } from '../types';
 
 export interface TaskContext {
-  reviewReason?: ReviewReason;
   error?: string;
 }
 
@@ -43,7 +41,6 @@ export const taskMachine = createMachine(
       events: TaskEvent;
     },
     context: {
-      reviewReason: undefined,
       error: undefined
     },
     states: {
@@ -60,32 +57,31 @@ export const taskMachine = createMachine(
           PLANNING_COMPLETE: [
             {
               target: 'plan_review',
-              guard: 'requiresReview',
-              actions: 'setReviewReasonPlan'
+              guard: 'requiresReview'
             },
-            { target: 'coding', actions: 'clearReviewReason' }
+            { target: 'coding' }
           ],
           // Fallback: if CODING_STARTED arrives while in planning, transition to coding
-          CODING_STARTED: { target: 'coding', actions: 'clearReviewReason' },
+          CODING_STARTED: 'coding',
           // Fallback: if ALL_SUBTASKS_DONE arrives while in planning, go directly to qa_review
           ALL_SUBTASKS_DONE: 'qa_review',
           // Fallback: if QA_STARTED arrives while in planning, go to qa_review
           QA_STARTED: 'qa_review',
-          // Fallback: if QA_PASSED arrives while in planning (entire build completed), go to human_review
-          QA_PASSED: { target: 'human_review', actions: 'setReviewReasonCompleted' },
-          PLANNING_FAILED: { target: 'error', actions: ['setReviewReasonErrors', 'setError'] },
+          // Fallback: if QA_PASSED arrives while in planning (entire build completed), go to preview
+          QA_PASSED: 'preview',
+          PLANNING_FAILED: { target: 'error', actions: 'setError' },
           USER_STOPPED: [
-            { target: 'backlog', guard: 'noPlanYet', actions: 'clearReviewReason' },
-            { target: 'human_review', actions: 'setReviewReasonStopped' }
+            { target: 'backlog', guard: 'noPlanYet' },
+            { target: 'preview' }
           ],
-          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit', actions: 'setReviewReasonErrors' }
+          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit' }
         }
       },
       plan_review: {
         on: {
-          PLAN_APPROVED: { target: 'coding', actions: 'clearReviewReason' },
-          USER_STOPPED: { target: 'backlog', actions: 'clearReviewReason' },
-          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit', actions: 'setReviewReasonErrors' }
+          PLAN_APPROVED: 'coding',
+          USER_STOPPED: 'backlog',
+          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit' }
         }
       },
       coding: {
@@ -94,57 +90,57 @@ export const taskMachine = createMachine(
           // ALL_SUBTASKS_DONE means coder finished but QA hasn't started yet
           // Transition to qa_review - QA will emit QA_PASSED or QA_FAILED
           ALL_SUBTASKS_DONE: 'qa_review',
-          // Fallback: if QA_PASSED arrives while still in coding (missed QA_STARTED), go to human_review
-          QA_PASSED: { target: 'human_review', actions: 'setReviewReasonCompleted' },
-          CODING_FAILED: { target: 'error', actions: ['setReviewReasonErrors', 'setError'] },
-          USER_STOPPED: { target: 'human_review', actions: 'setReviewReasonStopped' },
-          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit', actions: 'setReviewReasonErrors' }
+          // Fallback: if QA_PASSED arrives while still in coding (missed QA_STARTED), go to preview
+          QA_PASSED: 'preview',
+          CODING_FAILED: { target: 'error', actions: 'setError' },
+          USER_STOPPED: 'preview',
+          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit' }
         }
       },
       qa_review: {
         on: {
           QA_FAILED: 'qa_fixing',
-          QA_PASSED: { target: 'human_review', actions: 'setReviewReasonCompleted' },
-          QA_MAX_ITERATIONS: { target: 'error', actions: 'setReviewReasonErrors' },
-          QA_AGENT_ERROR: { target: 'error', actions: 'setReviewReasonErrors' },
-          USER_STOPPED: { target: 'human_review', actions: 'setReviewReasonStopped' },
-          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit', actions: 'setReviewReasonErrors' }
+          QA_PASSED: 'preview',
+          QA_MAX_ITERATIONS: 'error',
+          QA_AGENT_ERROR: 'error',
+          USER_STOPPED: 'preview',
+          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit' }
         }
       },
       qa_fixing: {
         on: {
           QA_FIXING_COMPLETE: 'qa_review',
-          QA_FAILED: { target: 'human_review', actions: 'setReviewReasonQaRejected' },
-          QA_PASSED: { target: 'human_review', actions: 'setReviewReasonCompleted' },
-          QA_MAX_ITERATIONS: { target: 'error', actions: 'setReviewReasonErrors' },
-          QA_AGENT_ERROR: { target: 'error', actions: 'setReviewReasonErrors' },
-          USER_STOPPED: { target: 'human_review', actions: 'setReviewReasonStopped' },
-          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit', actions: 'setReviewReasonErrors' }
+          QA_FAILED: 'preview',
+          QA_PASSED: 'preview',
+          QA_MAX_ITERATIONS: 'error',
+          QA_AGENT_ERROR: 'error',
+          USER_STOPPED: 'preview',
+          PROCESS_EXITED: { target: 'error', guard: 'unexpectedExit' }
         }
       },
-      human_review: {
+      preview: {
         on: {
           CREATE_PR: 'creating_pr',
           MARK_DONE: 'done',
-          USER_RESUMED: { target: 'coding', actions: 'clearReviewReason' },
-          // Allow restarting planning from human_review (e.g., incomplete task with no subtasks)
-          PLANNING_STARTED: { target: 'planning', actions: 'clearReviewReason' }
+          USER_RESUMED: 'coding',
+          // Allow restarting planning from preview (e.g., incomplete task with no subtasks)
+          PLANNING_STARTED: 'planning'
         }
       },
       error: {
         on: {
-          USER_RESUMED: { target: 'coding', actions: 'clearReviewReason' },
+          USER_RESUMED: { target: 'coding', actions: 'clearError' },
           // Allow restarting from error back to planning (e.g., spec creation crashed)
-          PLANNING_STARTED: { target: 'planning', actions: 'clearReviewReason' },
+          PLANNING_STARTED: { target: 'planning', actions: 'clearError' },
           MARK_DONE: 'done'
         }
       },
       creating_pr: {
         on: {
-          PR_CREATED: 'pr_created'
+          PR_CREATED: 'pr_ready'
         }
       },
-      pr_created: {
+      pr_ready: {
         on: {
           MARK_DONE: 'done'
         }
@@ -162,12 +158,6 @@ export const taskMachine = createMachine(
       unexpectedExit: ({ event }) => event.type === 'PROCESS_EXITED' && event.unexpected === true
     },
     actions: {
-      setReviewReasonPlan: assign({ reviewReason: () => 'plan_review' }),
-      setReviewReasonCompleted: assign({ reviewReason: () => 'completed' }),
-      setReviewReasonStopped: assign({ reviewReason: () => 'stopped' }),
-      setReviewReasonQaRejected: assign({ reviewReason: () => 'qa_rejected' }),
-      setReviewReasonErrors: assign({ reviewReason: () => 'errors' }),
-      clearReviewReason: assign({ reviewReason: () => undefined, error: () => undefined }),
       setError: assign({
         error: ({ event }) => {
           if (event.type === 'PLANNING_FAILED') {
@@ -178,6 +168,9 @@ export const taskMachine = createMachine(
           }
           return undefined;
         }
+      }),
+      clearError: assign({
+        error: () => undefined
       })
     }
   }

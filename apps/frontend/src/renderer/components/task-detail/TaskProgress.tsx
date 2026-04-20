@@ -80,7 +80,7 @@ export function TaskProgress({ task, isRunning, hasActiveExecution, executionPha
             task.status === 'done' && '[&>div]:bg-success',
             hasActiveExecution && '[&>div]:bg-info'
           )}
-          animated={isRunning || task.status === 'ai_review'}
+          animated={isRunning}
         />
       </div>
       {/* Phase Progress Bar Segments */}

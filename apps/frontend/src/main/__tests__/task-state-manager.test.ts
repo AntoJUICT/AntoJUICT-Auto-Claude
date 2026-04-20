@@ -220,25 +220,23 @@ describe('TaskStateManager', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle pr_created status', () => {
+    it('should handle pr_ready status', () => {
       const taskWithPrUrl = createMockTask({ metadata: { prUrl: 'https://github.com/test/pr/1' } });
-      const result = manager.handleManualStatusChange(mockTask.id, 'pr_created', taskWithPrUrl, mockProject);
+      const result = manager.handleManualStatusChange(mockTask.id, 'pr_ready', taskWithPrUrl, mockProject);
       expect(result).toBe(true);
     });
 
     it('should handle in_progress status with plan_review', () => {
       const taskInPlanReview = createMockTask({
-        status: 'human_review',
-        reviewReason: 'plan_review'
+        status: 'plan_review'
       });
       const result = manager.handleManualStatusChange(mockTask.id, 'in_progress', taskInPlanReview, mockProject);
       expect(result).toBe(true);
     });
 
-    it('should handle in_progress status without plan_review', () => {
+    it('should handle in_progress status from preview', () => {
       const stoppedTask = createMockTask({
-        status: 'human_review',
-        reviewReason: 'stopped'
+        status: 'preview'
       });
       const result = manager.handleManualStatusChange(mockTask.id, 'in_progress', stoppedTask, mockProject);
       expect(result).toBe(true);
@@ -249,26 +247,24 @@ describe('TaskStateManager', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle human_review status (stage-only merge keeps task in review)', () => {
+    it('should handle preview status (stage-only merge keeps task in review)', () => {
       const taskInReview = createMockTask({
-        status: 'human_review',
-        reviewReason: 'completed'
+        status: 'preview'
       });
-      const result = manager.handleManualStatusChange(mockTask.id, 'human_review', taskInReview, mockProject);
+      const result = manager.handleManualStatusChange(mockTask.id, 'preview', taskInReview, mockProject);
       expect(result).toBe(true);
     });
 
-    it('should handle human_review with default reviewReason when task has none', () => {
+    it('should handle preview status when task has no prior reason', () => {
       const taskNoReason = createMockTask({
-        status: 'human_review'
-        // no reviewReason set
+        status: 'backlog'
       });
-      const result = manager.handleManualStatusChange(mockTask.id, 'human_review', taskNoReason, mockProject);
+      const result = manager.handleManualStatusChange(mockTask.id, 'preview', taskNoReason, mockProject);
       expect(result).toBe(true);
     });
 
     it('should return false for unhandled status', () => {
-      const result = manager.handleManualStatusChange(mockTask.id, 'ai_review', mockTask, mockProject);
+      const result = manager.handleManualStatusChange(mockTask.id, 'error', mockTask, mockProject);
       expect(result).toBe(false);
     });
   });
@@ -494,10 +490,9 @@ describe('TaskStateManager', () => {
       // No error should occur
     });
 
-    it('should restore actor state from task with human_review/plan_review', () => {
+    it('should restore actor state from task with plan_review status', () => {
       const taskInPlanReview = createMockTask({
-        status: 'human_review',
-        reviewReason: 'plan_review'
+        status: 'plan_review'
       });
 
       // Actor should be created in plan_review state
@@ -508,8 +503,7 @@ describe('TaskStateManager', () => {
 
     it('should restore actor state from task with error status', () => {
       const taskInError = createMockTask({
-        status: 'error',
-        reviewReason: 'errors'
+        status: 'error'
       });
 
       // Actor should be created in error state

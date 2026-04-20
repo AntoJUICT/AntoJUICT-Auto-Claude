@@ -1,0 +1,55 @@
+{
+  "preview": {
+    "badge": {
+      "starting": "Starting…",
+      "running": "Preview running",
+      "stopped": "Stopped",
+      "error": "Preview error"
+    },
+    "actions": {
+      "start": "Start preview",
+      "stop": "Stop preview",
+      "open": "Open in browser",
+      "keepAlive": "Keep alive"
+    },
+    "firstTime": {
+      "title": "Visual Preview",
+      "description": "JUICT agentic OS can start your project's dev server and show a live preview inside the app. Click 'Start preview' on any task card to try it.",
+      "dismiss": "Got it",
+      "dontShowAgain": "Don't show again"
+    },
+    "status": {
+      "port": "Port {{port}}",
+      "idleWarning": "Idle — will stop in {{minutes}} min",
+      "startFailed": "Failed to start: {{error}}"
+    }
+  },
+  "columns": {
+    "backlog": "Backlog",
+    "brainstorming": "Brainstorming",
+    "spec_review": "Spec Review",
+    "planning": "Planning",
+    "plan_review": "Plan Review",
+    "in_progress": "In Progress",
+    "preview": "Preview",
+    "pr_ready": "PR Ready",
+    "done": "Done",
+    "error": "Error"
+  },
+  "subtaskProgress": {
+    "label": "Subtask {{current}}/{{total}} — {{phase}}"
+  },
+  "subtaskPhase": {
+    "implementing": "Implementing",
+    "spec_review": "Spec review",
+    "quality_review": "Quality review",
+    "done": "Done",
+    "failed": "Failed"
+  },
+  "approval": {
+    "spec_review": { "approve": "Approve spec" },
+    "plan_review": { "approve": "Approve plan" },
+    "preview": { "approve": "Approve → PR" },
+    "sendBack": "Send back"
+  }
+}
