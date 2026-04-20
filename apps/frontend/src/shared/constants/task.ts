@@ -20,13 +20,12 @@ export const TASK_STATUS_COLUMNS = [
   'preview',
   'pr_ready',
   'done',
-  'error'
 ] as const;
 
 export type TaskStatusColumn = typeof TASK_STATUS_COLUMNS[number];
 
 // Status label translation keys (use with t() from react-i18next)
-export const TASK_STATUS_LABELS: Record<TaskStatusColumn, string> = {
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   backlog: 'columns.backlog',
   brainstorming: 'columns.brainstorming',
   spec_review: 'columns.spec_review',
@@ -36,37 +35,37 @@ export const TASK_STATUS_LABELS: Record<TaskStatusColumn, string> = {
   preview: 'columns.preview',
   pr_ready: 'columns.pr_ready',
   done: 'columns.done',
-  error: 'columns.error'
+  error: 'columns.error',
 };
 
 // Status colors for UI
-export const TASK_STATUS_COLORS: Record<TaskStatusColumn, string> = {
+export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
   backlog: 'bg-muted text-muted-foreground',
-  brainstorming: 'bg-violet-500/10 text-violet-400',
-  spec_review: 'bg-amber-500/10 text-amber-400',
-  planning: 'bg-cyan-500/10 text-cyan-400',
+  brainstorming: 'bg-purple-500/10 text-purple-400',
+  spec_review: 'bg-orange-500/10 text-orange-400',
+  planning: 'bg-info/10 text-info',
   plan_review: 'bg-orange-500/10 text-orange-400',
   in_progress: 'bg-info/10 text-info',
-  preview: 'bg-purple-500/10 text-purple-400',
+  preview: 'bg-teal-500/10 text-teal-400',
   pr_ready: 'bg-success/10 text-success',
   done: 'bg-success/10 text-success',
-  error: 'bg-destructive/10 text-destructive'
+  error: 'bg-destructive/10 text-destructive',
 };
 
 // Status priority for deduplication: higher = more complete
 // Used in project-store.ts to resolve duplicate tasks (main vs worktree)
 // IMPORTANT: Must follow workflow order: backlog < brainstorming < ... < done
 export const TASK_STATUS_PRIORITY: Record<TaskStatus, number> = {
-  'done': 100,           // Highest priority - task is complete
-  'pr_ready': 90,
-  'preview': 80,
-  'in_progress': 60,
-  'plan_review': 50,
-  'planning': 40,
-  'spec_review': 35,
-  'brainstorming': 30,
-  'backlog': 20,
-  'error': 10           // Lowest priority
+  done: 100,
+  pr_ready: 90,
+  preview: 80,
+  in_progress: 70,
+  plan_review: 60,
+  planning: 50,
+  spec_review: 40,
+  brainstorming: 30,
+  backlog: 20,
+  error: 10,
 } as const;
 
 // ============================================
