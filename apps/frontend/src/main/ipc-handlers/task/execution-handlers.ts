@@ -1,5 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS, AUTO_BUILD_PATHS, getSpecsDir } from '../../../shared/constants';
+import * as pipeline from '../../pipeline';
 import type { IPCResult, TaskStartOptions, TaskStatus, ImageAttachment } from '../../../shared/types';
 import path from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
@@ -559,34 +560,47 @@ export function registerTaskExecutionHandlers(
   );
 
   /**
-   * Approve spec — stub for Plan C pipeline orchestrator wiring
+   * Approve spec — advances task from spec_review to planning phase
    */
-  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_SPEC, async (_event, _taskId: string) => {
-    // TODO Plan C: wire to pipeline orchestrator
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_SPEC, async (_event, taskId: string) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.approveSpec(win, taskId);
     return { success: true };
   });
 
   /**
-   * Approve plan — stub for Plan C pipeline orchestrator wiring
+   * Approve plan — advances task from plan_review to in_progress phase
    */
-  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PLAN, async (_event, _taskId: string) => {
-    // TODO Plan C: wire to pipeline orchestrator
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PLAN, async (_event, taskId: string) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.approvePlan(win, taskId);
     return { success: true };
   });
 
   /**
-   * Approve preview — stub for Plan C pipeline orchestrator wiring
+   * Approve preview — advances task from preview to pr_ready phase
    */
-  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PREVIEW, async (_event, _taskId: string) => {
-    // TODO Plan C: wire to pipeline orchestrator
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PREVIEW, async (_event, taskId: string) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.approvePreview(win, taskId);
     return { success: true };
   });
 
   /**
-   * Send back — stub for Plan C pipeline orchestrator wiring
+   * Send back — returns task to a previous review phase for rework
    */
-  ipcMain.handle(IPC_CHANNELS.TASK_SEND_BACK, async (_event, _taskId: string, _target: string, _note?: string) => {
-    // TODO Plan C: wire to pipeline orchestrator
+  ipcMain.handle(IPC_CHANNELS.TASK_SEND_BACK, async (
+    _event,
+    taskId: string,
+    target: 'spec_review' | 'plan_review',
+    note?: string
+  ) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return { success: false, error: 'No window' };
+    pipeline.sendBack(win, taskId, target, note);
     return { success: true };
   });
 
