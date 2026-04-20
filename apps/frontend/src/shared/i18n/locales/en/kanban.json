@@ -23,5 +23,33 @@
       "idleWarning": "Idle — will stop in {{minutes}} min",
       "startFailed": "Failed to start: {{error}}"
     }
+  },
+  "columns": {
+    "backlog": "Backlog",
+    "brainstorming": "Brainstorming",
+    "spec_review": "Spec Review",
+    "planning": "Planning",
+    "plan_review": "Plan Review",
+    "in_progress": "In Progress",
+    "preview": "Preview",
+    "pr_ready": "PR Ready",
+    "done": "Done",
+    "error": "Error"
+  },
+  "subtaskProgress": {
+    "label": "Subtask {{current}}/{{total}} — {{phase}}"
+  },
+  "subtaskPhase": {
+    "implementing": "Implementing",
+    "spec_review": "Spec review",
+    "quality_review": "Quality review",
+    "done": "Done",
+    "failed": "Failed"
+  },
+  "approval": {
+    "spec_review": { "approve": "Approve spec" },
+    "plan_review": { "approve": "Approve plan" },
+    "preview": { "approve": "Approve → PR" },
+    "sendBack": "Send back"
   }
 }
