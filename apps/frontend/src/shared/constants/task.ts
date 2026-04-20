@@ -26,16 +26,16 @@ export type TaskStatusColumn = typeof TASK_STATUS_COLUMNS[number];
 
 // Status label translation keys (use with t() from react-i18next)
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  backlog: 'columns.backlog',
-  brainstorming: 'columns.brainstorming',
-  spec_review: 'columns.spec_review',
-  planning: 'columns.planning',
-  plan_review: 'columns.plan_review',
-  in_progress: 'columns.in_progress',
-  preview: 'columns.preview',
-  pr_ready: 'columns.pr_ready',
-  done: 'columns.done',
-  error: 'columns.error',
+  backlog: 'kanban:columns.backlog',
+  brainstorming: 'kanban:columns.brainstorming',
+  spec_review: 'kanban:columns.spec_review',
+  planning: 'kanban:columns.planning',
+  plan_review: 'kanban:columns.plan_review',
+  in_progress: 'kanban:columns.in_progress',
+  preview: 'kanban:columns.preview',
+  pr_ready: 'kanban:columns.pr_ready',
+  done: 'kanban:columns.done',
+  error: 'kanban:columns.error',
 };
 
 // Status colors for UI

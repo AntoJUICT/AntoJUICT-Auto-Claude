@@ -3,11 +3,10 @@
  * Available languages and display labels
  */
 
-export type SupportedLanguage = 'en' | 'fr';
+export type SupportedLanguage = 'en';
 
 export const AVAILABLE_LANGUAGES = [
-  { value: 'en' as const, label: 'English', nativeLabel: 'English' },
-  { value: 'fr' as const, label: 'French', nativeLabel: 'Français' }
+  { value: 'en' as const, label: 'English', nativeLabel: 'English' }
 ] as const;
 
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
