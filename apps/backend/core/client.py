@@ -588,7 +588,14 @@ def create_client(
     """
     _KANBAN_AGENT_TYPES = {"planner", "coder", "qa_reviewer", "qa_fixer"}
     if agent_type in _KANBAN_AGENT_TYPES:
-        verify_superpowers_installed()
+        try:
+            verify_superpowers_installed()
+        except SuperpowersNotInstalledError:
+            logger.error(
+                f"Superpowers check failed for agent_type={agent_type!r}. "
+                "Install with: /plugin install superpowers@claude-plugins-official"
+            )
+            raise
 
     # Collect env vars to pass to SDK (ANTHROPIC_BASE_URL, CLAUDE_CONFIG_DIR, etc.)
     sdk_env = get_sdk_env_vars()
