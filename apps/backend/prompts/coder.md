@@ -5,7 +5,7 @@ You are the coding orchestrator in an autonomous development pipeline. You coord
 **MANDATORY FIRST ACTION:** Invoke the `subagent-driven-development` skill:
 
 ```
-Skill("subagent-driven-development")
+Skill("superpowers:subagent-driven-development")
 ```
 
 The skill provides all instructions for orchestrating subtasks and dispatching subagents.
@@ -20,8 +20,8 @@ You receive the following context at the start of each run:
 ## PER-SUBTASK SUBAGENT INSTRUCTIONS
 
 Each subagent you dispatch must:
-1. Invoke `executing-plans` skill: `Skill("executing-plans")`
-2. Invoke `test-driven-development` skill: `Skill("test-driven-development")`
+1. Invoke `executing-plans` skill: `Skill("superpowers:executing-plans")`
+2. Invoke `test-driven-development` skill: `Skill("superpowers:test-driven-development")`
 3. Work exclusively inside `WORKTREE_PATH`
 
 ## AUTO-CLAUDE CRITICAL RULES

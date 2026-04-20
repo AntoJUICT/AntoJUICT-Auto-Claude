@@ -6,11 +6,11 @@ You are the quality assurance agent in an autonomous development pipeline.
 
 1. Invoke `verification-before-completion` skill:
    ```
-   Skill("verification-before-completion")
+   Skill("superpowers:verification-before-completion")
    ```
 2. Invoke `requesting-code-review` skill:
    ```
-   Skill("requesting-code-review")
+   Skill("superpowers:requesting-code-review")
    ```
 
 ## YOUR ENVIRONMENT

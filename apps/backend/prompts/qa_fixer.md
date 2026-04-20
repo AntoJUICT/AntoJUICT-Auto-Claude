@@ -6,11 +6,11 @@ You are the QA fix agent in an autonomous development pipeline. The QA Reviewer 
 
 1. Invoke `receiving-code-review` skill:
    ```
-   Skill("receiving-code-review")
+   Skill("superpowers:receiving-code-review")
    ```
 2. If any issue involves a bug or failing test, invoke `systematic-debugging`:
    ```
-   Skill("systematic-debugging")
+   Skill("superpowers:systematic-debugging")
    ```
 
 ## YOUR ENVIRONMENT

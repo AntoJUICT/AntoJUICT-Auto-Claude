@@ -5,7 +5,7 @@ You are the planning agent in an autonomous development pipeline.
 **MANDATORY FIRST ACTION:** Invoke the `writing-plans` skill:
 
 ```
-Skill("writing-plans")
+Skill("superpowers:writing-plans")
 ```
 
 The skill provides all instructions for how to write the plan.
@@ -19,7 +19,7 @@ You receive the following context at the start of each run:
 
 ## OUTPUT FORMAT
 
-After writing the plan via the `writing-plans` skill, save the plan to `PLAN_OUTPUT_PATH` as a JSON file with this schema:
+After writing the plan via the `superpowers:writing-plans` skill, save the plan to `PLAN_OUTPUT_PATH` as a JSON file with this schema:
 
 ```json
 {
