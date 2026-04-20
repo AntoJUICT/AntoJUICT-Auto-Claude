@@ -535,6 +535,11 @@ export class AgentManager extends EventEmitter {
     return this.processManager.getAutoBuildSourcePath();
   }
 
+  /** Ensure Python venv is ready before spawning pipeline subprocesses. */
+  ensurePythonEnvReady(): Promise<{ ready: boolean; error?: string }> {
+    return this.processManager.ensurePythonEnvReady('PipelineRunner');
+  }
+
   /**
    * Check if a task is running
    */

@@ -108,6 +108,7 @@ export function registerTaskExecutionHandlers(
   pipeline.configure({
     getPythonPath: () => agentManager.getPythonPath(),
     getAutoBuildSourcePath: () => agentManager.getAutoBuildSourcePath(),
+    ensurePythonEnvReady: () => agentManager.ensurePythonEnvReady(),
   });
   /**
    * Start a task
@@ -207,15 +208,24 @@ export function registerTaskExecutionHandlers(
         }
       }
 
+      // Pre-check: does spec.md exist yet? Used to decide between pipeline and old agent flow.
+      const specFilePath = path.join(specDir, AUTO_BUILD_PATHS.SPEC_FILE);
+      const hasSpecEarly = existsSync(specFilePath);
+
       // Immediately mark as started so the UI moves the card to In Progress.
       // Use XState actor state as source of truth (if actor exists), with task data as fallback.
       // - plan_review: User approved the plan, send PLAN_APPROVED to transition to coding
       // - human_review/error: User resuming, send USER_RESUMED
-      // - backlog/other: Fresh start, send PLANNING_STARTED
+      // - backlog/other (with existing spec): Fresh start, send PLANNING_STARTED
+      // - backlog (no spec): New pipeline task — skip XState, pipeline emits 'brainstorming' itself
       const currentXState = taskStateManager.getCurrentState(taskId);
-      console.warn('[TASK_START] Current XState:', currentXState, '| Task status:', task.status);
+      console.warn('[TASK_START] Current XState:', currentXState, '| Task status:', task.status, '| hasSpec:', hasSpecEarly);
 
-      if (currentXState === 'plan_review') {
+      if (!hasSpecEarly && !currentXState) {
+        // Fresh pipeline task — pipeline.startPipeline() will emit 'brainstorming' directly.
+        // Don't send PLANNING_STARTED to XState here; it would race and show 'in_progress'.
+        console.warn('[TASK_START] Fresh pipeline task — skipping XState, pipeline takes over');
+      } else if (currentXState === 'plan_review') {
         // XState says plan_review - send PLAN_APPROVED
         console.warn('[TASK_START] XState: plan_review -> coding via PLAN_APPROVED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLAN_APPROVED' }, task, project);
@@ -267,10 +277,8 @@ export function registerTaskExecutionHandlers(
         console.error(`[TASK_START] Failed to watch spec dir for ${taskId}:`, err);
       });
 
-      // Check if spec.md exists (indicates spec creation was already done or in progress)
-      // Check main project path for spec file (spec is created before worktree)
-      const specFilePath = path.join(specDir, AUTO_BUILD_PATHS.SPEC_FILE);
-      const hasSpec = existsSync(specFilePath);
+      // Use the pre-check result (computed before XState dispatch to avoid race).
+      const hasSpec = hasSpecEarly;
 
       // Check if this task needs spec creation first (no spec file = not yet created)
       // OR if it has a spec but no implementation plan subtasks (spec created, needs planning/building)

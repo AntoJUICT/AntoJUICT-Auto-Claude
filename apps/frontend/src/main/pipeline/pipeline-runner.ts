@@ -8,6 +8,7 @@ import { parsePythonCommand } from '../python-detector';
 interface PipelineProcessConfig {
   getPythonPath: () => string;
   getAutoBuildSourcePath: () => string | null;
+  ensurePythonEnvReady: () => Promise<{ ready: boolean; error?: string }>;
 }
 
 export type PipelinePhase =
@@ -58,7 +59,10 @@ export function startPipeline(
   };
   activePipelines.set(taskId, task);
   emitStatusChange(window, taskId, 'brainstorming');
-  runPhase(window, task, 'brainstorming');
+  runPhase(window, task, 'brainstorming').catch((err) => {
+    console.error('[PipelineRunner] startPipeline error:', err);
+    emitStatusChange(window, taskId, 'error');
+  });
 }
 
 export function approveSpec(window: BrowserWindow, taskId: string): void {
@@ -66,7 +70,10 @@ export function approveSpec(window: BrowserWindow, taskId: string): void {
   if (!task || task.phase !== 'spec_review') return;
   task.phase = 'planning';
   emitStatusChange(window, taskId, 'planning');
-  runPhase(window, task, 'planning');
+  runPhase(window, task, 'planning').catch((err) => {
+    console.error('[PipelineRunner] approveSpec error:', err);
+    emitStatusChange(window, taskId, 'error');
+  });
 }
 
 export function approvePlan(window: BrowserWindow, taskId: string): void {
@@ -74,7 +81,10 @@ export function approvePlan(window: BrowserWindow, taskId: string): void {
   if (!task || task.phase !== 'plan_review') return;
   task.phase = 'in_progress';
   emitStatusChange(window, taskId, 'in_progress');
-  runPhase(window, task, 'implementation');
+  runPhase(window, task, 'implementation').catch((err) => {
+    console.error('[PipelineRunner] approvePlan error:', err);
+    emitStatusChange(window, taskId, 'error');
+  });
 }
 
 export function approvePreview(window: BrowserWindow, taskId: string): void {
@@ -96,11 +106,15 @@ export function sendBack(
   const pythonPhase = target === 'spec_review' ? 'brainstorming' : 'planning';
   task.phase = nextPhase;
   emitStatusChange(window, taskId, nextPhase);
-  runPhase(window, task, pythonPhase, note);
+  runPhase(window, task, pythonPhase, note).catch((err) => {
+    console.error('[PipelineRunner] sendBack error:', err);
+    emitStatusChange(window, taskId, 'error');
+  });
 }
 
 function emitStatusChange(window: BrowserWindow, taskId: string, status: TaskStatus): void {
-  window.webContents.send(IPC_CHANNELS.TASK_STATUS_CHANGE, { taskId, status });
+  // Send as separate args to match the preload handler signature: (taskId, status, projectId?)
+  window.webContents.send(IPC_CHANNELS.TASK_STATUS_CHANGE, taskId, status);
 }
 
 export function emitSubtaskProgress(
@@ -121,14 +135,23 @@ export function emitSubtaskProgress(
   });
 }
 
-function runPhase(
+async function runPhase(
   window: BrowserWindow,
   task: PipelineTask,
   phase: 'brainstorming' | 'planning' | 'implementation',
   sendBackNote?: string
-): void {
+): Promise<void> {
   if (!_config) {
     console.error('[PipelineRunner] Not configured — call configure() first');
+    return;
+  }
+
+  // Wait for the Python venv to be ready before spawning — same as agentManager does.
+  // Without this, getPythonPath() may return the system Python before the venv is initialized.
+  const envCheck = await _config.ensurePythonEnvReady();
+  if (!envCheck.ready) {
+    console.error('[PipelineRunner] Python environment not ready:', envCheck.error);
+    emitStatusChange(window, task.taskId, 'error');
     return;
   }
 
