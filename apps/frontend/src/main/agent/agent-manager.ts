@@ -525,6 +525,16 @@ export class AgentManager extends EventEmitter {
     await this.processManager.killAllProcesses();
   }
 
+  /** Expose Python executable path for pipeline runner. */
+  getPythonPath(): string {
+    return this.processManager.getPythonPath();
+  }
+
+  /** Expose backend source directory path for pipeline runner. */
+  getAutoBuildSourcePath(): string | null {
+    return this.processManager.getAutoBuildSourcePath();
+  }
+
   /**
    * Check if a task is running
    */

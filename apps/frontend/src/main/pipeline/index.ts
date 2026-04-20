@@ -1,4 +1,5 @@
 export {
+  configure,
   startPipeline,
   approveSpec,
   approvePlan,
