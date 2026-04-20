@@ -26,6 +26,7 @@ from core.platform import (
     is_windows,
     validate_cli_path,
 )
+from core.superpowers import SuperpowersNotInstalledError, verify_superpowers_installed  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -585,6 +586,10 @@ def create_client(
        (see security.py for ALLOWED_COMMANDS)
     4. Tool filtering - Each agent type only sees relevant tools (prevents misuse)
     """
+    _KANBAN_AGENT_TYPES = {"planner", "coder", "qa_reviewer", "qa_fixer"}
+    if agent_type in _KANBAN_AGENT_TYPES:
+        verify_superpowers_installed()
+
     # Collect env vars to pass to SDK (ANTHROPIC_BASE_URL, CLAUDE_CONFIG_DIR, etc.)
     sdk_env = get_sdk_env_vars()
 
