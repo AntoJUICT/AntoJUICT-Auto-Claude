@@ -287,14 +287,9 @@ export function registerTaskExecutionHandlers(
       const baseBranch = task.metadata?.baseBranch || project.settings?.mainBranch;
 
       if (needsSpecCreation) {
-        // No spec file - need to run spec_runner.py to create the spec
-        const taskDescription = task.description || task.title;
-        console.warn('[TASK_START] Starting spec creation for:', task.specId, 'in:', specDir, 'baseBranch:', baseBranch);
-
-        // Start spec creation process - pass the existing spec directory
-        // so spec_runner uses it instead of creating a new one
-        // Also pass baseBranch so worktrees are created from the correct branch
-        agentManager.startSpecCreation(taskId, project.path, taskDescription, specDir, task.metadata, baseBranch, project.id);
+        // Fresh task — run through the superpowers pipeline (brainstorming → spec_review → planning → plan_review → in_progress → preview → pr_ready)
+        console.warn('[TASK_START] Starting superpowers pipeline for:', task.specId);
+        pipeline.startPipeline(mainWindow, taskId, task.specId, project.path);
       } else if (needsImplementation) {
         // Spec exists but no valid subtasks in implementation plan
         // FIX (#1562): Use startTaskExecution (run.py) which will create the planner
