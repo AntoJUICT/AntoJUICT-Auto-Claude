@@ -950,7 +950,15 @@ def create_client(
     # Build options dict, conditionally including output_format
     options_kwargs: dict[str, Any] = {
         "model": model,
-        "system_prompt": base_prompt,
+        # Use system list with cache_control for prompt caching optimization
+        # Ephemeral cache reduces token costs for repeated agent invocations
+        "system": [
+            {
+                "type": "text",
+                "text": base_prompt,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
         "allowed_tools": allowed_tools_list,
         "mcp_servers": mcp_servers,
         "hooks": {
