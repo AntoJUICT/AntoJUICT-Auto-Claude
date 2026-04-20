@@ -16,6 +16,8 @@ import {
 } from './ui/dropdown-menu';
 import { cn, formatRelativeTime, sanitizeMarkdownForDisplay } from '../lib/utils';
 import { PhaseProgressIndicator } from './PhaseProgressIndicator';
+import { SubtaskProgress } from './SubtaskProgress';
+import { ApprovalActions } from './ApprovalActions';
 import {
   TASK_CATEGORY_LABELS,
   TASK_CATEGORY_COLORS,
@@ -261,6 +263,17 @@ export const TaskCard = memo(function TaskCard({
     if (!result.success) {
       console.error('[TaskCard] Failed to archive task:', task.id, result.error);
     }
+  };
+
+  const handleApprove = async () => {
+    if (task.status === 'spec_review') await window.electronAPI.approveSpec(task.id);
+    else if (task.status === 'plan_review') await window.electronAPI.approvePlan(task.id);
+    else if (task.status === 'preview') await window.electronAPI.approvePreview(task.id);
+  };
+
+  const handleSendBack = async () => {
+    const target = task.status === 'preview' ? ('plan_review' as const) : (task.status === 'plan_review' ? ('spec_review' as const) : ('spec_review' as const));
+    await window.electronAPI.sendBack(task.id, target);
   };
 
   const handleViewPR = (e: React.MouseEvent) => {
@@ -515,6 +528,18 @@ export const TaskCard = memo(function TaskCard({
             />
           </div>
         )}
+        {task.status === 'in_progress' && task.executionProgress?.subtaskProgress && (
+          <SubtaskProgress
+            currentIndex={task.executionProgress.subtaskProgress.currentIndex}
+            total={task.executionProgress.subtaskProgress.total}
+            agentPhase={task.executionProgress.subtaskProgress.agentPhase}
+          />
+        )}
+        <ApprovalActions
+          status={task.status}
+          onApprove={handleApprove}
+          onSendBack={handleSendBack}
+        />
 
         {/* Footer */}
         <div className="mt-4 flex items-center justify-between">
