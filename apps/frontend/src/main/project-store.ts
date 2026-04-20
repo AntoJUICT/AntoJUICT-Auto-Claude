@@ -11,6 +11,20 @@ import { ensureAbsolutePath } from './utils/path-helpers';
 import { writeFileAtomicSync } from './utils/atomic-file';
 import { updateRoadmapFeatureOutcome, revertRoadmapFeatureOutcome } from './utils/roadmap-utils';
 
+/**
+ * Migrate legacy task status values to superpowers pipeline statuses.
+ * Called when loading tasks from disk so old stored values map correctly.
+ */
+export function migrateTaskStatus(status: string): TaskStatus {
+  const migrations: Record<string, TaskStatus> = {
+    queue: 'backlog',
+    ai_review: 'in_progress',
+    pr_created: 'pr_ready',
+    human_review: 'plan_review',
+  };
+  return (migrations[status] ?? status) as TaskStatus;
+}
+
 interface TabState {
   openProjectIds: string[];
   activeProjectId: string | null;
@@ -682,7 +696,9 @@ export class ProjectStore {
       'pr_ready': 'pr_ready'
     };
 
-    const storedStatus = statusMap[plan.status] || 'backlog';
+    // Apply legacy status migration first, then map through statusMap
+    const migratedStatus = migrateTaskStatus(plan.status);
+    const storedStatus = statusMap[migratedStatus] ?? migratedStatus;
 
     return { status: storedStatus };
   }
