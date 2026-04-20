@@ -34,7 +34,7 @@ import {
 } from '../../shared/constants';
 import { stopTask, checkTaskRunning, recoverStuckTask, isIncompleteHumanReview, archiveTasks, hasRecentActivity, startTaskOrQueue } from '../stores/task-store';
 import { useToast } from '../hooks/use-toast';
-import type { Task, TaskCategory, ReviewReason, TaskStatus } from '../../shared/types';
+import type { Task, TaskCategory, TaskStatus } from '../../shared/types';
 
 // Category icon mapping
 const CategoryIcon: Record<TaskCategory, typeof Zap> = {
@@ -97,7 +97,6 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.title === nextTask.title &&
     prevTask.description === nextTask.description &&
     prevTask.updatedAt === nextTask.updatedAt &&
-    prevTask.reviewReason === nextTask.reviewReason &&
     prevTask.executionProgress?.phase === nextTask.executionProgress?.phase &&
     prevTask.executionProgress?.phaseProgress === nextTask.executionProgress?.phaseProgress &&
     prevTask.subtasks.length === nextTask.subtasks.length &&
@@ -301,7 +300,7 @@ export const TaskCard = memo(function TaskCard({
     }
   };
 
-  const getReviewReasonLabel = (reason?: ReviewReason): { label: string; variant: 'success' | 'destructive' | 'warning' } | null => {
+  const getReviewReasonLabel = (reason?: string): { label: string; variant: 'success' | 'destructive' | 'warning' } | null => {
     if (!reason) return null;
     switch (reason) {
       case 'completed':
@@ -319,11 +318,8 @@ export const TaskCard = memo(function TaskCard({
     }
   };
 
-  // When executionPhase is 'complete', always show 'completed' badge regardless of reviewReason
-  // This ensures the user sees "Complete" when the task finished successfully
-  const effectiveReviewReason: ReviewReason | undefined =
-    executionPhase === 'complete' ? 'completed' : task.reviewReason;
-  const reviewReasonInfo = task.status === 'human_review' ? getReviewReasonLabel(effectiveReviewReason) : null;
+  // Show review reason info when task is in preview (awaiting human review)
+  const reviewReasonInfo = task.status === 'preview' ? getReviewReasonLabel('completed') : null;
 
   const isArchived = !!task.metadata?.archivedAt;
 

@@ -46,7 +46,6 @@ import type {
   TaskLogs,
   TaskLogStreamChunk,
   ImageAttachment,
-  ReviewReason,
   MergeProgress
 } from './task';
 import type {
@@ -235,7 +234,7 @@ export interface ElectronAPI {
   onTaskProgress: (callback: (taskId: string, plan: ImplementationPlan, projectId?: string) => void) => () => void;
   onTaskError: (callback: (taskId: string, error: string, projectId?: string) => void) => () => void;
   onTaskLog: (callback: (taskId: string, log: string, projectId?: string) => void) => () => void;
-  onTaskStatusChange: (callback: (taskId: string, status: TaskStatus, projectId?: string, reviewReason?: ReviewReason) => void) => () => void;
+  onTaskStatusChange: (callback: (taskId: string, status: TaskStatus, projectId?: string) => void) => () => void;
   onTaskExecutionProgress: (callback: (taskId: string, progress: ExecutionProgress, projectId?: string) => void) => () => void;
 
   // Terminal operations

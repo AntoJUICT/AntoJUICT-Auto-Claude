@@ -56,13 +56,10 @@ function isValidDropColumn(id: string): id is typeof TASK_STATUS_COLUMNS[number]
 
 /**
  * Get the visual column for a task status.
- * pr_created tasks are displayed in the 'done' column, so we map them accordingly.
- * error tasks are displayed in the 'human_review' column (errors need human attention).
+ * All statuses now map directly to a column in TASK_STATUS_COLUMNS.
  * This is used to compare visual positions during drag-and-drop operations.
  */
 function getVisualColumn(status: TaskStatus): typeof TASK_STATUS_COLUMNS[number] {
-  if (status === 'pr_created') return 'done';
-  if (status === 'error') return 'human_review';
   return status;
 }
 
@@ -193,25 +190,13 @@ const getEmptyStateContent = (status: TaskStatus, t: (key: string) => string): {
         message: t('kanban.emptyBacklog'),
         subtext: t('kanban.emptyBacklogHint')
       };
-    case 'queue':
-      return {
-        icon: <Loader2 className="h-6 w-6 text-muted-foreground/50" />,
-        message: t('kanban.emptyQueue'),
-        subtext: t('kanban.emptyQueueHint')
-      };
     case 'in_progress':
       return {
         icon: <Loader2 className="h-6 w-6 text-muted-foreground/50" />,
         message: t('kanban.emptyInProgress'),
         subtext: t('kanban.emptyInProgressHint')
       };
-    case 'ai_review':
-      return {
-        icon: <Eye className="h-6 w-6 text-muted-foreground/50" />,
-        message: t('kanban.emptyAiReview'),
-        subtext: t('kanban.emptyAiReviewHint')
-      };
-    case 'human_review':
+    case 'preview':
       return {
         icon: <Eye className="h-6 w-6 text-muted-foreground/50" />,
         message: t('kanban.emptyHumanReview'),
@@ -311,13 +296,9 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
     switch (status) {
       case 'backlog':
         return 'column-backlog';
-      case 'queue':
-        return 'column-queue';
       case 'in_progress':
         return 'column-in-progress';
-      case 'ai_review':
-        return 'column-ai-review';
-      case 'human_review':
+      case 'preview':
         return 'column-human-review';
       case 'done':
         return 'column-done';
@@ -503,7 +484,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
               )}
             </>
           )}
-          {status === 'queue' && onQueueSettings && (
+          {status === 'in_progress' && onQueueSettings && (
             <Button
               variant="ghost"
               size="icon"
@@ -741,15 +722,17 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   const taskOrder = useTaskStore((state) => state.taskOrder);
 
   const tasksByStatus = useMemo(() => {
-    // Note: pr_created tasks are shown in the 'done' column since they're essentially complete
-    // Note: error tasks are shown in the 'human_review' column since they need human attention
     const grouped: Record<typeof TASK_STATUS_COLUMNS[number], Task[]> = {
       backlog: [],
-      queue: [],
+      brainstorming: [],
+      spec_review: [],
+      planning: [],
+      plan_review: [],
       in_progress: [],
-      ai_review: [],
-      human_review: [],
-      done: []
+      preview: [],
+      pr_ready: [],
+      done: [],
+      error: []
     };
 
     filteredTasks.forEach((task) => {
@@ -963,8 +946,8 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     // calls persistTaskStatus directly, never this function.
     // ============================================
     if (newStatus === 'in_progress' && isQueueAtCapacity(taskId)) {
-      console.log('[Queue] In Progress full, redirecting task to Queue');
-      newStatus = 'queue';
+      console.log('[Queue] In Progress full, redirecting task to Backlog');
+      newStatus = 'backlog';
     }
 
     const oldStatus = task?.status;
@@ -1025,7 +1008,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
   };
 
   /**
-   * Move all backlog tasks to queue
+   * Move all backlog tasks to in_progress
    */
   const handleQueueAll = async () => {
     const backlogTasks = tasksByStatus.backlog;
@@ -1033,11 +1016,11 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
     let movedCount = 0;
     for (const task of backlogTasks) {
-      const result = await persistTaskStatus(task.id, 'queue');
+      const result = await persistTaskStatus(task.id, 'in_progress');
       if (result.success) {
         movedCount++;
       } else {
-        console.error(`[Queue] Failed to move task ${task.id} to queue:`, result.error);
+        console.error(`[Queue] Failed to move task ${task.id} to in_progress:`, result.error);
       }
     }
 
@@ -1102,7 +1085,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
           t.status === 'in_progress' && !t.metadata?.archivedAt
         ).length;
         const queuedTasks = currentTasks.filter((t) =>
-          t.status === 'queue' && !t.metadata?.archivedAt && !attemptedTaskIds.has(t.id)
+          t.status === 'backlog' && !t.metadata?.archivedAt && !attemptedTaskIds.has(t.id)
         );
 
         // Stop if no capacity, no queued tasks, or too many consecutive failures
@@ -1322,12 +1305,14 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     let hasStaleIds = false;
     const cleanedOrder: typeof taskOrder = {
       backlog: [],
-      queue: [],
+      brainstorming: [],
+      spec_review: [],
+      planning: [],
+      plan_review: [],
       in_progress: [],
-      ai_review: [],
-      human_review: [],
+      preview: [],
+      pr_ready: [],
       done: [],
-      pr_created: [],
       error: []
     };
 
@@ -1484,7 +1469,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
               isOver={overColumnId === status}
               onAddClick={status === 'backlog' ? onNewTaskClick : undefined}
               onQueueAll={status === 'backlog' ? handleQueueAll : undefined}
-              onQueueSettings={status === 'queue' ? () => {
+              onQueueSettings={status === 'in_progress' ? () => {
                 // Only open modal if we have a valid projectId
                 if (!projectId) return;
                 queueSettingsProjectIdRef.current = projectId;

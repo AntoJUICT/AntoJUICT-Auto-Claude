@@ -11,7 +11,7 @@ export const changelogMock = {
   getChangelogDoneTasks: async (_projectId: string, tasks?: Task[]) => ({
     success: true,
     data: (tasks || mockTasks)
-      .filter((t): t is Task => isCompletedTask(t.status, (t as Task).reviewReason))
+      .filter((t): t is Task => isCompletedTask(t.status))
       .map(t => ({
         id: t.id,
         specId: t.specId,

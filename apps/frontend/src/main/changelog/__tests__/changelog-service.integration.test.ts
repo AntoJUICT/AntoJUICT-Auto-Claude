@@ -101,7 +101,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'PR Feature',
           description: 'A feature with PR created',
-          status: 'pr_created',
+          status: 'pr_ready',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -121,7 +121,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed[0].title).toBe('PR Feature');
     });
 
-    it('should include tasks with "human_review" status and reviewReason "completed"', async () => {
+    it('should include tasks with "preview" status (ready for review)', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -132,8 +132,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'QA Passed Feature',
           description: 'A feature that passed QA',
-          status: 'human_review',
-          reviewReason: 'completed',
+          status: 'preview',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -153,7 +152,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed[0].title).toBe('QA Passed Feature');
     });
 
-    it('should exclude tasks with "human_review" status and reviewReason "errors"', async () => {
+    it('should exclude tasks with "error" status', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -164,8 +163,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Failed Feature',
           description: 'A feature with errors',
-          status: 'human_review',
-          reviewReason: 'errors',
+          status: 'error',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -183,7 +181,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed).toHaveLength(0);
     });
 
-    it('should exclude tasks with "human_review" status and reviewReason "qa_rejected"', async () => {
+    it('should exclude tasks with "in_progress" status', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -192,10 +190,9 @@ describe('ChangelogService - Task Filtering Integration', () => {
           id: 'task-5',
           specId: '005-rejected-feature',
           projectId: 'project-1',
-          title: 'QA Rejected Feature',
-          description: 'A feature rejected by QA',
-          status: 'human_review',
-          reviewReason: 'qa_rejected',
+          title: 'In Progress Feature',
+          description: 'A feature still in progress',
+          status: 'in_progress',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -208,7 +205,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed).toHaveLength(0);
     });
 
-    it('should exclude tasks with "human_review" status and reviewReason "plan_review"', async () => {
+    it('should exclude tasks with "plan_review" status', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -219,8 +216,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Plan Review Feature',
           description: 'A feature in plan review',
-          status: 'human_review',
-          reviewReason: 'plan_review',
+          status: 'plan_review',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -255,8 +251,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           specId: '002-pr',
           projectId: 'project-1',
           title: 'PR Task',
-          description: 'Task with PR created',
-          status: 'pr_created',
+          description: 'Task with PR ready',
+          status: 'pr_ready',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -268,8 +264,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'QA Passed Task',
           description: 'Task that passed QA',
-          status: 'human_review',
-          reviewReason: 'completed',
+          status: 'preview',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -293,8 +288,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Error Task',
           description: 'Task with errors',
-          status: 'human_review',
-          reviewReason: 'errors',
+          status: 'error',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -311,7 +305,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
 
       const completed = service.getCompletedTasks(projectPath, tasks);
 
-      // Should include: done, pr_created, and human_review+completed
+      // Should include: done, pr_ready, and preview
       expect(completed).toHaveLength(3);
 
       const completedIds = completed.map(t => t.id);
@@ -372,7 +366,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Second Task',
           description: 'Newest update',
-          status: 'pr_created',
+          status: 'pr_ready',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-02'),
@@ -384,8 +378,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Third Task',
           description: 'Middle update',
-          status: 'human_review',
-          reviewReason: 'completed',
+          status: 'preview',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),

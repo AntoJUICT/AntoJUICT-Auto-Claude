@@ -5,19 +5,38 @@
 import type { ThinkingLevel, PhaseModelConfig, PhaseThinkingConfig } from './settings';
 import type { ExecutionPhase as ExecutionPhaseType, CompletablePhase } from '../constants/phase-protocol';
 
-export type TaskStatus = 'backlog' | 'queue' | 'in_progress' | 'ai_review' | 'human_review' | 'done' | 'pr_created' | 'error';
+export type TaskStatus =
+  | 'backlog'
+  | 'brainstorming'
+  | 'spec_review'
+  | 'planning'
+  | 'plan_review'
+  | 'in_progress'
+  | 'preview'
+  | 'pr_ready'
+  | 'done'
+  | 'error';
 
 // Maps task status columns to ordered task IDs for kanban board reordering
 export type TaskOrderState = Record<TaskStatus, string[]>;
 
-// Reason why a task is in human_review status
-// - 'completed': All subtasks done and QA passed, ready for final approval/merge
-// - 'errors': Subtasks failed during execution
-// - 'qa_rejected': QA found issues that need fixing
-// - 'plan_review': Spec/plan created and awaiting approval before coding starts
-export type ReviewReason = 'completed' | 'errors' | 'qa_rejected' | 'plan_review' | 'stopped';
+// Reason why a task was sent back (used in sendBack IPC call)
+export type SendBackTarget = 'spec_review' | 'plan_review';
 
 export type SubtaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
+
+export type SubtaskAgentPhase =
+  | 'implementing'
+  | 'spec_review'
+  | 'quality_review'
+  | 'done'
+  | 'failed';
+
+export interface SubtaskProgressInfo {
+  currentIndex: number;  // 0-based
+  total: number;
+  agentPhase: SubtaskAgentPhase;
+}
 
 // Re-exported from constants - single source of truth
 export type ExecutionPhase = ExecutionPhaseType;
@@ -27,6 +46,7 @@ export interface ExecutionProgress {
   phaseProgress: number;  // 0-100 within current phase
   overallProgress: number;  // 0-100 overall
   currentSubtask?: string;  // Current subtask being processed
+  subtaskProgress?: SubtaskProgressInfo;
   message?: string;  // Current status message
   startedAt?: Date;
   sequenceNumber?: number;  // Monotonically increasing counter to detect stale updates
@@ -253,7 +273,6 @@ export interface Task {
   title: string;
   description: string;
   status: TaskStatus;
-  reviewReason?: ReviewReason;  // Why task needs human review (only set when status is 'human_review')
   subtasks: Subtask[];
   qaReport?: QAReport;
   logs: string[];
@@ -282,7 +301,6 @@ export interface ImplementationPlan {
   // Added for UI status persistence
   status?: TaskStatus;
   planStatus?: string;
-  reviewReason?: ReviewReason;
   xstateState?: string;  // Persisted XState machine state for restoration (e.g., 'planning', 'coding')
   lastEvent?: {
     eventId: string;

@@ -399,15 +399,12 @@ function TaskDetailModalContent({ open, task, onOpenChange, onSwitchToTerminals,
                            >
                              {t(TASK_STATUS_LABELS[task.status])}
                            </Badge>
-                          {task.status === 'human_review' && task.reviewReason && (
+                          {task.status === 'preview' && (
                             <Badge
-                              variant={task.reviewReason === 'completed' ? 'success' : task.reviewReason === 'errors' ? 'destructive' : 'warning'}
+                              variant="success"
                               className="text-xs"
                             >
-                              {task.reviewReason === 'completed' ? 'Completed' :
-                               task.reviewReason === 'errors' ? 'Has Errors' :
-                               task.reviewReason === 'plan_review' ? 'Approve Plan' :
-                               task.reviewReason === 'stopped' ? 'Stopped' : 'QA Issues'}
+                              Completed
                             </Badge>
                           )}
                         </>
@@ -422,7 +419,7 @@ function TaskDetailModalContent({ open, task, onOpenChange, onSwitchToTerminals,
                   </DialogPrimitive.Description>
                   {window.DEBUG && (
                     <div className="mt-1 text-[11px] text-muted-foreground font-mono">
-                      status={task.status} reviewReason={task.reviewReason ?? 'none'} phase={task.executionProgress?.phase ?? 'none'} reviewRequired={task.metadata?.requireReviewBeforeCoding ? 'true' : 'false'}
+                      status={task.status} phase={task.executionProgress?.phase ?? 'none'} reviewRequired={task.metadata?.requireReviewBeforeCoding ? 'true' : 'false'}
                       <br />
                       projectId={activeProject?.id ?? 'none'} projectName={activeProject?.name ?? 'none'}
                     </div>

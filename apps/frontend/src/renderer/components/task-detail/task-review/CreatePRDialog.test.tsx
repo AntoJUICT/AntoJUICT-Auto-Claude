@@ -35,7 +35,7 @@ describe('CreatePRDialog', () => {
     projectId: 'project-123',
     title: 'Implement user authentication',
     description: 'Add login and registration functionality',
-    status: 'human_review',
+    status: 'preview',
     subtasks: [],
     logs: [],
     createdAt: new Date(),

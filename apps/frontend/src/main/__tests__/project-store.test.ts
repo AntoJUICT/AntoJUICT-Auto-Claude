@@ -459,8 +459,7 @@ describe('ProjectStore', () => {
         feature: 'Approved Feature',
         workflow_type: 'feature',
         services_involved: [],
-        status: 'human_review',
-        reviewReason: 'completed',
+        status: 'preview',
         phases: [
           {
             phase: 1,
@@ -488,8 +487,7 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('human_review');
-      expect(tasks[0].reviewReason).toBe('completed');
+      expect(tasks[0].status).toBe('preview');
     });
 
     it('should determine status as done when plan status is explicitly done', async () => {

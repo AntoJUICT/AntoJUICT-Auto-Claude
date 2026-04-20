@@ -96,7 +96,7 @@ export const mockTasks = [
     specId: '003-fix-bug',
     title: 'Fix pagination bug',
     description: 'Fix off-by-one error in table pagination',
-    status: 'human_review' as const,
+    status: 'preview' as const,
     subtasks: [
       { id: 'subtask-1', title: 'Fix pagination logic', description: 'Correct the offset calculation', status: 'completed' as const, files: ['src/utils/pagination.ts'] }
     ],
@@ -125,7 +125,7 @@ export const mockTasks = [
     specId: '005-add-search',
     title: 'Add search functionality',
     description: 'Implement full-text search across all entities',
-    status: 'pr_created' as const,
+    status: 'pr_ready' as const,
     subtasks: [
       { id: 'subtask-1', title: 'Setup search index', description: 'Configure search indexing', status: 'completed' as const, files: ['src/lib/search.ts'] },
       { id: 'subtask-2', title: 'Add search UI', description: 'Create search component', status: 'completed' as const, files: ['src/components/Search.tsx'] }

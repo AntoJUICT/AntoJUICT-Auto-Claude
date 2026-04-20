@@ -2,7 +2,7 @@ import { createActor } from 'xstate';
 import type { ActorRefFrom } from 'xstate';
 import type { BrowserWindow } from 'electron';
 import type { TaskEventPayload } from './agent/task-event-schema';
-import type { Project, Task, TaskStatus, ReviewReason, ExecutionPhase } from '../shared/types';
+import type { Project, Task, TaskStatus, ExecutionPhase } from '../shared/types';
 import { taskMachine, XSTATE_TO_PHASE, mapStateToLegacy, type TaskEvent } from '../shared/state-machines';
 import { IPC_CHANNELS } from '../shared/constants';
 import { safeSendToRenderer } from './ipc-handlers/utils';
@@ -105,7 +105,7 @@ export class TaskStateManager {
       case 'done':
         this.handleUiEvent(taskId, { type: 'MARK_DONE' }, task, project);
         return true;
-      case 'pr_created':
+      case 'pr_ready':
         this.handleUiEvent(
           taskId,
           { type: 'PR_CREATED', prUrl: task.metadata?.prUrl ?? '' },
@@ -114,15 +114,11 @@ export class TaskStateManager {
         );
         return true;
       case 'in_progress': {
-        // Use XState as source of truth for determining correct event
         const currentState = this.getCurrentState(taskId);
         if (currentState === 'plan_review') {
           this.handleUiEvent(taskId, { type: 'PLAN_APPROVED' }, task, project);
-        } else if (currentState === 'human_review' || currentState === 'error') {
+        } else if (currentState === 'error') {
           this.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
-        } else if (!currentState && task.reviewReason === 'plan_review') {
-          // Fallback: No actor exists (e.g., after app restart), use task data
-          this.handleUiEvent(taskId, { type: 'PLAN_APPROVED' }, task, project);
         } else {
           this.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
         }
@@ -130,11 +126,6 @@ export class TaskStateManager {
       }
       case 'backlog':
         this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: false }, task, project);
-        return true;
-      case 'human_review':
-        // Already in human_review (e.g., stage-only merge keeps task in review).
-        // Emit status directly since there's no XState transition needed.
-        this.emitStatus(taskId, 'human_review', task.reviewReason ?? 'completed', project.id);
         return true;
       default:
         return false;
@@ -234,7 +225,6 @@ export class TaskStateManager {
     if (contextEntry) {
       console.debug(`[TaskStateManager] Creating new actor for ${taskId} from task:`, {
         status: contextEntry.task.status,
-        reviewReason: contextEntry.task.reviewReason,
         phase: contextEntry.task.executionProgress?.phase,
         initialState: snapshot ? String(snapshot.value) : 'default (backlog)'
       });
@@ -251,8 +241,7 @@ export class TaskStateManager {
 
       console.debug(`[TaskStateManager] XState transition for ${taskId}:`, {
         from: lastState,
-        to: stateValue,
-        contextReviewReason: snapshot.context.reviewReason
+        to: stateValue
       });
 
       if (lastState === stateValue) {
@@ -266,24 +255,20 @@ export class TaskStateManager {
         return;
       }
       const { task, project } = contextEntry;
-      const { status, reviewReason } = mapStateToLegacy(
-        stateValue,
-        snapshot.context.reviewReason
-      );
+      const { status } = mapStateToLegacy(stateValue);
 
       // Map XState state to execution phase for persistence
       const executionPhase = this.mapStateToExecutionPhase(stateValue);
 
       console.debug(`[TaskStateManager] Emitting status for ${taskId}:`, {
         status,
-        reviewReason,
         xstateState: stateValue,
         executionPhase,
         projectId: project.id
       });
 
-      this.persistStatus(task, project, status, reviewReason, stateValue, executionPhase);
-      this.emitStatus(taskId, status, reviewReason, project.id);
+      this.persistStatus(task, project, status, stateValue, executionPhase);
+      this.emitStatus(taskId, status, project.id);
 
       // Also emit execution progress to sync phase display with column
       // This ensures crisp transitions - phase and column update together
@@ -299,12 +284,11 @@ export class TaskStateManager {
     task: Task,
     project: Project,
     status: TaskStatus,
-    reviewReason?: ReviewReason,
     xstateState?: string,
     executionPhase?: string
   ): void {
     const mainPlanPath = getPlanPath(project, task);
-    persistPlanStatusAndReasonSync(mainPlanPath, status, reviewReason, project.id, xstateState, executionPhase);
+    persistPlanStatusAndReasonSync(mainPlanPath, status, undefined, project.id, xstateState, executionPhase);
 
     const worktreePath = findTaskWorktree(project.path, task.specId);
     if (!worktreePath) return;
@@ -317,7 +301,7 @@ export class TaskStateManager {
       AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN
     );
     if (existsSync(worktreePlanPath)) {
-      persistPlanStatusAndReasonSync(worktreePlanPath, status, reviewReason, project.id, xstateState, executionPhase);
+      persistPlanStatusAndReasonSync(worktreePlanPath, status, undefined, project.id, xstateState, executionPhase);
     }
   }
 
@@ -331,21 +315,19 @@ export class TaskStateManager {
   private emitStatus(
     taskId: string,
     status: TaskStatus,
-    reviewReason: ReviewReason | undefined,
     projectId?: string
   ): void {
     if (!this.getMainWindow) {
       console.warn(`[TaskStateManager] emitStatus: No main window, cannot emit status ${status} for ${taskId}`);
       return;
     }
-    console.debug(`[TaskStateManager] emitStatus: Sending TASK_STATUS_CHANGE for ${taskId}:`, { status, reviewReason, projectId });
+    console.debug(`[TaskStateManager] emitStatus: Sending TASK_STATUS_CHANGE for ${taskId}:`, { status, projectId });
     safeSendToRenderer(
       this.getMainWindow,
       IPC_CHANNELS.TASK_STATUS_CHANGE,
       taskId,
       status,
-      projectId,
-      reviewReason
+      projectId
     );
   }
 
@@ -388,15 +370,19 @@ export class TaskStateManager {
 
   private buildSnapshotFromTask(task: Task) {
     const status = task.status;
-    const reviewReason = task.reviewReason;
     const executionPhase = task.executionProgress?.phase;
     let stateValue: string = 'backlog';
-    let contextReviewReason: ReviewReason | undefined;
 
     switch (status) {
+      case 'brainstorming':
+      case 'spec_review':
+      case 'planning':
+        stateValue = 'planning';
+        break;
+      case 'plan_review':
+        stateValue = 'plan_review';
+        break;
       case 'in_progress':
-        // Use executionProgress.phase to determine if we're in planning or coding
-        // This is important because both phases have status 'in_progress'
         if (executionPhase === 'planning') {
           stateValue = 'planning';
         } else if (executionPhase === 'qa_review') {
@@ -404,26 +390,20 @@ export class TaskStateManager {
         } else if (executionPhase === 'qa_fixing') {
           stateValue = 'qa_fixing';
         } else {
-          // Default to coding for 'coding', 'complete', or unknown phases
           stateValue = 'coding';
         }
         break;
-      case 'ai_review':
-        stateValue = 'qa_review';
+      case 'preview':
+        stateValue = 'preview';
         break;
-      case 'human_review':
-        stateValue = reviewReason === 'plan_review' ? 'plan_review' : 'human_review';
-        contextReviewReason = reviewReason;
-        break;
-      case 'pr_created':
-        stateValue = 'pr_created';
+      case 'pr_ready':
+        stateValue = 'pr_ready';
         break;
       case 'done':
         stateValue = 'done';
         break;
       case 'error':
         stateValue = 'error';
-        contextReviewReason = reviewReason ?? 'errors';
         break;
       default:
         stateValue = 'backlog';
@@ -432,9 +412,7 @@ export class TaskStateManager {
 
     return taskMachine.resolveState({
       value: stateValue,
-      context: {
-        reviewReason: contextReviewReason
-      }
+      context: {}
     });
   }
 }
