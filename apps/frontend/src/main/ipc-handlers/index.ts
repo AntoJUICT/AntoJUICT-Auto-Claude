@@ -34,7 +34,7 @@ import { registerMcpHandlers } from './mcp-handlers';
 import { registerProfileHandlers } from './profile-handlers';
 import { registerScreenshotHandlers } from './screenshot-handlers';
 import { registerTerminalWorktreeIpcHandlers } from './terminal';
-import { setupPreviewHandlers } from './preview-handlers';
+import { registerPreviewHandlers } from './preview-handlers';
 import { notificationService } from '../notification-service';
 import { setAgentManagerRef } from './utils';
 
@@ -128,7 +128,7 @@ export function setupIpcHandlers(
   registerScreenshotHandlers();
 
   // Preview handlers (dev server control and visual preview)
-  setupPreviewHandlers();
+  registerPreviewHandlers();
 
   console.warn('[IPC] All handler modules registered successfully');
 }
@@ -158,5 +158,5 @@ export {
   registerMcpHandlers,
   registerProfileHandlers,
   registerScreenshotHandlers,
-  setupPreviewHandlers
+  registerPreviewHandlers
 };

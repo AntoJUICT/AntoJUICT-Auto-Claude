@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import { IPC_CHANNELS } from '@shared/constants/ipc';
 
 export interface PreviewAPI {
   start: (taskId: string, worktreePath: string, command: string) => Promise<{ port: number; url: string }>;
@@ -10,9 +11,9 @@ export interface PreviewAPI {
 
 export const createPreviewAPI = (): PreviewAPI => ({
   start: (taskId: string, worktreePath: string, command: string) =>
-    ipcRenderer.invoke('preview:start', taskId, worktreePath, command),
-  stop: (taskId: string) => ipcRenderer.invoke('preview:stop', taskId),
-  status: (taskId: string) => ipcRenderer.invoke('preview:status', taskId),
-  detect: (projectPath: string) => ipcRenderer.invoke('preview:detect', projectPath),
-  keepAlive: (taskId: string) => ipcRenderer.invoke('preview:keepAlive', taskId),
+    ipcRenderer.invoke(IPC_CHANNELS.PREVIEW_START, taskId, worktreePath, command),
+  stop: (taskId: string) => ipcRenderer.invoke(IPC_CHANNELS.PREVIEW_STOP, taskId),
+  status: (taskId: string) => ipcRenderer.invoke(IPC_CHANNELS.PREVIEW_STATUS, taskId),
+  detect: (projectPath: string) => ipcRenderer.invoke(IPC_CHANNELS.PREVIEW_DETECT, projectPath),
+  keepAlive: (taskId: string) => ipcRenderer.invoke(IPC_CHANNELS.PREVIEW_KEEP_ALIVE, taskId),
 });

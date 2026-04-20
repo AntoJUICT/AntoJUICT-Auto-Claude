@@ -32,11 +32,12 @@ export interface ElectronAPI extends
   ClaudeCodeAPI,
   McpAPI,
   ProfileAPI,
-  ScreenshotAPI,
-  PreviewAPI {
+  ScreenshotAPI {
   github: GitHubAPI;
   /** Queue routing API for rate limit recovery */
   queue: QueueAPI;
+  /** Dev server control and visual preview */
+  preview: PreviewAPI;
 }
 
 export const createElectronAPI = (): ElectronAPI => ({
@@ -52,7 +53,7 @@ export const createElectronAPI = (): ElectronAPI => ({
   ...createMcpAPI(),
   ...createProfileAPI(),
   ...createScreenshotAPI(),
-  ...createPreviewAPI(),
+  preview: createPreviewAPI(),
   github: createGitHubAPI(),
   queue: createQueueAPI()  // Queue routing for rate limit recovery
 });
