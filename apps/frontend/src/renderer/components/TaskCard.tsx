@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Play, Square, Clock, Zap, Target, Shield, Gauge, Palette, FileCode, Bug, Wrench, Loader2, AlertTriangle, RotateCcw, Archive, GitPullRequest, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
+import { PreviewBadge } from './PreviewBadge';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import {
@@ -501,6 +502,8 @@ export const TaskCard = memo(function TaskCard({
                 {task.metadata.securitySeverity} {t('metadata.severity')}
               </Badge>
             )}
+            {/* Preview status badge - shows when dev server is active */}
+            <PreviewBadge taskId={task.id} />
           </div>
         )}
 

@@ -35,6 +35,7 @@ import { useKanbanSettingsStore, DEFAULT_COLUMN_WIDTH, MIN_COLUMN_WIDTH, MAX_COL
 import { useToast } from '../hooks/use-toast';
 import { WorktreeCleanupDialog } from './WorktreeCleanupDialog';
 import { BulkPRDialog } from './BulkPRDialog';
+import { FirstTimePreviewModal, hasSeenPreviewModal } from './FirstTimePreviewModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -678,6 +679,9 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
   // Bulk PR dialog state
   const [bulkPRDialogOpen, setBulkPRDialogOpen] = useState(false);
+
+  // First-time preview modal state
+  const [showPreviewIntro, setShowPreviewIntro] = useState(() => !hasSeenPreviewModal());
 
   // Delete confirmation dialog state
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -1650,6 +1654,12 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         tasks={selectedTasks}
         onOpenChange={setBulkPRDialogOpen}
         onComplete={handleBulkPRComplete}
+      />
+
+      {/* First-time preview introduction modal */}
+      <FirstTimePreviewModal
+        open={showPreviewIntro}
+        onClose={() => setShowPreviewIntro(false)}
       />
     </div>
   );
