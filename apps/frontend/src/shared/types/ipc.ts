@@ -922,6 +922,15 @@ export interface ElectronAPI {
   getSources: () => Promise<IPCResult<ScreenshotSource[]> & { devMode?: boolean }>;
   capture: (options: { sourceId: string }) => Promise<IPCResult<string>>;
 
+  // Preview operations (dev server control and visual preview)
+  preview: {
+    start: (taskId: string, worktreePath: string, command: string) => Promise<{ port: number; url: string }>;
+    stop: (taskId: string) => Promise<void>;
+    status: (taskId: string) => Promise<{ status: string; port: number | null; url: string | null; lastError: string | null }>;
+    detect: (projectPath: string) => Promise<string | null>;
+    keepAlive: (taskId: string) => Promise<void>;
+  };
+
   // Queue Routing API (rate limit recovery)
   queue: import('../../preload/api/queue-api').QueueAPI;
 }
