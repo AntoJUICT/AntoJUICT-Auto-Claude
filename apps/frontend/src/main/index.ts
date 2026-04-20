@@ -56,6 +56,7 @@ import { initializeClaudeProfileManager, getClaudeProfileManager } from './claud
 import { isProfileAuthenticated } from './claude-profile/profile-utils';
 import { isMacOS, isWindows } from './platform';
 import { ptyDaemonClient } from './terminal/pty-daemon-client';
+import { stopAllPreviews } from './preview';
 import type { AppSettings, AuthFailureInfo } from '../shared/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -616,6 +617,9 @@ app.on('before-quit', (event) => {
 
   // Pause quit to perform async cleanup
   event.preventDefault();
+
+  // Stop all preview servers
+  stopAllPreviews();
 
   // Stop synchronous services immediately
   stopPeriodicUpdates();
