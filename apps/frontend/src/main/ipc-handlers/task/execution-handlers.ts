@@ -559,6 +559,38 @@ export function registerTaskExecutionHandlers(
   );
 
   /**
+   * Approve spec — stub for Plan C pipeline orchestrator wiring
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_SPEC, async (_event, _taskId: string) => {
+    // TODO Plan C: wire to pipeline orchestrator
+    return { success: true };
+  });
+
+  /**
+   * Approve plan — stub for Plan C pipeline orchestrator wiring
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PLAN, async (_event, _taskId: string) => {
+    // TODO Plan C: wire to pipeline orchestrator
+    return { success: true };
+  });
+
+  /**
+   * Approve preview — stub for Plan C pipeline orchestrator wiring
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_APPROVE_PREVIEW, async (_event, _taskId: string) => {
+    // TODO Plan C: wire to pipeline orchestrator
+    return { success: true };
+  });
+
+  /**
+   * Send back — stub for Plan C pipeline orchestrator wiring
+   */
+  ipcMain.handle(IPC_CHANNELS.TASK_SEND_BACK, async (_event, _taskId: string, _target: string, _note?: string) => {
+    // TODO Plan C: wire to pipeline orchestrator
+    return { success: true };
+  });
+
+  /**
    * Update task status manually
    * Options:
    * - forceCleanup: When setting to 'done' with a worktree present, delete the worktree first

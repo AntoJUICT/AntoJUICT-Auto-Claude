@@ -55,6 +55,11 @@ export const taskMock = {
 
   submitReview: async () => ({ success: true }),
 
+  approveSpec: async () => ({ success: true }),
+  approvePlan: async () => ({ success: true }),
+  approvePreview: async () => ({ success: true }),
+  sendBack: async () => ({ success: true }),
+
   // Task archive operations
   archiveTasks: async () => ({ success: true, data: true }),
   unarchiveTasks: async () => ({ success: true, data: true }),
