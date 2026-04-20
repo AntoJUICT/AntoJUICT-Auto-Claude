@@ -553,6 +553,13 @@ class TaskLogger:
         """Get logs for a specific phase."""
         return self.storage.get_phase_data(phase.value)
 
+    def log_token_usage(self, usage: "TokenUsage") -> None:
+        """Log token usage for a single SDK response to token_usage.jsonl."""
+        import json
+        log_path = self.spec_dir / "token_usage.jsonl"
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(usage.to_dict()) + "\n")
+
     def clear(self) -> None:
         """Clear all logs (useful for testing)."""
         self.storage = LogStorage(self.spec_dir)
