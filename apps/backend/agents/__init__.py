@@ -11,12 +11,34 @@ This module provides:
 - Session management and post-processing
 - Utility functions for git and plan management
 
+Superpowers pipeline agents:
+- ModelSelector: Role-based model selection
+- PipelineOrchestrator: State machine for the superpowers workflow
+- brainstorming_agent.run: Produces a design specification
+- planning_agent.run: Breaks spec into subtasks (returns JSON plan)
+- implementer_agent.run / parse_status: Implements a subtask
+- spec_reviewer_agent.run: Checks implementation against acceptance criteria
+- quality_reviewer_agent.run: Quality review beyond acceptance criteria
+- final_reviewer_agent.run: Final review before PR_READY
+
 Uses lazy imports to avoid circular dependencies.
 """
 
 # Explicit import required by CodeQL static analysis
 # (CodeQL doesn't recognize __getattr__ dynamic exports)
 from .utils import sync_spec_to_source
+
+# Superpowers pipeline — import directly (no circular deps)
+from .model_selector import AgentRole, ModelSelector
+from .pipeline_orchestrator import PipelineOrchestrator, PipelineState
+from . import (
+    brainstorming_agent,
+    final_reviewer_agent,
+    implementer_agent,
+    planning_agent,
+    quality_reviewer_agent,
+    spec_reviewer_agent,
+)
 
 __all__ = [
     # Main API
@@ -40,6 +62,17 @@ __all__ = [
     # Constants
     "AUTO_CONTINUE_DELAY_SECONDS",
     "HUMAN_INTERVENTION_FILE",
+    # Superpowers pipeline
+    "AgentRole",
+    "ModelSelector",
+    "PipelineOrchestrator",
+    "PipelineState",
+    "brainstorming_agent",
+    "final_reviewer_agent",
+    "implementer_agent",
+    "planning_agent",
+    "quality_reviewer_agent",
+    "spec_reviewer_agent",
 ]
 
 
