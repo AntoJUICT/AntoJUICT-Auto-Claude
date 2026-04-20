@@ -1,0 +1,27 @@
+{
+  "preview": {
+    "badge": {
+      "starting": "Starting…",
+      "running": "Preview running",
+      "stopped": "Stopped",
+      "error": "Preview error"
+    },
+    "actions": {
+      "start": "Start preview",
+      "stop": "Stop preview",
+      "open": "Open in browser",
+      "keepAlive": "Keep alive"
+    },
+    "firstTime": {
+      "title": "Visual Preview",
+      "description": "Auto Claude can start your project's dev server and show a live preview inside the app. Click 'Start preview' on any task card to try it.",
+      "dismiss": "Got it",
+      "dontShowAgain": "Don't show again"
+    },
+    "status": {
+      "port": "Port {{port}}",
+      "idleWarning": "Idle — will stop in {{minutes}} min",
+      "startFailed": "Failed to start: {{error}}"
+    }
+  }
+}

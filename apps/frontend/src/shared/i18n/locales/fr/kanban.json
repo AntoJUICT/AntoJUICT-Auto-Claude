@@ -1,0 +1,27 @@
+{
+  "preview": {
+    "badge": {
+      "starting": "Démarrage…",
+      "running": "Aperçu actif",
+      "stopped": "Arrêté",
+      "error": "Erreur d'aperçu"
+    },
+    "actions": {
+      "start": "Démarrer l'aperçu",
+      "stop": "Arrêter l'aperçu",
+      "open": "Ouvrir dans le navigateur",
+      "keepAlive": "Maintenir actif"
+    },
+    "firstTime": {
+      "title": "Aperçu visuel",
+      "description": "Auto Claude peut démarrer le serveur de développement de votre projet et afficher un aperçu en direct dans l'application. Cliquez sur « Démarrer l'aperçu » sur une carte de tâche pour l'essayer.",
+      "dismiss": "Compris",
+      "dontShowAgain": "Ne plus afficher"
+    },
+    "status": {
+      "port": "Port {{port}}",
+      "idleWarning": "Inactif — s'arrêtera dans {{minutes}} min",
+      "startFailed": "Échec du démarrage : {{error}}"
+    }
+  }
+}
