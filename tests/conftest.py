@@ -296,8 +296,8 @@ def mock_worktree_path(temp_git_repo: Path) -> Path:
 
 @pytest.fixture
 def workspace_spec_dir(temp_git_repo: Path) -> Path:
-    """Create a spec directory inside .auto-claude/specs/ for workspace tests."""
-    spec_dir = temp_git_repo / ".auto-claude" / "specs" / TEST_SPEC_NAME
+    """Create a spec directory inside .juict-agentic-os/specs/ for workspace tests."""
+    spec_dir = temp_git_repo / ".juict-agentic-os" / "specs" / TEST_SPEC_NAME
     spec_dir.mkdir(parents=True, exist_ok=True)
     return spec_dir
 
@@ -1597,8 +1597,8 @@ def worktree_manager(temp_project_dir):
     """Create a WorktreeManager instance."""
     from core.worktree import WorktreeManager
 
-    # Create .auto-claude directories
-    auto_claude_dir = temp_project_dir / ".auto-claude"
+    # Create .juict-agentic-os directories
+    auto_claude_dir = temp_project_dir / ".juict-agentic-os"
     auto_claude_dir.mkdir(exist_ok=True)
     (auto_claude_dir / "specs").mkdir(exist_ok=True)
     (auto_claude_dir / "worktrees" / "tasks").mkdir(parents=True, exist_ok=True)

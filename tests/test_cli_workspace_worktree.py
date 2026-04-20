@@ -262,7 +262,7 @@ class TestDetectWorktreeBaseBranch:
 
     def test_reads_from_config_file(self, temp_git_repo: Path, mock_worktree_path: Path):
         """Reads base branch from worktree config file."""
-        config_dir = mock_worktree_path / ".auto-claude"
+        config_dir = mock_worktree_path / ".juict-agentic-os"
         config_dir.mkdir(parents=True, exist_ok=True)
         config_file = config_dir / "worktree-config.json"
         config_file.write_text(json.dumps({"base_branch": "develop"}), encoding="utf-8")
@@ -284,7 +284,7 @@ class TestDetectWorktreeBaseBranch:
 
     def test_invalid_config_falls_back(self, temp_git_repo: Path, mock_worktree_path: Path):
         """Handles invalid config file gracefully."""
-        config_dir = mock_worktree_path / ".auto-claude"
+        config_dir = mock_worktree_path / ".juict-agentic-os"
         config_dir.mkdir(parents=True, exist_ok=True)
         config_file = config_dir / "worktree-config.json"
         config_file.write_text("invalid json", encoding="utf-8")

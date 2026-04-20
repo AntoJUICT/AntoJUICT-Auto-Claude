@@ -322,7 +322,7 @@ def temp_spec_dir(tmp_path):
     spec_dir.mkdir()
 
     # Create common spec subdirectories
-    (spec_dir / ".auto-claude").mkdir()
+    (spec_dir / ".juict-agentic-os").mkdir()
     (spec_dir / "context").mkdir()
 
     return spec_dir
@@ -347,7 +347,7 @@ def temp_project_dir(tmp_path):
     # Create common project subdirectories
     (project_dir / "src").mkdir()
     (project_dir / "tests").mkdir()
-    (project_dir / ".auto-claude").mkdir()
+    (project_dir / ".juict-agentic-os").mkdir()
 
     return project_dir
 

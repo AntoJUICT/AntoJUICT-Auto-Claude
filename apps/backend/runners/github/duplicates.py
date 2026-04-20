@@ -298,7 +298,7 @@ class DuplicateDetector:
 
     Usage:
         detector = DuplicateDetector(
-            cache_dir=Path(".auto-claude/github/embeddings"),
+            cache_dir=Path(".juict-agentic-os/github/embeddings"),
             embedding_provider="openai",
         )
 

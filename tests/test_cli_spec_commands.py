@@ -25,7 +25,7 @@ from cli.spec_commands import list_specs, print_specs_list
 @pytest.fixture
 def project_dir_with_specs(temp_git_repo: Path) -> Path:
     """Create a project directory with spec folders."""
-    specs_dir = temp_git_repo / ".auto-claude" / "specs"
+    specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
     specs_dir.mkdir(parents=True)
 
     # Create spec 001 - with spec.md only
@@ -84,7 +84,7 @@ def project_dir_with_specs(temp_git_repo: Path) -> Path:
 @pytest.fixture
 def project_dir_with_build_worktree(temp_git_repo: Path) -> Path:
     """Create a project with a spec that has a build worktree."""
-    specs_dir = temp_git_repo / ".auto-claude" / "specs"
+    specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
     specs_dir.mkdir(parents=True)
 
     # Create spec
@@ -173,7 +173,7 @@ class TestListSpecs:
 
     def test_spec_status_initialized(self, temp_git_repo: Path) -> None:
         """Spec with implementation plan but no subtasks has 'initialized' status."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-test"
@@ -342,7 +342,7 @@ class TestSpecCommandsIntegration:
 
     def test_spec_with_complete_workflow(self, temp_git_repo: Path) -> None:
         """Test spec status progression through complete workflow."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-workflow-test"
@@ -393,7 +393,7 @@ class TestSpecCommandsMissingCoverage:
 
     def test_list_specs_skips_non_directory_files(self, temp_git_repo: Path, capsys):
         """Tests that list_specs skips non-directory files in specs dir (line 40)."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create a valid spec
@@ -425,7 +425,7 @@ class TestSpecCommandsMissingCoverage:
     def test_print_specs_list_no_specs_auto_true_no_runner(self, temp_git_repo: Path, capsys):
         """Tests print message when no specs exist, auto_create=True, but spec_runner missing."""
         # Create specs directory so specs_dir.exists() is True
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Patch the runner existence check to make it return False

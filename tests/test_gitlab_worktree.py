@@ -33,7 +33,7 @@ class TestCreateMergeRequest:
 
         # Mock get_worktree_info to return a valid WorktreeInfo
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",
@@ -84,7 +84,7 @@ class TestCreateMergeRequest:
         spec_name = "test-feature"
 
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",
@@ -139,7 +139,7 @@ class TestCreateMergeRequest:
         spec_name = "test-feature"
 
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",
@@ -178,7 +178,7 @@ class TestCreateMergeRequest:
         spec_name = "test-feature"
 
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",
@@ -225,7 +225,7 @@ class TestCreateMergeRequest:
         spec_name = "test-feature"
 
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",
@@ -282,7 +282,7 @@ class TestGitLabOriginPrefixStripping:
         spec_name = "test-feature"
 
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",
@@ -336,7 +336,7 @@ class TestGitLabOriginPrefixStripping:
         spec_name = "test-feature"
 
         mock_worktree_info = WorktreeInfo(
-            path=temp_project_dir / ".auto-claude" / "worktrees" / "tasks" / spec_name,
+            path=temp_project_dir / ".juict-agentic-os" / "worktrees" / "tasks" / spec_name,
             branch=f"auto-claude/{spec_name}",
             spec_name=spec_name,
             base_branch="main",

@@ -302,9 +302,9 @@ def copy_spec_to_worktree(
         Path to the spec directory inside the worktree
     """
     # Determine target location inside worktree
-    # Use .auto-claude/specs/{spec_name}/ as the standard location
-    # Note: auto-claude/ is source code, .auto-claude/ is the installed instance
-    target_spec_dir = worktree_path / ".auto-claude" / "specs" / spec_name
+    # Use .juict-agentic-os/specs/{spec_name}/ as the standard location
+    # Note: auto-claude/ is source code, .juict-agentic-os/ is the installed instance
+    target_spec_dir = worktree_path / ".juict-agentic-os" / "specs" / spec_name
 
     # Create parent directories if needed
     target_spec_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -376,7 +376,7 @@ def setup_workspace(
     # Set up dependencies in worktree using strategy-based dispatch
     # Load project index if available for ecosystem-aware dependency handling
     project_index = None
-    project_index_path = project_dir / ".auto-claude" / "project_index.json"
+    project_index_path = project_dir / ".juict-agentic-os" / "project_index.json"
     if project_index_path.is_file():
         try:
             with open(project_index_path, encoding="utf-8") as f:
@@ -446,14 +446,14 @@ def setup_workspace(
             except (OSError, json.JSONDecodeError) as e:
                 debug_warning(MODULE, f"Failed to mark profile as inherited: {e}")
 
-    # Ensure .auto-claude/ is in the worktree's .gitignore
+    # Ensure .juict-agentic-os/ is in the worktree's .gitignore
     # This is critical because the worktree inherits .gitignore from the base branch,
-    # which may not have .auto-claude/ if that change wasn't committed/pushed.
+    # which may not have .juict-agentic-os/ if that change wasn't committed/pushed.
     # Without this, spec files would be committed to the worktree's branch.
     from init import ensure_gitignore_entry
 
-    if ensure_gitignore_entry(worktree_info.path, ".auto-claude/"):
-        debug(MODULE, "Added .auto-claude/ to worktree's .gitignore")
+    if ensure_gitignore_entry(worktree_info.path, ".juict-agentic-os/"):
+        debug(MODULE, "Added .juict-agentic-os/ to worktree's .gitignore")
 
     # Copy spec files to worktree if provided
     localized_spec_dir = None

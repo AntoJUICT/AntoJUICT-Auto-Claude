@@ -43,7 +43,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
     // Create temporary test directory
     testDir = mkdtempSync(path.join(tmpdir(), 'changelog-test-'));
     projectPath = path.join(testDir, 'test-project');
-    specsDir = path.join(projectPath, '.auto-claude', 'specs');
+    specsDir = path.join(projectPath, '.juict-agentic-os', 'specs');
 
     // Create project structure
     mkdirSync(projectPath, { recursive: true });

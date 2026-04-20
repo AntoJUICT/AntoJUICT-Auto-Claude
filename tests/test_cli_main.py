@@ -55,8 +55,8 @@ def mock_project_dir(temp_dir):
     project_dir = temp_dir / "project"
     project_dir.mkdir()
 
-    # Create .auto-claude directory structure
-    auto_claude_dir = project_dir / ".auto-claude"
+    # Create .juict-agentic-os directory structure
+    auto_claude_dir = project_dir / ".juict-agentic-os"
     auto_claude_dir.mkdir()
     specs_dir = auto_claude_dir / "specs"
     specs_dir.mkdir()
@@ -471,7 +471,7 @@ class TestRunCliSpecResolution:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -497,7 +497,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -518,7 +518,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -539,7 +539,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -560,7 +560,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -577,7 +577,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -601,7 +601,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -617,7 +617,7 @@ class TestRunCliBuildCommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -637,7 +637,7 @@ class TestRunCliPRCommand:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -661,7 +661,7 @@ class TestRunCliPRCommand:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -690,7 +690,7 @@ class TestRunCliPRCommand:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -713,7 +713,7 @@ class TestRunCliQACommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -729,7 +729,7 @@ class TestRunCliQACommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -745,7 +745,7 @@ class TestRunCliQACommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -766,7 +766,7 @@ class TestRunCliQACommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -787,7 +787,7 @@ class TestRunCliQACommands:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -812,7 +812,7 @@ class TestRunCliFollowupCommand:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -833,7 +833,7 @@ class TestRunCliFollowupCommand:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -858,7 +858,7 @@ class TestRunCliBuildFlow:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -886,7 +886,7 @@ class TestRunCliBuildFlow:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -924,7 +924,7 @@ class TestRunCliBuildFlow:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -946,7 +946,7 @@ class TestModelResolution:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -966,7 +966,7 @@ class TestModelResolution:
         os.environ["AUTO_BUILD_MODEL"] = "sonnet"
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -986,7 +986,7 @@ class TestModelResolution:
         os.environ["AUTO_BUILD_MODEL"] = "sonnet"
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir
@@ -1004,7 +1004,7 @@ class TestModelResolution:
         from cli.main import _run_cli
 
         project_dir = Path("/mock/project")
-        spec_dir = Path("/mock/project/.auto-claude/specs/001-test")
+        spec_dir = Path("/mock/project/.juict-agentic-os/specs/001-test")
 
         mock_utils["get_project_dir"].return_value = project_dir
         mock_utils["find_spec"].return_value = spec_dir

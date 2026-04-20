@@ -101,7 +101,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       const mockLogs: TaskLogs = {
@@ -158,9 +158,9 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       expect(result.data).toEqual(mockLogs);
       expect(projectStore.getProject).toHaveBeenCalledWith('project-123');
       expect(taskLogService.loadLogs).toHaveBeenCalledWith(
-        path.join('/absolute/path/to/project', '.auto-claude/specs', '001-test-task'),
+        path.join('/absolute/path/to/project', '.juict-agentic-os/specs', '001-test-task'),
         '/absolute/path/to/project',
-        '.auto-claude/specs',
+        '.juict-agentic-os/specs',
         '001-test-task'
       );
     });
@@ -173,7 +173,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: './relative/path',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       const mockLogs: TaskLogs = {
@@ -228,7 +228,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);
@@ -249,7 +249,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);
@@ -273,7 +273,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);
@@ -297,7 +297,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);
@@ -309,9 +309,9 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       expect(result.success).toBe(true);
       expect(taskLogService.startWatching).toHaveBeenCalledWith(
         '001-test-task',
-        path.join('/absolute/path/to/project', '.auto-claude/specs', '001-test-task'),
+        path.join('/absolute/path/to/project', '.juict-agentic-os/specs', '001-test-task'),
         '/absolute/path/to/project',
-        '.auto-claude/specs'
+        '.juict-agentic-os/specs'
       );
     });
 
@@ -342,7 +342,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);
@@ -363,7 +363,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);
@@ -416,7 +416,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProjectRelative = {
         id: 'project-123',
         path: './my-project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProjectRelative);
@@ -457,7 +457,7 @@ describe('Task Logs Integration (IPC → Service → State)', () => {
       const mockProject = {
         id: 'project-123',
         path: '/absolute/path/to/project',
-        autoBuildPath: '.auto-claude'
+        autoBuildPath: '.juict-agentic-os'
       };
 
       (projectStore.getProject as Mock).mockReturnValue(mockProject);

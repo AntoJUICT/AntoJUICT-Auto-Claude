@@ -70,11 +70,11 @@ export function getAppCacheDir(): string {
 
 /**
  * Get the memories storage directory
- * This is where graph databases are stored (previously ~/.auto-claude/memories)
+ * This is where graph databases are stored (previously ~/.juict-agentic-os/memories)
  */
 export function getMemoriesDir(): string {
   // For compatibility, we still support the legacy path
-  const legacyPath = path.join(os.homedir(), '.auto-claude', 'memories');
+  const legacyPath = path.join(os.homedir(), '.juict-agentic-os', 'memories');
 
   // On Linux with XDG variables set (AppImage, Flatpak, Snap), use XDG path
   if (isLinux() && (process.env.XDG_DATA_HOME || process.env.APPIMAGE || process.env.SNAP || process.env.FLATPAK_ID)) {

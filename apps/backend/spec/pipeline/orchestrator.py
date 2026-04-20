@@ -200,7 +200,7 @@ class SpecOrchestrator:
         This ensures QA agents receive accurate project capability information
         for dynamic MCP tool injection.
         """
-        index_file = self.project_dir / ".auto-claude" / "project_index.json"
+        index_file = self.project_dir / ".juict-agentic-os" / "project_index.json"
 
         if should_refresh_project_index(self.project_dir):
             if index_file.exists():
@@ -665,7 +665,7 @@ class SpecOrchestrator:
             The complexity assessment
         """
         project_index = {}
-        auto_build_index = self.project_dir / ".auto-claude" / "project_index.json"
+        auto_build_index = self.project_dir / ".juict-agentic-os" / "project_index.json"
         if auto_build_index.exists():
             with open(auto_build_index, encoding="utf-8") as f:
                 project_index = json.load(f)

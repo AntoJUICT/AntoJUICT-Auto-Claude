@@ -47,8 +47,8 @@ class ProjectAnalyzer:
             "planned_features": [],
         }
 
-        # Get project index (from .auto-claude - the installed instance)
-        project_index_path = self.project_dir / ".auto-claude" / "project_index.json"
+        # Get project index (from .juict-agentic-os - the installed instance)
+        project_index_path = self.project_dir / ".juict-agentic-os" / "project_index.json"
         if project_index_path.exists():
             try:
                 with open(project_index_path, encoding="utf-8") as f:
@@ -66,7 +66,7 @@ class ProjectAnalyzer:
         # Get roadmap context if enabled
         if self.include_roadmap:
             roadmap_path = (
-                self.project_dir / ".auto-claude" / "roadmap" / "roadmap.json"
+                self.project_dir / ".juict-agentic-os" / "roadmap" / "roadmap.json"
             )
             if roadmap_path.exists():
                 try:
@@ -83,7 +83,7 @@ class ProjectAnalyzer:
 
             # Also check discovery for audience
             discovery_path = (
-                self.project_dir / ".auto-claude" / "roadmap" / "roadmap_discovery.json"
+                self.project_dir / ".juict-agentic-os" / "roadmap" / "roadmap_discovery.json"
             )
             if discovery_path.exists() and not context["target_audience"]:
                 try:
@@ -102,7 +102,7 @@ class ProjectAnalyzer:
 
         # Get kanban context if enabled
         if self.include_kanban:
-            specs_dir = self.project_dir / ".auto-claude" / "specs"
+            specs_dir = self.project_dir / ".juict-agentic-os" / "specs"
             if specs_dir.exists():
                 for spec_dir in specs_dir.iterdir():
                     if spec_dir.is_dir():

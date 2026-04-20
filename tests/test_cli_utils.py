@@ -235,7 +235,7 @@ class TestFindSpec:
     def test_finds_spec_by_exact_match(self, temp_dir):
         """Finds spec by exact identifier match."""
         # Create spec directory
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_folder = specs_dir / "001-test-feature"
         spec_folder.mkdir()
@@ -248,7 +248,7 @@ class TestFindSpec:
 
     def test_finds_spec_by_number_prefix(self, temp_dir):
         """Finds spec by number prefix (001 matches 001-feature-name)."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_folder = specs_dir / "001-test-feature"
         spec_folder.mkdir()
@@ -265,7 +265,7 @@ class TestFindSpec:
 
     def test_requires_spec_md_file(self, temp_dir):
         """Requires spec.md to exist in the spec folder."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_folder = specs_dir / "001-test-feature"
         spec_folder.mkdir()
@@ -277,9 +277,9 @@ class TestFindSpec:
     def test_finds_spec_in_worktree(self, temp_dir):
         """Finds spec in worktree directory."""
         # Create worktree structure
-        worktree_base = temp_dir / ".auto-claude" / "worktrees" / "tasks"
+        worktree_base = temp_dir / ".juict-agentic-os" / "worktrees" / "tasks"
         worktree_dir = worktree_base / "001-test-feature"
-        spec_in_worktree = worktree_dir / ".auto-claude" / "specs" / "001-test-feature"
+        spec_in_worktree = worktree_dir / ".juict-agentic-os" / "specs" / "001-test-feature"
         spec_in_worktree.mkdir(parents=True)
         (spec_in_worktree / "spec.md").write_text("# Test Spec")
 
@@ -289,9 +289,9 @@ class TestFindSpec:
 
     def test_finds_spec_in_worktree_by_prefix(self, temp_dir):
         """Finds spec in worktree by number prefix."""
-        worktree_base = temp_dir / ".auto-claude" / "worktrees" / "tasks"
+        worktree_base = temp_dir / ".juict-agentic-os" / "worktrees" / "tasks"
         worktree_dir = worktree_base / "001-test-feature"
-        spec_in_worktree = worktree_dir / ".auto-claude" / "specs" / "001-test-feature"
+        spec_in_worktree = worktree_dir / ".juict-agentic-os" / "specs" / "001-test-feature"
         spec_in_worktree.mkdir(parents=True)
         (spec_in_worktree / "spec.md").write_text("# Test Spec")
 
@@ -301,9 +301,9 @@ class TestFindSpec:
 
     def test_worktree_spec_requires_spec_md_file(self, temp_dir):
         """Worktree spec requires spec.md to exist."""
-        worktree_base = temp_dir / ".auto-claude" / "worktrees" / "tasks"
+        worktree_base = temp_dir / ".juict-agentic-os" / "worktrees" / "tasks"
         worktree_dir = worktree_base / "001-test-feature"
-        spec_in_worktree = worktree_dir / ".auto-claude" / "specs" / "001-test-feature"
+        spec_in_worktree = worktree_dir / ".juict-agentic-os" / "specs" / "001-test-feature"
         spec_in_worktree.mkdir(parents=True)
         # No spec.md file created
 
@@ -313,17 +313,17 @@ class TestFindSpec:
     def test_worktree_spec_exact_match_takes_precedence(self, temp_dir):
         """Worktree exact match takes precedence over prefix match."""
         # Create two worktrees - one exact match, one prefix match
-        worktree_base = temp_dir / ".auto-claude" / "worktrees" / "tasks"
+        worktree_base = temp_dir / ".juict-agentic-os" / "worktrees" / "tasks"
 
         # Exact match directory
         exact_dir = worktree_base / "001"
-        exact_spec = exact_dir / ".auto-claude" / "specs" / "001"
+        exact_spec = exact_dir / ".juict-agentic-os" / "specs" / "001"
         exact_spec.mkdir(parents=True)
         (exact_spec / "spec.md").write_text("# Exact Match")
 
         # Prefix match directory
         prefix_dir = worktree_base / "001-test"
-        prefix_spec = prefix_dir / ".auto-claude" / "specs" / "001-test"
+        prefix_spec = prefix_dir / ".juict-agentic-os" / "specs" / "001-test"
         prefix_spec.mkdir(parents=True)
         (prefix_spec / "spec.md").write_text("# Prefix Match")
 
@@ -341,9 +341,9 @@ class TestFindSpec:
 
     def test_worktree_prefix_match_without_spec_md(self, temp_dir):
         """Worktree prefix match returns None when spec.md is missing."""
-        worktree_base = temp_dir / ".auto-claude" / "worktrees" / "tasks"
+        worktree_base = temp_dir / ".juict-agentic-os" / "worktrees" / "tasks"
         worktree_dir = worktree_base / "001-test-feature"
-        spec_in_worktree = worktree_dir / ".auto-claude" / "specs" / "001-test-feature"
+        spec_in_worktree = worktree_dir / ".juict-agentic-os" / "specs" / "001-test-feature"
         spec_in_worktree.mkdir(parents=True)
         # No spec.md
 
@@ -353,16 +353,16 @@ class TestFindSpec:
     def test_main_specs_dir_priority_over_worktree(self, temp_dir):
         """Main specs directory is checked before worktree."""
         # Create spec in main directory
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         main_spec = specs_dir / "001-test"
         main_spec.mkdir()
         (main_spec / "spec.md").write_text("# Main Spec")
 
         # Also create spec in worktree
-        worktree_base = temp_dir / ".auto-claude" / "worktrees" / "tasks"
+        worktree_base = temp_dir / ".juict-agentic-os" / "worktrees" / "tasks"
         worktree_dir = worktree_base / "001-test"
-        worktree_spec = worktree_dir / ".auto-claude" / "specs" / "001-test"
+        worktree_spec = worktree_dir / ".juict-agentic-os" / "specs" / "001-test"
         worktree_spec.mkdir(parents=True)
         (worktree_spec / "spec.md").write_text("# Worktree Spec")
 
@@ -401,7 +401,7 @@ class TestValidateEnvironment:
         mock_is_linear_enabled.return_value = False
 
         # Create spec.md
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -426,7 +426,7 @@ class TestValidateEnvironment:
         """Returns False when no OAuth token is found."""
         mock_get_auth_token.return_value = None
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -450,7 +450,7 @@ class TestValidateEnvironment:
         """Returns False when spec.md is not found."""
         mock_get_auth_token.return_value = "test-token"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         # No spec.md created
 
@@ -470,7 +470,7 @@ class TestValidateEnvironment:
         mock_get_auth_token.return_value = "test-token"
         mock_get_auth_token_source.return_value = "OAuth Profile: test@example.com"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -490,7 +490,7 @@ class TestValidateEnvironment:
         mock_get_auth_token.return_value = "test-token"
         mock_get_auth_token_source.return_value = "oauth_profile:test@example.com"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -528,7 +528,7 @@ class TestValidateEnvironment:
         }
         mock_linear_manager_class.return_value = mock_linear_manager
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -563,7 +563,7 @@ class TestValidateEnvironment:
         mock_linear_manager.is_initialized = False
         mock_linear_manager_class.return_value = mock_linear_manager
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -581,7 +581,7 @@ class TestValidateEnvironment:
         """Shows Linear integration disabled when not enabled."""
         mock_get_auth_token.return_value = "test-token"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -599,7 +599,7 @@ class TestValidateEnvironment:
         """Shows Graphiti memory enabled with database path."""
         mock_get_auth_token.return_value = "test-token"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -624,7 +624,7 @@ class TestValidateEnvironment:
         """Shows Graphiti configured but unavailable."""
         mock_get_auth_token.return_value = "test-token"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -647,7 +647,7 @@ class TestValidateEnvironment:
         """Shows Graphiti memory disabled when not enabled."""
         mock_get_auth_token.return_value = "test-token"
 
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -750,15 +750,15 @@ class TestFindSpecsDir:
     """Tests for find_specs_dir() function."""
 
     def test_returns_specs_dir_path(self, temp_dir):
-        """Returns path to .auto-claude/specs directory."""
+        """Returns path to .juict-agentic-os/specs directory."""
         result = find_specs_dir(temp_dir)
         assert result.name == "specs"
-        assert ".auto-claude" in result.parts or result.parent.name == ".auto-claude"
+        assert ".juict-agentic-os" in result.parts or result.parent.name == ".juict-agentic-os"
 
     def test_creates_directory_if_not_exists(self, temp_dir):
         """Creates specs directory if it doesn't exist."""
         # Ensure directory doesn't exist
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         if specs_dir.exists():
             import shutil
             shutil.rmtree(specs_dir.parent)

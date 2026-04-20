@@ -756,7 +756,7 @@ class TestHandleBuildCommandAutoContinue:
         mock_should_run_qa.return_value = False
         mock_get_phase_model.side_effect = lambda spec_dir, phase, model: model or "sonnet"
         mock_choose_workspace.return_value = WorkspaceMode.DIRECT
-        mock_get_existing.return_value = temp_git_repo / ".auto-claude" / "worktrees" / "tasks" / "test-spec"
+        mock_get_existing.return_value = temp_git_repo / ".juict-agentic-os" / "worktrees" / "tasks" / "test-spec"
 
         mock_run_agent.side_effect = successful_agent_fn
 
@@ -808,7 +808,7 @@ class TestHandleBuildCommandAutoContinue:
         mock_get_phase_model.side_effect = lambda spec_dir, phase, model: model or "sonnet"
         mock_choose_workspace.return_value = WorkspaceMode.DIRECT
         # Return a truthy value to trigger existing build detection
-        worktree_path = temp_git_repo / ".auto-claude" / "worktrees" / "tasks" / "test-spec"
+        worktree_path = temp_git_repo / ".juict-agentic-os" / "worktrees" / "tasks" / "test-spec"
         mock_get_existing.return_value = worktree_path
 
         mock_run_agent.side_effect = successful_agent_fn
@@ -1217,7 +1217,7 @@ class TestHandleBuildCommandExistingBuild:
         # This triggers the if block on line 173
         with patch("workspace.get_existing_build_worktree") as mock_get_existing:
             # Return a truthy value to trigger the existing build check
-            mock_get_existing.return_value = temp_git_repo / ".auto-claude" / "worktrees" / "tasks" / approved_build_spec.name
+            mock_get_existing.return_value = temp_git_repo / ".juict-agentic-os" / "worktrees" / "tasks" / approved_build_spec.name
 
             # Execute with auto_continue=True
             handle_build_command(
@@ -1271,7 +1271,7 @@ class TestHandleBuildCommandExistingBuild:
 
         # Mock get_existing_build_worktree to return a path
         with patch("cli.build_commands.get_existing_build_worktree") as mock_get_existing:
-            mock_get_existing.return_value = temp_git_repo / ".auto-claude" / "worktrees" / "tasks" / approved_build_spec.name
+            mock_get_existing.return_value = temp_git_repo / ".juict-agentic-os" / "worktrees" / "tasks" / approved_build_spec.name
 
             # Execute without auto_continue (interactive mode)
             handle_build_command(
@@ -1322,7 +1322,7 @@ class TestHandleBuildCommandExistingBuild:
 
         # Mock get_existing_build_worktree to return a path
         with patch("cli.build_commands.get_existing_build_worktree") as mock_get_existing:
-            mock_get_existing.return_value = temp_git_repo / ".auto-claude" / "worktrees" / "tasks" / approved_build_spec.name
+            mock_get_existing.return_value = temp_git_repo / ".juict-agentic-os" / "worktrees" / "tasks" / approved_build_spec.name
 
             # Execute without auto_continue
             handle_build_command(
@@ -2302,7 +2302,7 @@ class TestHandleBuildCommandLocalizedSpec:
 
         # Mock worktree manager and localized spec directory
         mock_worktree_manager = MagicMock()
-        localized_spec_dir = temp_git_repo / "worktree" / ".auto-claude" / "specs" / approved_build_spec.name
+        localized_spec_dir = temp_git_repo / "worktree" / ".juict-agentic-os" / "specs" / approved_build_spec.name
         # Return tuple with localized_spec_dir (third element)
         mock_setup_workspace.return_value = (temp_git_repo, mock_worktree_manager, localized_spec_dir)
         mock_finalize_workspace.return_value = "quit"

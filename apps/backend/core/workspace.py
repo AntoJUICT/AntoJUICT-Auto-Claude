@@ -4,7 +4,7 @@ Workspace Management - Per-Spec Architecture
 =============================================
 
 Handles workspace isolation through Git worktrees, where each spec
-gets its own isolated worktree in .auto-claude/worktrees/tasks/{spec-name}/.
+gets its own isolated worktree in .juict-agentic-os/worktrees/tasks/{spec-name}/.
 
 This module has been refactored for better maintainability:
 - Models and enums: workspace/models.py
@@ -1067,7 +1067,7 @@ def _check_git_conflicts(project_dir: Path, spec_name: str) -> dict:
                     )
                     if match:
                         file_path = match.group(1).strip()
-                        # Skip .auto-claude files - they should never be merged
+                        # Skip .juict-agentic-os files - they should never be merged
                         if (
                             file_path
                             and file_path not in result["conflicting_files"]

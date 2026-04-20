@@ -54,8 +54,8 @@ def load_project_context(project_dir: str) -> str:
     """Load project context for the AI."""
     context_parts = []
 
-    # Load project index if available (from .auto-claude - the installed instance)
-    index_path = Path(project_dir) / ".auto-claude" / "project_index.json"
+    # Load project index if available (from .juict-agentic-os - the installed instance)
+    index_path = Path(project_dir) / ".juict-agentic-os" / "project_index.json"
     if index_path.exists():
         try:
             with open(index_path, encoding="utf-8") as f:
@@ -74,7 +74,7 @@ def load_project_context(project_dir: str) -> str:
             pass
 
     # Load roadmap if available
-    roadmap_path = Path(project_dir) / ".auto-claude" / "roadmap" / "roadmap.json"
+    roadmap_path = Path(project_dir) / ".juict-agentic-os" / "roadmap" / "roadmap.json"
     if roadmap_path.exists():
         try:
             with open(roadmap_path, encoding="utf-8") as f:
@@ -92,7 +92,7 @@ def load_project_context(project_dir: str) -> str:
             pass
 
     # Load existing tasks
-    tasks_path = Path(project_dir) / ".auto-claude" / "specs"
+    tasks_path = Path(project_dir) / ".juict-agentic-os" / "specs"
     if tasks_path.exists():
         try:
             task_dirs = [d for d in tasks_path.iterdir() if d.is_dir()]

@@ -4,7 +4,7 @@ Git Worktree Manager - Per-Spec Architecture
 =============================================
 
 Each spec gets its own worktree:
-- Worktree path: .auto-claude/worktrees/tasks/{spec-name}/
+- Worktree path: .juict-agentic-os/worktrees/tasks/{spec-name}/
 - Branch name: auto-claude/{spec-name}
 
 This allows:
@@ -177,7 +177,7 @@ class WorktreeManager:
     """
     Manages per-spec Git worktrees.
 
-    Each spec gets its own worktree in .auto-claude/worktrees/tasks/{spec-name}/ with
+    Each spec gets its own worktree in .juict-agentic-os/worktrees/tasks/{spec-name}/ with
     a corresponding branch auto-claude/{spec-name}.
     """
 
@@ -195,7 +195,7 @@ class WorktreeManager:
         self.project_dir = project_dir
         self.base_branch = base_branch or self._detect_base_branch()
         self.use_local_branch = use_local_branch
-        self.worktrees_dir = project_dir / ".auto-claude" / "worktrees" / "tasks"
+        self.worktrees_dir = project_dir / ".juict-agentic-os" / "worktrees" / "tasks"
         self._merge_lock = asyncio.Lock()
 
     def _detect_base_branch(self) -> str:
@@ -270,10 +270,10 @@ class WorktreeManager:
     def _unstage_gitignored_files(self) -> None:
         """
         Unstage any staged files that are gitignored in the current branch,
-        plus any files in the .auto-claude directory which should never be merged.
+        plus any files in the .juict-agentic-os directory which should never be merged.
 
         This is needed after a --no-commit merge because files that exist in the
-        source branch (like spec files in .auto-claude/specs/) get staged even if
+        source branch (like spec files in .juict-agentic-os/specs/) get staged even if
         they're gitignored in the target branch.
         """
         # Get list of staged files
@@ -283,7 +283,7 @@ class WorktreeManager:
 
         staged_files = result.stdout.strip().split("\n")
 
-        # Files to unstage: gitignored files + .auto-claude directory files
+        # Files to unstage: gitignored files + .juict-agentic-os directory files
         files_to_unstage = set()
 
         # 1. Check which staged files are gitignored
@@ -299,9 +299,9 @@ class WorktreeManager:
                 if file.strip():
                     files_to_unstage.add(file.strip())
 
-        # 2. Always unstage .auto-claude directory files - these are project-specific
+        # 2. Always unstage .juict-agentic-os directory files - these are project-specific
         # and should never be merged from the worktree branch
-        auto_claude_patterns = [".auto-claude/", "auto-claude/specs/"]
+        auto_claude_patterns = [".juict-agentic-os/", "auto-claude/specs/"]
         for file in staged_files:
             file = file.strip()
             if not file:
@@ -329,12 +329,12 @@ class WorktreeManager:
 
     def get_worktree_path(self, spec_name: str) -> Path:
         """Get the worktree path for a spec (checks new and legacy locations)."""
-        # New path first (.auto-claude/worktrees/tasks/)
+        # New path first (.juict-agentic-os/worktrees/tasks/)
         new_path = self.worktrees_dir / spec_name
         if new_path.exists():
             return new_path
 
-        # Legacy fallback (.worktrees/ instead of .auto-claude/worktrees/tasks/)
+        # Legacy fallback (.worktrees/ instead of .juict-agentic-os/worktrees/tasks/)
         legacy_path = self.project_dir / ".worktrees" / spec_name
         if legacy_path.exists():
             return legacy_path
@@ -1622,11 +1622,11 @@ class WorktreeManager:
             return None
 
         # Resolve spec directory
-        spec_dir = self.project_dir / ".auto-claude" / "specs" / spec_name
+        spec_dir = self.project_dir / ".juict-agentic-os" / "specs" / spec_name
         if not spec_dir.is_dir():
             # Try worktree-local spec path
             worktree_path = self.get_worktree_path(spec_name)
-            spec_dir = worktree_path / ".auto-claude" / "specs" / spec_name
+            spec_dir = worktree_path / ".juict-agentic-os" / "specs" / spec_name
             if not spec_dir.is_dir():
                 logger.warning("Spec directory not found for AI PR body generation")
                 return None
@@ -1678,12 +1678,12 @@ class WorktreeManager:
     def _extract_spec_summary(self, spec_name: str) -> str:
         """Extract a summary from spec.md for PR body."""
         worktree_path = self.get_worktree_path(spec_name)
-        spec_path = worktree_path / ".auto-claude" / "specs" / spec_name / "spec.md"
+        spec_path = worktree_path / ".juict-agentic-os" / "specs" / spec_name / "spec.md"
 
         if not spec_path.exists():
             # Try project spec path
             spec_path = (
-                self.project_dir / ".auto-claude" / "specs" / spec_name / "spec.md"
+                self.project_dir / ".juict-agentic-os" / "specs" / spec_name / "spec.md"
             )
 
         if not spec_path.exists():

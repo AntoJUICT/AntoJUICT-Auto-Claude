@@ -209,7 +209,7 @@ async def _run_implementation(
 async def main() -> None:
     args = _parse_args()
     project_dir = Path(args.project_dir)
-    spec_dir = project_dir / ".auto-claude" / "specs" / args.spec_id
+    spec_dir = project_dir / ".juict-agentic-os" / "specs" / args.spec_id
     spec_dir.mkdir(parents=True, exist_ok=True)
 
     # Write task metadata so TaskEventEmitter can resolve taskId/specId

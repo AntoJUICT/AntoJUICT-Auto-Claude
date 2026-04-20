@@ -354,7 +354,7 @@ export function Sidebar({
           isCollapsed ? "justify-center px-2" : "px-4"
         )}>
           {!isCollapsed && (
-            <span className="electron-no-drag text-lg font-bold text-primary">Auto Claude</span>
+            <span className="electron-no-drag text-lg font-bold text-primary">JUICT Agentic OS</span>
           )}
         </div>
 

@@ -533,7 +533,7 @@ class TestCrossValidation:
 
         config = GitHubRunnerConfig(token="test-token", repo="test/repo")
         # Create minimal directory structure
-        github_dir = tmp_path / ".auto-claude" / "github"
+        github_dir = tmp_path / ".juict-agentic-os" / "github"
         github_dir.mkdir(parents=True)
 
         reviewer = ParallelOrchestratorReviewer(

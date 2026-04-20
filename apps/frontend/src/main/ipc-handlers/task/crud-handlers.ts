@@ -454,7 +454,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
           return { success: false, error: 'Task not found' };
         }
 
-        const autoBuildDir = project.autoBuildPath || '.auto-claude';
+        const autoBuildDir = project.autoBuildPath || '.juict-agentic-os';
         const specDir = path.join(project.path, autoBuildDir, 'specs', task.specId);
 
         if (!existsSync(specDir)) {
@@ -666,7 +666,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
           console.error(`[IPC] TASK_LOAD_IMAGE_THUMBNAIL: Unknown project: "${projectPath}"`);
           return { success: false, error: 'Unknown project' };
         }
-        const autoBuildPath = project.autoBuildPath || '.auto-claude';
+        const autoBuildPath = project.autoBuildPath || '.juict-agentic-os';
 
         // Build full path to the image
         const specsDir = getSpecsDir(autoBuildPath);

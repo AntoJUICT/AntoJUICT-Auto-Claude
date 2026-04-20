@@ -3,7 +3,7 @@ GitHub Automation Data Models
 =============================
 
 Data structures for GitHub automation features.
-Stored in .auto-claude/github/pr/ and .auto-claude/github/issues/
+Stored in .juict-agentic-os/github/pr/ and .juict-agentic-os/github/issues/
 
 All save() operations use file locking to prevent corruption in concurrent scenarios.
 """
@@ -660,7 +660,7 @@ class PRReviewResult:
         )
 
     async def save(self, github_dir: Path) -> None:
-        """Save review result to .auto-claude/github/pr/ with file locking."""
+        """Save review result to .juict-agentic-os/github/pr/ with file locking."""
         pr_dir = github_dir / "pr"
         pr_dir.mkdir(parents=True, exist_ok=True)
 
@@ -814,7 +814,7 @@ class TriageResult:
         )
 
     async def save(self, github_dir: Path) -> None:
-        """Save triage result to .auto-claude/github/issues/ with file locking."""
+        """Save triage result to .juict-agentic-os/github/issues/ with file locking."""
         issues_dir = github_dir / "issues"
         issues_dir.mkdir(parents=True, exist_ok=True)
 
@@ -901,7 +901,7 @@ class AutoFixState:
         self.updated_at = _utc_now_iso()
 
     async def save(self, github_dir: Path) -> None:
-        """Save auto-fix state to .auto-claude/github/issues/ with file locking."""
+        """Save auto-fix state to .juict-agentic-os/github/issues/ with file locking."""
         issues_dir = github_dir / "issues"
         issues_dir.mkdir(parents=True, exist_ok=True)
 

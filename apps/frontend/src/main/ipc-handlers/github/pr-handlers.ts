@@ -822,7 +822,7 @@ async function performCIWaitCheck(
  * Get the GitHub directory for a project
  */
 function getGitHubDir(project: Project): string {
-  return path.join(project.path, ".auto-claude", "github");
+  return path.join(project.path, ".juict-agentic-os", "github");
 }
 
 /**
@@ -1059,7 +1059,7 @@ function createEmptyPRLogs(prNumber: number, repo: string, isFollowup: boolean):
 /**
  * Get PR logs file path
  *
- * Logs are stored at `.auto-claude/github/pr/logs_${prNumber}.json` within the project directory.
+ * Logs are stored at `.juict-agentic-os/github/pr/logs_${prNumber}.json` within the project directory.
  * This provides persistent storage for streaming log data during PR reviews.
  */
 function getPRLogsPath(project: Project, prNumber: number): string {
@@ -1141,7 +1141,7 @@ function addLogEntry(logs: PRLogs, entry: PRLogEntry): boolean {
  * This class implements a hybrid push/pull approach for real-time log streaming:
  *
  * 1. **File-Based Storage**: Logs are saved to disk every 3 entries (saveInterval)
- *    - Location: .auto-claude/github/pr/logs_${prNumber}.json
+ *    - Location: .juict-agentic-os/github/pr/logs_${prNumber}.json
  *    - Format: JSON with phase status and log entries
  *
  * 2. **Push-Based Updates**: Emits IPC events (GITHUB_PR_LOGS_UPDATED) after each save
@@ -1259,7 +1259,7 @@ class PRLogCollector {
    * Two-step update mechanism:
    * --------------------------
    * 1. **File Write**: Persists logs to disk via savePRLogs()
-   *    - Creates/updates .auto-claude/github/pr/logs_${prNumber}.json
+   *    - Creates/updates .juict-agentic-os/github/pr/logs_${prNumber}.json
    *    - Updates the `updated_at` timestamp
    *
    * 2. **IPC Push Event**: Sends GITHUB_PR_LOGS_UPDATED to renderer
@@ -2324,7 +2324,7 @@ export function registerPRHandlers(getMainWindow: () => BrowserWindow | null): v
           }
 
           // Use temp file to avoid shell escaping issues
-          const tmpFile = join(project.path, ".auto-claude", "tmp_comment_body.txt");
+          const tmpFile = join(project.path, ".juict-agentic-os", "tmp_comment_body.txt");
           try {
             writeFileSync(tmpFile, body, "utf-8");
             // Use execFileSync with arguments array to prevent command injection
@@ -2555,7 +2555,7 @@ export function registerPRHandlers(getMainWindow: () => BrowserWindow | null): v
 
       const result = await withProjectOrNull(projectId, async (project) => {
         // Check if review exists and has reviewed_commit_sha
-        const githubDir = path.join(project.path, ".auto-claude", "github");
+        const githubDir = path.join(project.path, ".juict-agentic-os", "github");
         const reviewPath = path.join(githubDir, "pr", `review_${prNumber}.json`);
 
         let review: PRReviewResult;

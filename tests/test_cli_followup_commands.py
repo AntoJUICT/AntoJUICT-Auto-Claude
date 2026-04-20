@@ -62,7 +62,7 @@ class TestCollectFollowupTask:
 
     def test_returns_task_description_on_type(self, temp_dir, capsys):
         """Returns task description when user chooses to type."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='type'):
@@ -80,7 +80,7 @@ class TestCollectFollowupTask:
 
     def test_reads_from_file_when_selected(self, temp_dir, capsys):
         """Reads task description from file when file option selected."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create a temp file with task description
@@ -97,7 +97,7 @@ class TestCollectFollowupTask:
 
     def test_handles_nonexistent_file(self, temp_dir, capsys):
         """Handles case when specified file doesn't exist."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='file'):
@@ -109,7 +109,7 @@ class TestCollectFollowupTask:
 
     def test_handles_empty_file(self, temp_dir, capsys):
         """Handles case when file is empty."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create empty file
@@ -124,7 +124,7 @@ class TestCollectFollowupTask:
 
     def test_handles_permission_error(self, temp_dir, capsys):
         """Handles permission denied error when reading file."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         task_file = temp_dir / "restricted.txt"
@@ -140,7 +140,7 @@ class TestCollectFollowupTask:
 
     def test_returns_none_on_quit(self, temp_dir):
         """Returns None when user selects quit."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='quit'):
@@ -150,7 +150,7 @@ class TestCollectFollowupTask:
 
     def test_retries_on_empty_input(self, temp_dir, capsys):
         """Retries when user provides empty input."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # First attempt: type with empty input
@@ -168,7 +168,7 @@ class TestCollectFollowupTask:
 
     def test_respects_max_retries(self, temp_dir, capsys):
         """Stops retrying after max attempts reached."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Always return empty input
@@ -182,7 +182,7 @@ class TestCollectFollowupTask:
 
     def test_handles_keyboard_interrupt(self, temp_dir, capsys):
         """Handles KeyboardInterrupt during input collection."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='type'):
@@ -195,7 +195,7 @@ class TestCollectFollowupTask:
 
     def test_handles_eof_error(self, temp_dir, capsys):
         """Handles EOFError during input collection."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='type'):
@@ -208,7 +208,7 @@ class TestCollectFollowupTask:
 
     def test_saves_to_followup_request_file(self, temp_dir):
         """Saves the collected task to FOLLOWUP_REQUEST.md."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         task_description = "This is a test follow-up task"
@@ -223,7 +223,7 @@ class TestCollectFollowupTask:
 
     def test_handles_empty_file_path(self, temp_dir, capsys):
         """Handles case when no file path is provided."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', side_effect=['file', 'quit']):
@@ -236,7 +236,7 @@ class TestCollectFollowupTask:
 
     def test_expands_tilde_in_path(self, temp_dir):
         """Expands ~ in file path to home directory."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create a file in temp_dir to simulate home
@@ -275,7 +275,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Exits with error when implementation plan doesn't exist."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -304,7 +304,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Exits with error when build is not complete."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{}')
@@ -334,7 +334,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Runs follow-up planner after successfully collecting task."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -364,7 +364,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Returns early when user cancels task collection."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -390,7 +390,7 @@ class TestHandleFollowupCommand:
         temp_dir
     ):
         """Exits when environment validation fails."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -418,7 +418,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Shows success message when planning completes successfully."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -445,7 +445,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Shows warning when planning doesn't fully succeed."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -473,7 +473,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Handles KeyboardInterrupt during planning."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -501,7 +501,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Handles exception during planning."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -529,7 +529,7 @@ class TestHandleFollowupCommand:
         capsys
     ):
         """Shows traceback in verbose mode."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -547,7 +547,7 @@ class TestHandleFollowupCommand:
 
     def test_counts_prior_followups(self, temp_dir, capsys):
         """Counts and displays prior follow-up phases."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -572,7 +572,7 @@ class TestHandleFollowupCommand:
 
     def test_shows_ready_message_for_first_followup(self, temp_dir, capsys):
         """Shows appropriate message for first follow-up."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -589,7 +589,7 @@ class TestHandleFollowupCommand:
 
     def test_passes_verbose_flag_to_planner(self, temp_dir):
         """Passes verbose flag to follow-up planner."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
         (spec_dir / "implementation_plan.json").write_text('{"phases": []}')
@@ -610,7 +610,7 @@ class TestHandleFollowupCommand:
 
     def test_handles_keyboard_interrupt_on_file_path_input(self, temp_dir, capsys):
         """Handles KeyboardInterrupt when entering file path (lines 108-111)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='file'):
@@ -623,7 +623,7 @@ class TestHandleFollowupCommand:
 
     def test_handles_eof_error_on_file_path_input(self, temp_dir, capsys):
         """Handles EOFError when entering file path (lines 108-111)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', return_value='file'):
@@ -636,7 +636,7 @@ class TestHandleFollowupCommand:
 
     def test_handles_file_not_found_error(self, temp_dir, capsys):
         """Handles FileNotFoundError when file doesn't exist (lines 139-144)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create a path that doesn't exist
@@ -653,7 +653,7 @@ class TestHandleFollowupCommand:
 
     def test_handles_generic_exception_on_file_read(self, temp_dir, capsys):
         """Handles generic exception when reading file (lines 150-153)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create a file that exists
@@ -672,7 +672,7 @@ class TestHandleFollowupCommand:
 
     def test_handles_unicode_decode_error_on_file_read(self, temp_dir, capsys):
         """Handles UnicodeDecodeError when reading file (lines 150-153)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create a file that exists
@@ -691,7 +691,7 @@ class TestHandleFollowupCommand:
 
     def test_handles_runtime_error_on_file_read(self, temp_dir, capsys):
         """Handles RuntimeError when reading file (lines 150-153)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create a file that exists
@@ -726,7 +726,7 @@ class TestHandleFollowupCommandEdgeCases:
         capsys
     ):
         """Handles JSONDecodeError when implementation_plan.json is malformed (lines 296-297)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -756,7 +756,7 @@ class TestHandleFollowupCommandEdgeCases:
         capsys
     ):
         """Handles KeyError when implementation_plan.json is missing expected keys (lines 296-297)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -785,7 +785,7 @@ class TestHandleFollowupCommandEdgeCases:
         capsys
     ):
         """Handles phase dict without 'name' key (lines 296-297)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -814,7 +814,7 @@ class TestHandleFollowupCommandEdgeCases:
         capsys
     ):
         """Handles empty phases array in implementation plan (lines 296-297)."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("# Test")
 
@@ -835,7 +835,7 @@ class TestCollectFollowupTaskEdgeCases:
 
     def test_handles_file_with_only_whitespace(self, temp_dir, capsys):
         """Handles file that contains only whitespace characters."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create file with only whitespace
@@ -853,7 +853,7 @@ class TestCollectFollowupTaskEdgeCases:
 
     def test_handles_file_with_newline_only_content(self, temp_dir, capsys):
         """Handles file that contains only newlines."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Create file with only newlines
@@ -868,7 +868,7 @@ class TestCollectFollowupTaskEdgeCases:
 
     def test_handles_file_read_with_os_error(self, temp_dir, capsys):
         """Handles OSError when reading file."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         task_file = temp_dir / "task.txt"
@@ -885,7 +885,7 @@ class TestCollectFollowupTaskEdgeCases:
 
     def test_handles_value_error_on_file_path(self, temp_dir, capsys):
         """Handles ValueError during file path resolution."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         with patch('cli.followup_commands.select_menu', side_effect=['file', 'quit']):
@@ -899,7 +899,7 @@ class TestCollectFollowupTaskEdgeCases:
 
     def test_handles_type_input_with_trailing_whitespace(self, temp_dir):
         """Properly strips trailing whitespace from typed input."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         task_description = "Task content with trailing spaces   "
@@ -914,7 +914,7 @@ class TestCollectFollowupTaskEdgeCases:
 
     def test_handles_type_input_with_internal_whitespace(self, temp_dir):
         """Preserves internal whitespace in typed input."""
-        spec_dir = temp_dir / ".auto-claude" / "specs" / "001-test"
+        spec_dir = temp_dir / ".juict-agentic-os" / "specs" / "001-test"
         spec_dir.mkdir(parents=True)
 
         # Note: empty line terminates input, so we need non-empty lines only

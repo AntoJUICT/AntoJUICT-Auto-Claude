@@ -87,7 +87,7 @@ def mock_graphiti_config():
     config.enabled = True
     config.is_valid.return_value = True
     config.database = "test_memory"
-    config.db_path = "~/.auto-claude/memories"
+    config.db_path = "~/.juict-agentic-os/memories"
     config.llm_provider = "openai"
     config.embedder_provider = "openai"
     config.get_provider_summary.return_value = "LLM: openai, Embedder: openai"
@@ -2286,7 +2286,7 @@ class TestGetStatusSummary:
         mock_graphiti_config.enabled = True
         mock_graphiti_config.is_valid.return_value = True
         mock_graphiti_config.database = "test_db"
-        mock_graphiti_config.db_path = "~/.auto-claude/memories"
+        mock_graphiti_config.db_path = "~/.juict-agentic-os/memories"
         mock_graphiti_config.llm_provider = "openai"
         mock_graphiti_config.embedder_provider = "openai"
 
@@ -2312,7 +2312,7 @@ class TestGetStatusSummary:
 
                 assert status["enabled"] is True
                 assert status["database"] == "test_db"
-                assert status["db_path"] == "~/.auto-claude/memories"
+                assert status["db_path"] == "~/.juict-agentic-os/memories"
                 assert status["llm_provider"] == "openai"
                 assert status["embedder_provider"] == "openai"
                 assert status["episode_count"] == 10

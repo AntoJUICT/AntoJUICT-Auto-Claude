@@ -79,7 +79,7 @@ class TestGraphitiConfig:
             config = GraphitiConfig.from_env()
             assert config.enabled is False
             assert config.database == "auto_claude_memory"
-            assert "auto-claude" in config.db_path.lower()  # Default path in ~/.auto-claude/
+            assert "auto-claude" in config.db_path.lower()  # Default path in ~/.juict-agentic-os/
 
     def test_from_env_custom_values(self):
         """Config reads custom environment values."""

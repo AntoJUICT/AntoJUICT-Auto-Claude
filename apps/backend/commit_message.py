@@ -266,7 +266,7 @@ def generate_commit_message_sync(
         Generated commit message or fallback message
     """
     # Find spec directory
-    spec_dir = project_dir / ".auto-claude" / "specs" / spec_name
+    spec_dir = project_dir / ".juict-agentic-os" / "specs" / spec_name
     if not spec_dir.exists():
         # Try alternative location
         spec_dir = project_dir / "auto-claude" / "specs" / spec_name
@@ -343,7 +343,7 @@ async def generate_commit_message(
         Generated commit message or fallback message
     """
     # Find spec directory
-    spec_dir = project_dir / ".auto-claude" / "specs" / spec_name
+    spec_dir = project_dir / ".juict-agentic-os" / "specs" / spec_name
     if not spec_dir.exists():
         spec_dir = project_dir / "auto-claude" / "specs" / spec_name
 

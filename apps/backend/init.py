@@ -1,7 +1,7 @@
 """
 Auto Claude project initialization utilities.
 
-Handles first-time setup of .auto-claude directory and ensures proper gitignore configuration.
+Handles first-time setup of .juict-agentic-os directory and ensures proper gitignore configuration.
 """
 
 import logging
@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 # All entries that should be added to .gitignore for auto-claude projects
 AUTO_CLAUDE_GITIGNORE_ENTRIES = [
-    ".auto-claude/",
-    ".auto-claude-security.json",
-    ".auto-claude-status",
+    ".juict-agentic-os/",
+    ".juict-agentic-os-security.json",
+    ".juict-agentic-os-status",
     ".claude_settings.json",
     ".worktrees/",
     ".security-key",
@@ -40,7 +40,7 @@ def _entry_exists_in_gitignore(lines: list[str], entry: str) -> bool:
     return False
 
 
-def ensure_gitignore_entry(project_dir: Path, entry: str = ".auto-claude/") -> bool:
+def ensure_gitignore_entry(project_dir: Path, entry: str = ".juict-agentic-os/") -> bool:
     """
     Ensure an entry exists in the project's .gitignore file.
 
@@ -48,7 +48,7 @@ def ensure_gitignore_entry(project_dir: Path, entry: str = ".auto-claude/") -> b
 
     Args:
         project_dir: The project root directory
-        entry: The gitignore entry to add (default: ".auto-claude/")
+        entry: The gitignore entry to add (default: ".juict-agentic-os/")
 
     Returns:
         True if entry was added, False if it already existed
@@ -219,7 +219,7 @@ def ensure_all_gitignore_entries(
 
 def init_auto_claude_dir(project_dir: Path) -> tuple[Path, bool]:
     """
-    Initialize the .auto-claude directory for a project.
+    Initialize the .juict-agentic-os directory for a project.
 
     Creates the directory if needed and ensures all auto-claude files are in .gitignore.
 
@@ -230,7 +230,7 @@ def init_auto_claude_dir(project_dir: Path) -> tuple[Path, bool]:
         Tuple of (auto_claude_dir path, gitignore_was_updated)
     """
     project_dir = Path(project_dir)
-    auto_claude_dir = project_dir / ".auto-claude"
+    auto_claude_dir = project_dir / ".juict-agentic-os"
 
     # Create the directory if it doesn't exist
     dir_created = not auto_claude_dir.exists()
@@ -256,20 +256,20 @@ def init_auto_claude_dir(project_dir: Path) -> tuple[Path, bool]:
 
 def get_auto_claude_dir(project_dir: Path, ensure_exists: bool = True) -> Path:
     """
-    Get the .auto-claude directory path, optionally ensuring it exists.
+    Get the .juict-agentic-os directory path, optionally ensuring it exists.
 
     Args:
         project_dir: The project root directory
         ensure_exists: If True, create directory and update gitignore if needed
 
     Returns:
-        Path to the .auto-claude directory
+        Path to the .juict-agentic-os directory
     """
     if ensure_exists:
         auto_claude_dir, _ = init_auto_claude_dir(project_dir)
         return auto_claude_dir
 
-    return Path(project_dir) / ".auto-claude"
+    return Path(project_dir) / ".juict-agentic-os"
 
 
 def repair_gitignore(project_dir: Path) -> list[str]:
@@ -289,7 +289,7 @@ def repair_gitignore(project_dir: Path) -> list[str]:
         List of entries that were added (empty if all already existed)
     """
     project_dir = Path(project_dir)
-    auto_claude_dir = project_dir / ".auto-claude"
+    auto_claude_dir = project_dir / ".juict-agentic-os"
 
     # Remove the marker file so future checks will also run
     marker = auto_claude_dir / ".gitignore_checked"

@@ -1404,7 +1404,7 @@ function getEffectiveBaseBranch(projectPath: string, specId: string, projectMain
   }
 
   // 1. Try task metadata baseBranch
-  const specDir = path.join(projectPath, '.auto-claude', 'specs', specId);
+  const specDir = path.join(projectPath, '.juict-agentic-os', 'specs', specId);
   const taskBaseBranch = getTaskBaseBranch(specDir);
   if (taskBaseBranch) {
     return taskBaseBranch;
@@ -1703,7 +1703,7 @@ export function registerWorktreeHandlers(
 ): void {
   /**
    * Get the worktree status for a task
-   * Per-spec architecture: Each spec has its own worktree at .auto-claude/worktrees/tasks/{spec-name}/
+   * Per-spec architecture: Each spec has its own worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
    */
   ipcMain.handle(
     IPC_CHANNELS.TASK_WORKTREE_STATUS,
@@ -1714,7 +1714,7 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Task not found' };
         }
 
-        // Find worktree at .auto-claude/worktrees/tasks/{spec-name}/
+        // Find worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
         const worktreePath = findTaskWorktree(project.path, task.specId);
 
         if (!worktreePath) {
@@ -1817,7 +1817,7 @@ export function registerWorktreeHandlers(
 
   /**
    * Get the diff for a task's worktree
-   * Per-spec architecture: Each spec has its own worktree at .auto-claude/worktrees/tasks/{spec-name}/
+   * Per-spec architecture: Each spec has its own worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
    */
   ipcMain.handle(
     IPC_CHANNELS.TASK_WORKTREE_DIFF,
@@ -1828,7 +1828,7 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Task not found' };
         }
 
-        // Find worktree at .auto-claude/worktrees/tasks/{spec-name}/
+        // Find worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
         const worktreePath = findTaskWorktree(project.path, task.specId);
 
         if (!worktreePath) {
@@ -1957,7 +1957,7 @@ export function registerWorktreeHandlers(
         }
 
         const runScript = path.join(sourcePath, 'run.py');
-        const specDir = path.join(project.path, project.autoBuildPath || '.auto-claude', 'specs', task.specId);
+        const specDir = path.join(project.path, project.autoBuildPath || '.juict-agentic-os', 'specs', task.specId);
 
         if (!existsSync(specDir)) {
           debug('Spec directory not found:', specDir);
@@ -2363,7 +2363,7 @@ export function registerWorktreeHandlers(
               ];
               // Add worktree plan path if worktree exists
               if (worktreePath) {
-                const worktreeSpecDir = path.join(worktreePath, project.autoBuildPath || '.auto-claude', 'specs', task.specId);
+                const worktreeSpecDir = path.join(worktreePath, project.autoBuildPath || '.juict-agentic-os', 'specs', task.specId);
                 planPaths.push({ path: path.join(worktreeSpecDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN), isMain: false });
               }
 
@@ -2595,7 +2595,7 @@ export function registerWorktreeHandlers(
         }
 
         const runScript = path.join(sourcePath, 'run.py');
-        const specDir = path.join(project.path, project.autoBuildPath || '.auto-claude', 'specs', task.specId);
+        const specDir = path.join(project.path, project.autoBuildPath || '.juict-agentic-os', 'specs', task.specId);
         const args = [
           runScript,
           '--spec', task.specId,
@@ -2722,7 +2722,7 @@ export function registerWorktreeHandlers(
 
   /**
    * Discard the worktree changes
-   * Per-spec architecture: Each spec has its own worktree at .auto-claude/worktrees/tasks/{spec-name}/
+   * Per-spec architecture: Each spec has its own worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
    *
    * Note: Uses the shared cleanupWorktree utility which handles Windows-specific issues
    * where `git worktree remove --force` fails when the directory contains untracked files.
@@ -2737,7 +2737,7 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Task not found' };
         }
 
-        // Find worktree at .auto-claude/worktrees/tasks/{spec-name}/
+        // Find worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
         const worktreePath = findTaskWorktree(project.path, task.specId);
 
         if (!worktreePath) {
@@ -2829,7 +2829,7 @@ export function registerWorktreeHandlers(
           return { success: false, error: 'Project path is invalid' };
         }
 
-        // Find worktree at .auto-claude/worktrees/tasks/{spec-name}/
+        // Find worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
         const worktreePath = findTaskWorktree(project.path, specName);
 
         if (!worktreePath) {
@@ -2877,7 +2877,7 @@ export function registerWorktreeHandlers(
 
   /**
    * List all spec worktrees for a project
-   * Per-spec architecture: Each spec has its own worktree at .auto-claude/worktrees/tasks/{spec-name}/
+   * Per-spec architecture: Each spec has its own worktree at .juict-agentic-os/worktrees/tasks/{spec-name}/
    */
   ipcMain.handle(
     IPC_CHANNELS.TASK_LIST_WORKTREES,
@@ -2906,7 +2906,7 @@ export function registerWorktreeHandlers(
         // Used for orphan detection - worktrees without a matching task are orphaned
         const tasks = projectStore.getTasks(projectId);
         // Track if task lookup was successful (empty array with existing specs dir = lookup failed)
-        const mainSpecsDir = path.join(project.path, '.auto-claude', 'specs');
+        const mainSpecsDir = path.join(project.path, '.juict-agentic-os', 'specs');
         const taskLookupSuccessful = tasks.length > 0 || !existsSync(mainSpecsDir);
 
         // Helper to process a single worktree entry (async)
@@ -3217,7 +3217,7 @@ export function registerWorktreeHandlers(
         }
 
         const runScript = path.join(sourcePath, 'run.py');
-        const specDir = path.join(project.path, project.autoBuildPath || '.auto-claude', 'specs', task.specId);
+        const specDir = path.join(project.path, project.autoBuildPath || '.juict-agentic-os', 'specs', task.specId);
 
         // Use EAFP pattern - try to read specDir and catch ENOENT
         try {

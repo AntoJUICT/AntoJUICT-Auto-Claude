@@ -87,7 +87,7 @@ def invalid_json_file(temp_dir: Path) -> Path:
 @pytest.fixture
 def project_with_specs(temp_git_repo: Path) -> Path:
     """Create a project with existing specs."""
-    specs_dir = temp_git_repo / ".auto-claude" / "specs"
+    specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
     specs_dir.mkdir(parents=True)
 
     # Spec 001 - with spec.md
@@ -117,10 +117,10 @@ def project_with_specs(temp_git_repo: Path) -> Path:
 @pytest.fixture
 def project_with_completed_specs_and_worktrees(temp_git_repo: Path) -> Path:
     """Create a project with completed specs and worktrees."""
-    specs_dir = temp_git_repo / ".auto-claude" / "specs"
+    specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
     specs_dir.mkdir(parents=True)
 
-    worktrees_dir = temp_git_repo / ".auto-claude" / "worktrees" / "tasks"
+    worktrees_dir = temp_git_repo / ".juict-agentic-os" / "worktrees" / "tasks"
     worktrees_dir.mkdir(parents=True)
 
     # Completed spec 001 with worktree (QA approved)
@@ -165,7 +165,7 @@ class TestHandleBatchCreateCommand:
 
         assert result is True
 
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         assert specs_dir.exists()
 
         # Should create 3 specs
@@ -183,7 +183,7 @@ class TestHandleBatchCreateCommand:
         """Creates requirements.json with correct content."""
         handle_batch_create_command(str(sample_batch_file), str(temp_git_repo))
 
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         spec_001 = specs_dir / "001-add-user-authentication"
         req_file = spec_001 / "requirements.json"
 
@@ -206,7 +206,7 @@ class TestHandleBatchCreateCommand:
         """Continues spec numbering from existing specs."""
         handle_batch_create_command(str(sample_batch_file), str(project_with_specs))
 
-        specs_dir = project_with_specs / ".auto-claude" / "specs"
+        specs_dir = project_with_specs / ".juict-agentic-os" / "specs"
         spec_dirs = sorted([d for d in specs_dir.iterdir() if d.is_dir()])
 
         # Should have existing 3 specs + 3 new ones
@@ -262,7 +262,7 @@ class TestHandleBatchCreateCommand:
 
         handle_batch_create_command(str(batch_file), str(temp_git_repo))
 
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         spec_dirs = list(specs_dir.iterdir())
 
         assert len(spec_dirs) == 1
@@ -286,7 +286,7 @@ class TestHandleBatchCreateCommand:
 
         handle_batch_create_command(str(batch_file), str(temp_git_repo))
 
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         req_file = specs_dir / "001-minimal-task" / "requirements.json"
 
         with open(req_file) as f:
@@ -352,7 +352,7 @@ class TestHandleBatchStatusCommand:
         self, capsys, temp_git_repo: Path
     ) -> None:
         """Returns True when specs directory is empty."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         result = handle_batch_status_command(str(temp_git_repo))
@@ -375,7 +375,7 @@ class TestHandleBatchStatusCommand:
         self, temp_git_repo: Path
     ) -> None:
         """Correctly detects specs with spec.md as 'spec_created'."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-test"
@@ -390,7 +390,7 @@ class TestHandleBatchStatusCommand:
         self, temp_git_repo: Path
     ) -> None:
         """Correctly detects specs with implementation_plan.json as 'building'."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-test"
@@ -405,7 +405,7 @@ class TestHandleBatchStatusCommand:
         self, temp_git_repo: Path
     ) -> None:
         """Correctly detects specs with qa_signoff as 'qa_approved'."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-test"
@@ -423,7 +423,7 @@ class TestHandleBatchStatusCommand:
         self, temp_git_repo: Path
     ) -> None:
         """Correctly detects specs with only requirements.json as 'pending_spec'."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-test"
@@ -438,7 +438,7 @@ class TestHandleBatchStatusCommand:
         self, capsys, temp_git_repo: Path
     ) -> None:
         """Handles corrupted requirements.json gracefully."""
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-test"
@@ -480,7 +480,7 @@ class TestHandleBatchCleanupCommand:
         self, project_with_completed_specs_and_worktrees: Path
     ) -> None:
         """Dry run does not actually delete anything."""
-        specs_dir = project_with_completed_specs_and_worktrees / ".auto-claude" / "specs"
+        specs_dir = project_with_completed_specs_and_worktrees / ".juict-agentic-os" / "specs"
 
         handle_batch_cleanup_command(
             str(project_with_completed_specs_and_worktrees), dry_run=True
@@ -494,8 +494,8 @@ class TestHandleBatchCleanupCommand:
         self, project_with_completed_specs_and_worktrees: Path
     ) -> None:
         """Actually deletes completed specs and worktrees when dry_run=False."""
-        specs_dir = project_with_completed_specs_and_worktrees / ".auto-claude" / "specs"
-        worktrees_dir = project_with_completed_specs_and_worktrees / ".auto-claude" / "worktrees" / "tasks"
+        specs_dir = project_with_completed_specs_and_worktrees / ".juict-agentic-os" / "specs"
+        worktrees_dir = project_with_completed_specs_and_worktrees / ".juict-agentic-os" / "worktrees" / "tasks"
 
         handle_batch_cleanup_command(
             str(project_with_completed_specs_and_worktrees), dry_run=False
@@ -512,7 +512,7 @@ class TestHandleBatchCleanupCommand:
         self, project_with_completed_specs_and_worktrees: Path
     ) -> None:
         """Does not delete specs without qa_report.md."""
-        specs_dir = project_with_completed_specs_and_worktrees / ".auto-claude" / "specs"
+        specs_dir = project_with_completed_specs_and_worktrees / ".juict-agentic-os" / "specs"
 
         handle_batch_cleanup_command(
             str(project_with_completed_specs_and_worktrees), dry_run=False
@@ -537,7 +537,7 @@ class TestHandleBatchCleanupCommand:
     ) -> None:
         """Returns True when no completed specs exist."""
         # Create specs without qa_report.md
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         spec_001 = specs_dir / "001-incomplete"
@@ -576,7 +576,7 @@ class TestHandleBatchCleanupCommand:
         self, project_with_completed_specs_and_worktrees: Path
     ) -> None:
         """Falls back to manual removal when git worktree remove fails."""
-        specs_dir = project_with_completed_specs_and_worktrees / ".auto-claude" / "specs"
+        specs_dir = project_with_completed_specs_and_worktrees / ".juict-agentic-os" / "specs"
 
         with patch('subprocess.run') as mock_run:
             # Mock git worktree remove to fail
@@ -593,7 +593,7 @@ class TestHandleBatchCleanupCommand:
         self, project_with_completed_specs_and_worktrees: Path
     ) -> None:
         """Handles git command timeout gracefully."""
-        specs_dir = project_with_completed_specs_and_worktrees / ".auto-claude" / "specs"
+        specs_dir = project_with_completed_specs_and_worktrees / ".juict-agentic-os" / "specs"
 
         with patch('subprocess.run') as mock_run:
             # Mock timeout
@@ -632,7 +632,7 @@ class TestHandleBatchCleanupCommand:
         )
 
         captured = capsys.readouterr()
-        assert ".auto-claude/worktrees/tasks/001-completed-with-wt" in captured.out
+        assert ".juict-agentic-os/worktrees/tasks/001-completed-with-wt" in captured.out
 
 
 # =============================================================================
@@ -668,7 +668,7 @@ class TestBatchCommandsIntegration:
         handle_batch_create_command(str(batch_file), str(temp_git_repo))
 
         # Mark as complete with proper QA approval
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         spec_001 = specs_dir / "001-test-task"
         (spec_001 / "qa_report.md").write_text("# QA Approved\n")
         (spec_001 / "implementation_plan.json").write_text(
@@ -696,7 +696,7 @@ class TestBatchCommandsExceptionCoverage:
         """Test cleanup handles permission errors gracefully."""
 
         # Create a completed spec with proper QA approval
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         spec_001 = specs_dir / "001-test-task"
         spec_001.mkdir(parents=True)
         (spec_001 / "qa_report.md").write_text("# QA Approved\n")
@@ -721,7 +721,7 @@ class TestBatchCommandsExceptionCoverage:
         """Test cleanup handles generic exceptions gracefully."""
 
         # Create a completed spec with proper QA approval
-        specs_dir = temp_git_repo / ".auto-claude" / "specs"
+        specs_dir = temp_git_repo / ".juict-agentic-os" / "specs"
         spec_001 = specs_dir / "001-test-task"
         spec_001.mkdir(parents=True)
         (spec_001 / "qa_report.md").write_text("# QA Approved\n")

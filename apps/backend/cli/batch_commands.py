@@ -46,7 +46,7 @@ def handle_batch_create_command(batch_file: str, project_dir: str) -> bool:
     print_status(f"Creating {len(tasks)} tasks from batch file", "info")
     print()
 
-    specs_dir = Path(project_dir) / ".auto-claude" / "specs"
+    specs_dir = Path(project_dir) / ".juict-agentic-os" / "specs"
     specs_dir.mkdir(parents=True, exist_ok=True)
 
     # Find next spec ID
@@ -122,7 +122,7 @@ def handle_batch_status_command(project_dir: str) -> bool:
     Returns:
         True if successful
     """
-    specs_dir = Path(project_dir) / ".auto-claude" / "specs"
+    specs_dir = Path(project_dir) / ".juict-agentic-os" / "specs"
 
     if not specs_dir.exists():
         print_status("No specs found in project", "warning")
@@ -198,8 +198,8 @@ def handle_batch_cleanup_command(project_dir: str, dry_run: bool = True) -> bool
     Returns:
         True if successful
     """
-    specs_dir = Path(project_dir) / ".auto-claude" / "specs"
-    worktrees_dir = Path(project_dir) / ".auto-claude" / "worktrees" / "tasks"
+    specs_dir = Path(project_dir) / ".juict-agentic-os" / "specs"
+    worktrees_dir = Path(project_dir) / ".juict-agentic-os" / "worktrees" / "tasks"
 
     if not specs_dir.exists():
         print_status("No specs directory found", "info")
@@ -224,7 +224,7 @@ def handle_batch_cleanup_command(project_dir: str, dry_run: bool = True) -> bool
             print(f"  - {spec_name}")
             wt_path = worktrees_dir / spec_name
             if wt_path.exists():
-                print(f"    └─ .auto-claude/worktrees/tasks/{spec_name}/")
+                print(f"    └─ .juict-agentic-os/worktrees/tasks/{spec_name}/")
         print()
         print("Run with --no-dry-run to actually delete")
     else:

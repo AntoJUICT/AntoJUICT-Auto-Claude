@@ -723,14 +723,14 @@ class TestGraphitiConfigGetDbPath:
 
     def test_get_db_path_expands_tilde(self, tmp_path, monkeypatch):
         """Test get_db_path expands tilde to home directory."""
-        config = GraphitiConfig(db_path="~/.auto-claude/memories")
+        config = GraphitiConfig(db_path="~/.juict-agentic-os/memories")
 
         # Use monkeypatch to set HOME environment variable
         monkeypatch.setenv("HOME", str(tmp_path))
 
         db_path = config.get_db_path()
 
-        assert db_path == tmp_path / ".auto-claude" / "memories" / DEFAULT_DATABASE
+        assert db_path == tmp_path / ".juict-agentic-os" / "memories" / DEFAULT_DATABASE
 
     def test_get_db_path_creates_parent_directory(self, tmp_path):
         """Test get_db_path creates parent directory."""
@@ -1199,7 +1199,7 @@ class TestConstants:
     def test_default_constants(self):
         """Test default configuration constants."""
         assert DEFAULT_DATABASE == "auto_claude_memory"
-        assert DEFAULT_DB_PATH == "~/.auto-claude/memories"
+        assert DEFAULT_DB_PATH == "~/.juict-agentic-os/memories"
         assert DEFAULT_OLLAMA_BASE_URL == "http://localhost:11434"
 
     def test_llm_provider_enum(self):

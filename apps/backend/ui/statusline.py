@@ -50,20 +50,20 @@ from ui import (
 
 
 def find_project_root() -> Path:
-    """Find the project root by looking for .auto-claude or .auto-claude-status."""
+    """Find the project root by looking for .juict-agentic-os or .juict-agentic-os-status."""
     cwd = Path.cwd()
 
-    # Check current directory - prioritize .auto-claude (installed instance)
-    if (cwd / ".auto-claude").exists():
+    # Check current directory - prioritize .juict-agentic-os (installed instance)
+    if (cwd / ".juict-agentic-os").exists():
         return cwd
-    if (cwd / ".auto-claude-status").exists():
+    if (cwd / ".juict-agentic-os-status").exists():
         return cwd
 
     # Walk up to find project root
     for parent in cwd.parents:
-        if (parent / ".auto-claude").exists():
+        if (parent / ".juict-agentic-os").exists():
             return parent
-        if (parent / ".auto-claude-status").exists():
+        if (parent / ".juict-agentic-os-status").exists():
             return parent
 
     return cwd

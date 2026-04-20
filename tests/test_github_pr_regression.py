@@ -215,8 +215,8 @@ class TestGitHubCLIInvocation:
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
-        # Create .auto-claude directories
-        auto_claude_dir = project_dir / ".auto-claude"
+        # Create .juict-agentic-os directories
+        auto_claude_dir = project_dir / ".juict-agentic-os"
         auto_claude_dir.mkdir(exist_ok=True)
 
         # Create WorktreeManager
@@ -285,8 +285,8 @@ class TestGitHubCLIInvocation:
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
-        # Create .auto-claude directories
-        auto_claude_dir = project_dir / ".auto-claude"
+        # Create .juict-agentic-os directories
+        auto_claude_dir = project_dir / ".juict-agentic-os"
         auto_claude_dir.mkdir(exist_ok=True)
 
         # Create WorktreeManager
@@ -348,8 +348,8 @@ class TestGitHubOriginPrefixStripping:
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
-        # Create .auto-claude directories
-        auto_claude_dir = project_dir / ".auto-claude"
+        # Create .juict-agentic-os directories
+        auto_claude_dir = project_dir / ".juict-agentic-os"
         auto_claude_dir.mkdir(exist_ok=True)
 
         # Create WorktreeManager
@@ -411,8 +411,8 @@ class TestGitHubOriginPrefixStripping:
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
-        # Create .auto-claude directories
-        auto_claude_dir = project_dir / ".auto-claude"
+        # Create .juict-agentic-os directories
+        auto_claude_dir = project_dir / ".juict-agentic-os"
         auto_claude_dir.mkdir(exist_ok=True)
 
         # Create WorktreeManager
@@ -478,8 +478,8 @@ class TestGitHubErrorHandling:
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
-        # Create .auto-claude directories
-        auto_claude_dir = project_dir / ".auto-claude"
+        # Create .juict-agentic-os directories
+        auto_claude_dir = project_dir / ".juict-agentic-os"
         auto_claude_dir.mkdir(exist_ok=True)
 
         # Create WorktreeManager
@@ -523,8 +523,8 @@ class TestGitHubErrorHandling:
         spec_dir = tmp_path / "spec"
         spec_dir.mkdir()
 
-        # Create .auto-claude directories
-        auto_claude_dir = project_dir / ".auto-claude"
+        # Create .juict-agentic-os directories
+        auto_claude_dir = project_dir / ".juict-agentic-os"
         auto_claude_dir.mkdir(exist_ok=True)
 
         # Create WorktreeManager

@@ -32,8 +32,8 @@ class TestDetectWorktreeIsolation:
 
     def test_new_worktree_unix_path(self):
         """Test detection of new worktree location on Unix-style path."""
-        # New worktree: /project/.auto-claude/worktrees/tasks/spec-name/
-        project_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature")
+        # New worktree: /project/.juict-agentic-os/worktrees/tasks/spec-name/
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature")
 
         is_worktree, forbidden = detect_worktree_isolation(project_dir)
 
@@ -42,13 +42,13 @@ class TestDetectWorktreeIsolation:
         # On Windows, paths get resolved with drive letter, so check for key parts
         norm_forbidden = normalize_path(str(forbidden))
         assert "opt/dev/project" in norm_forbidden
-        assert ".auto-claude" not in norm_forbidden
+        assert ".juict-agentic-os" not in norm_forbidden
 
     @skip_on_windows
     def test_new_worktree_windows_path(self):
         """Test detection of new worktree location on Windows."""
         # Windows path with backslashes
-        project_dir = Path("E:/projects/x/.auto-claude/worktrees/tasks/009-audit")
+        project_dir = Path("E:/projects/x/.juict-agentic-os/worktrees/tasks/009-audit")
 
         is_worktree, forbidden = detect_worktree_isolation(project_dir)
 
@@ -57,7 +57,7 @@ class TestDetectWorktreeIsolation:
         # Check the essential parts
         norm_forbidden = normalize_path(str(forbidden))
         assert "projects" in norm_forbidden and "x" in norm_forbidden
-        assert ".auto-claude" not in norm_forbidden
+        assert ".juict-agentic-os" not in norm_forbidden
 
     def test_legacy_worktree_unix_path(self):
         """Test detection of legacy worktree location on Unix-style path."""
@@ -94,8 +94,8 @@ class TestDetectWorktreeIsolation:
 
     def test_pr_worktree_unix_path(self):
         """Test detection of PR review worktree location on Unix-style path."""
-        # PR worktree: /project/.auto-claude/github/pr/worktrees/123/
-        project_dir = Path("/opt/dev/project/.auto-claude/github/pr/worktrees/123")
+        # PR worktree: /project/.juict-agentic-os/github/pr/worktrees/123/
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/github/pr/worktrees/123")
 
         is_worktree, forbidden = detect_worktree_isolation(project_dir)
 
@@ -104,11 +104,11 @@ class TestDetectWorktreeIsolation:
         # Check for key parts
         norm_forbidden = normalize_path(str(forbidden))
         assert "opt/dev/project" in norm_forbidden
-        assert ".auto-claude" not in norm_forbidden
+        assert ".juict-agentic-os" not in norm_forbidden
 
     def test_pr_worktree_windows_path(self):
         """Test detection of PR review worktree location on Windows."""
-        project_dir = Path("E:/projects/auto-claude/.auto-claude/github/pr/worktrees/1528")
+        project_dir = Path("E:/projects/auto-claude/.juict-agentic-os/github/pr/worktrees/1528")
 
         is_worktree, forbidden = detect_worktree_isolation(project_dir)
 
@@ -132,7 +132,7 @@ class TestDetectWorktreeIsolation:
 
     def test_deeply_nested_worktree(self):
         """Test worktree detection with deeply nested project directory."""
-        project_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/009-very-long-spec-name-for-testing")
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/009-very-long-spec-name-for-testing")
 
         is_worktree, forbidden = detect_worktree_isolation(project_dir)
 
@@ -141,12 +141,12 @@ class TestDetectWorktreeIsolation:
         # Check for key parts
         norm_forbidden = normalize_path(str(forbidden))
         assert "opt/dev/project" in norm_forbidden
-        assert ".auto-claude" not in norm_forbidden
+        assert ".juict-agentic-os" not in norm_forbidden
 
     def test_regular_auto_claude_dir(self):
-        """Test that regular .auto-claude dir is NOT detected as worktree."""
-        # Just having .auto-claude in path doesn't make it a worktree
-        project_dir = Path("/opt/dev/project/.auto-claude/specs/001-feature")
+        """Test that regular .juict-agentic-os dir is NOT detected as worktree."""
+        # Just having .juict-agentic-os in path doesn't make it a worktree
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/specs/001-feature")
 
         is_worktree, parent_path = detect_worktree_isolation(project_dir)
 
@@ -169,8 +169,8 @@ class TestGenerateEnvironmentContext:
 
     def test_context_includes_worktree_warning(self):
         """Test that worktree isolation warning is included when in worktree."""
-        spec_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature/.auto-claude/specs/001-feature")
-        project_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature")
+        spec_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature/.juict-agentic-os/specs/001-feature")
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature")
 
         context = generate_environment_context(project_dir, spec_dir)
 
@@ -182,7 +182,7 @@ class TestGenerateEnvironmentContext:
 
     def test_context_no_worktree_warning_in_direct_mode(self):
         """Test that worktree warning is NOT included in direct mode."""
-        spec_dir = Path("/opt/dev/project/.auto-claude/specs/001-feature")
+        spec_dir = Path("/opt/dev/project/.juict-agentic-os/specs/001-feature")
         project_dir = Path("/opt/dev/project")
 
         context = generate_environment_context(project_dir, spec_dir)
@@ -193,7 +193,7 @@ class TestGenerateEnvironmentContext:
 
     def test_context_includes_basic_environment(self):
         """Test that basic environment information is always included."""
-        spec_dir = Path("/opt/dev/project/.auto-claude/specs/001-feature")
+        spec_dir = Path("/opt/dev/project/.juict-agentic-os/specs/001-feature")
         project_dir = Path("/opt/dev/project")
 
         context = generate_environment_context(project_dir, spec_dir)
@@ -208,11 +208,11 @@ class TestGenerateEnvironmentContext:
         """Test worktree warning with Windows paths (from ticket ACS-394)."""
         # This is the exact scenario from the bug report
         spec_dir = Path(
-            "E:/projects/x/.auto-claude/worktrees/tasks/009-audit"
-            "/.auto-claude/specs/009-audit"
+            "E:/projects/x/.juict-agentic-os/worktrees/tasks/009-audit"
+            "/.juict-agentic-os/specs/009-audit"
         )
         project_dir = Path(
-            "E:/projects/x/.auto-claude/worktrees/tasks/009-audit"
+            "E:/projects/x/.juict-agentic-os/worktrees/tasks/009-audit"
         )
 
         context = generate_environment_context(project_dir, spec_dir)
@@ -225,8 +225,8 @@ class TestGenerateEnvironmentContext:
 
     def test_context_forbidden_path_examples(self):
         """Test that forbidden path is shown and rules are included."""
-        spec_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature/.auto-claude/specs/001-feature")
-        project_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature")
+        spec_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature/.juict-agentic-os/specs/001-feature")
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature")
 
         context = generate_environment_context(project_dir, spec_dir)
 
@@ -245,8 +245,8 @@ class TestGenerateEnvironmentContext:
 
     def test_context_includes_isolation_mode_indicator(self):
         """Test that Isolation Mode indicator is shown when in worktree."""
-        spec_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature/.auto-claude/specs/001-feature")
-        project_dir = Path("/opt/dev/project/.auto-claude/worktrees/tasks/001-feature")
+        spec_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature/.juict-agentic-os/specs/001-feature")
+        project_dir = Path("/opt/dev/project/.juict-agentic-os/worktrees/tasks/001-feature")
 
         context = generate_environment_context(project_dir, spec_dir)
 
@@ -255,7 +255,7 @@ class TestGenerateEnvironmentContext:
 
     def test_context_no_isolation_mode_in_direct_mode(self):
         """Test that Isolation Mode indicator is NOT shown in direct mode."""
-        spec_dir = Path("/opt/dev/project/.auto-claude/specs/001-feature")
+        spec_dir = Path("/opt/dev/project/.juict-agentic-os/specs/001-feature")
         project_dir = Path("/opt/dev/project")
 
         context = generate_environment_context(project_dir, spec_dir)

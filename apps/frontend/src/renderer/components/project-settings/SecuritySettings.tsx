@@ -455,7 +455,7 @@ export function SecuritySettings({
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Database Name</Label>
                 <p className="text-xs text-muted-foreground">
-                  Stored in ~/.auto-claude/memories/
+                  Stored in ~/.juict-agentic-os/memories/
                 </p>
                 <Input
                   placeholder="auto_claude_memory"
@@ -467,10 +467,10 @@ export function SecuritySettings({
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-foreground">Database Path (Optional)</Label>
                 <p className="text-xs text-muted-foreground">
-                  Custom storage location. Default: ~/.auto-claude/memories/
+                  Custom storage location. Default: ~/.juict-agentic-os/memories/
                 </p>
                 <Input
-                  placeholder="~/.auto-claude/memories"
+                  placeholder="~/.juict-agentic-os/memories"
                   value={envConfig.graphitiDbPath || ''}
                   onChange={(e) => updateEnvConfig({ graphitiDbPath: e.target.value || undefined })}
                 />

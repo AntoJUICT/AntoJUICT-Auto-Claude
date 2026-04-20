@@ -27,7 +27,7 @@ import pytest
 # Mock spec.pipeline module which provides get_specs_dir
 if 'spec.pipeline' not in sys.modules:
     mock_pipeline = MagicMock()
-    mock_pipeline.get_specs_dir = lambda project_dir: project_dir / ".auto-claude" / "specs"
+    mock_pipeline.get_specs_dir = lambda project_dir: project_dir / ".juict-agentic-os" / "specs"
     sys.modules['spec.pipeline'] = mock_pipeline
 
 
@@ -184,7 +184,7 @@ class TestDetectCorruptedFiles:
 
     def test_returns_empty_list_for_valid_json_files(self, temp_dir):
         """Returns empty list when all JSON files are valid."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create valid JSON files
@@ -197,7 +197,7 @@ class TestDetectCorruptedFiles:
 
     def test_finds_corrupted_json_files(self, temp_dir):
         """Finds and returns corrupted JSON files with error messages."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create valid file
@@ -214,7 +214,7 @@ class TestDetectCorruptedFiles:
 
     def test_scans_recursively(self, temp_dir):
         """Scans subdirectories recursively for JSON files."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create nested structure
@@ -238,7 +238,7 @@ class TestDetectCorruptedFiles:
 
     def test_finds_multiple_corrupted_files(self, temp_dir):
         """Finds all corrupted files in directory tree."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create multiple corrupted files
@@ -258,7 +258,7 @@ class TestDetectCorruptedFiles:
 
     def test_includes_error_messages(self, temp_dir):
         """Includes descriptive error messages for each corrupted file."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         (specs_dir / "test.json").write_text('{"unclosed": ')
@@ -273,7 +273,7 @@ class TestDetectCorruptedFiles:
 
     def test_ignores_non_json_files(self, temp_dir):
         """Only processes .json files, ignores others."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create various file types
@@ -287,7 +287,7 @@ class TestDetectCorruptedFiles:
 
     def test_handles_empty_directory(self, temp_dir):
         """Returns empty list for empty directory."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         corrupted = detect_corrupted_files(specs_dir)
@@ -407,7 +407,7 @@ class TestMainArguments:
 
     def test_default_project_dir_is_cwd(self, temp_dir, capsys):
         """Uses current working directory as default project-dir."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         original_cwd = Path.cwd()
@@ -457,7 +457,7 @@ class TestMainDetectMode:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Exits with 0 when no corrupted files found in detect mode."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 
@@ -474,7 +474,7 @@ class TestMainDetectMode:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Exits with 1 when corrupted files found in detect mode."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         # Create corrupted file
         (specs_dir / "corrupted.json").write_text('{invalid}')
@@ -493,7 +493,7 @@ class TestMainDetectMode:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Shows list of corrupted files in detect mode."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         (specs_dir / "requirements.json").write_text('{"valid": true}')
         (specs_dir / "broken.json").write_text('{broken}')
@@ -512,7 +512,7 @@ class TestMainDetectMode:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Shows relative path from specs directory parent."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_folder = specs_dir / "001-feature"
         spec_folder.mkdir()
@@ -532,7 +532,7 @@ class TestMainDetectMode:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Shows count when multiple corrupted files found."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         (specs_dir / "bad1.json").write_text('{1}')
         (specs_dir / "bad2.json").write_text('{2}')
@@ -548,7 +548,7 @@ class TestMainDetectMode:
 
     def test_default_mode_is_detect(self, temp_dir, capsys):
         """Without --detect or --delete, defaults to detect mode."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         with patch("cli.recovery.find_specs_dir", return_value=specs_dir):
@@ -574,7 +574,7 @@ class TestMainDeleteWithSpecId:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Exits with error when spec directory doesn't exist."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 
@@ -591,7 +591,7 @@ class TestMainDeleteWithSpecId:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Exits with error for path traversal attempts."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 
@@ -608,7 +608,7 @@ class TestMainDeleteWithSpecId:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Backs up corrupted files in specified spec directory."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_dir = specs_dir / "001-feature"
         spec_dir.mkdir()
@@ -634,7 +634,7 @@ class TestMainDeleteWithSpecId:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Exits with 1 when backup operation fails."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_dir = specs_dir / "001-feature"
         spec_dir.mkdir()
@@ -656,7 +656,7 @@ class TestMainDeleteWithSpecId:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Handles spec with no corrupted files."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_dir = specs_dir / "001-feature"
         spec_dir.mkdir()
@@ -673,7 +673,7 @@ class TestMainDeleteWithSpecId:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Scans spec directory recursively for corrupted files."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_dir = specs_dir / "001-feature"
         spec_dir.mkdir()
@@ -704,7 +704,7 @@ class TestMainDeleteAll:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Handles --all when no corrupted files exist."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         (specs_dir / "valid.json").write_text('{"ok": true}')
         mock_find_specs.return_value = specs_dir
@@ -722,7 +722,7 @@ class TestMainDeleteAll:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Backs up all corrupted files across specs directory."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create multiple corrupted files in different locations
@@ -759,7 +759,7 @@ class TestMainDeleteAll:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Exits with 1 when any backup fails."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         (specs_dir / "bad.json").write_text('{invalid}')
         mock_find_specs.return_value = specs_dir
@@ -777,7 +777,7 @@ class TestMainDeleteAll:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Shows progress messages for multiple files."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         (specs_dir / "bad1.json").write_text('{1}')
         (specs_dir / "bad2.json").write_text('{2}')
@@ -802,7 +802,7 @@ class TestMainErrorCases:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Shows error when --delete is used without --spec-id or --all."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 
@@ -819,7 +819,7 @@ class TestMainErrorCases:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Shows which specs directory is being scanned."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 
@@ -835,7 +835,7 @@ class TestMainErrorCases:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Detects corruption deeply nested in directory structure."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
 
         # Create deeply nested structure
@@ -866,7 +866,7 @@ class TestMainCombinedFlags:
         self, mock_find_specs, temp_dir, capsys
     ):
         """When both --detect and --delete are specified, performs deletion."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         (specs_dir / "bad.json").write_text('{invalid}')
         mock_find_specs.return_value = specs_dir
@@ -883,7 +883,7 @@ class TestMainCombinedFlags:
         self, mock_find_specs, temp_dir, capsys
     ):
         """Combines --detect, --delete, and --spec-id correctly."""
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         spec_dir = specs_dir / "001-test"
         spec_dir.mkdir()
@@ -911,7 +911,7 @@ class TestRecoveryMainBlock:
         import sys
         import os
 
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 
@@ -937,7 +937,7 @@ class TestRecoveryMainBlock:
         """Tests __main__ block execution by simulating __main__ context (line 217)."""
         import cli.recovery as recovery_module
 
-        specs_dir = temp_dir / ".auto-claude" / "specs"
+        specs_dir = temp_dir / ".juict-agentic-os" / "specs"
         specs_dir.mkdir(parents=True)
         mock_find_specs.return_value = specs_dir
 

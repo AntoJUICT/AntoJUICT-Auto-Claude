@@ -124,11 +124,11 @@ def find_spec(project_dir: Path, spec_identifier: str) -> Path | None:
                     return spec_folder
 
     # Check worktree specs (for merge-preview, merge, review, discard operations)
-    worktree_base = project_dir / ".auto-claude" / "worktrees" / "tasks"
+    worktree_base = project_dir / ".juict-agentic-os" / "worktrees" / "tasks"
     if worktree_base.exists():
         # Try exact match in worktree
         worktree_spec = (
-            worktree_base / spec_identifier / ".auto-claude" / "specs" / spec_identifier
+            worktree_base / spec_identifier / ".juict-agentic-os" / "specs" / spec_identifier
         )
         if worktree_spec.exists() and (worktree_spec / "spec.md").exists():
             return worktree_spec
@@ -139,7 +139,7 @@ def find_spec(project_dir: Path, spec_identifier: str) -> Path | None:
                 spec_identifier + "-"
             ):
                 spec_in_worktree = (
-                    worktree_dir / ".auto-claude" / "specs" / worktree_dir.name
+                    worktree_dir / ".juict-agentic-os" / "specs" / worktree_dir.name
                 )
                 if (
                     spec_in_worktree.exists()
@@ -266,7 +266,7 @@ def find_specs_dir(project_dir: Path) -> Path:
     """
     Find the specs directory for a project.
 
-    Returns the '.auto-claude/specs' directory path.
+    Returns the '.juict-agentic-os/specs' directory path.
     The directory is guaranteed to exist (get_specs_dir calls init_auto_claude_dir).
 
     Args:

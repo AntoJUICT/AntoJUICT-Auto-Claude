@@ -344,7 +344,7 @@ export class ReleaseService extends EventEmitter {
     tasks: Task[]
   ): Promise<UnmergedWorktreeInfo[]> {
     const unmerged: UnmergedWorktreeInfo[] = [];
-    const worktreesDir = path.join(projectPath, '.auto-claude', 'worktrees', 'tasks');
+    const worktreesDir = path.join(projectPath, '.juict-agentic-os', 'worktrees', 'tasks');
 
     if (!existsSync(worktreesDir)) {
       return [];

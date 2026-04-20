@@ -395,7 +395,7 @@ def _validate_custom_mcp_server(server: dict) -> bool:
 
 def load_project_mcp_config(project_dir: Path) -> dict:
     """
-    Load MCP configuration from project's .auto-claude/.env file.
+    Load MCP configuration from project's .juict-agentic-os/.env file.
 
     Returns a dict of MCP-related env vars:
     - CONTEXT7_ENABLED (default: true)
@@ -412,7 +412,7 @@ def load_project_mcp_config(project_dir: Path) -> dict:
     Returns:
         Dict of MCP configuration values (string values, except CUSTOM_MCP_SERVERS which is parsed JSON)
     """
-    env_path = project_dir / ".auto-claude" / ".env"
+    env_path = project_dir / ".juict-agentic-os" / ".env"
     if not env_path.exists():
         return {}
 
@@ -646,7 +646,7 @@ def create_client(
     # Uses caching to avoid reloading on every create_client() call
     project_index, project_capabilities = _get_cached_project_data(project_dir)
 
-    # Load per-project MCP configuration from .auto-claude/.env
+    # Load per-project MCP configuration from .juict-agentic-os/.env
     mcp_config = load_project_mcp_config(project_dir)
 
     # Get allowed tools using phase-aware configuration
@@ -687,10 +687,10 @@ def create_client(
 
     # Detect if we're running in a worktree and get the original project directory
     # Worktrees are located in either:
-    # - .auto-claude/worktrees/tasks/{spec-name}/ (new location)
+    # - .juict-agentic-os/worktrees/tasks/{spec-name}/ (new location)
     # - .worktrees/{spec-name}/ (legacy location)
     # When running in a worktree, we need to allow access to both the worktree
-    # and the original project's .auto-claude/ directory for spec files
+    # and the original project's .juict-agentic-os/ directory for spec files
     original_project_permissions = []
     resolved_project_path = project_dir.resolve()
 
@@ -698,8 +698,8 @@ def create_client(
     # This handles spec worktrees, PR review worktrees, and legacy worktrees
     # Note: Windows paths are normalized to forward slashes before comparison
     worktree_markers = [
-        "/.auto-claude/worktrees/tasks/",  # Spec/task worktrees
-        "/.auto-claude/github/pr/worktrees/",  # PR review worktrees
+        "/.juict-agentic-os/worktrees/tasks/",  # Spec/task worktrees
+        "/.juict-agentic-os/github/pr/worktrees/",  # PR review worktrees
         "/.worktrees/",  # Legacy worktree location
     ]
     project_path_posix = str(resolved_project_path).replace("\\", "/")
@@ -714,7 +714,7 @@ def create_client(
             # Grant permissions for relevant directories in the original project
             permission_ops = ["Read", "Write", "Edit", "Glob", "Grep"]
             dirs_to_permit = [
-                original_project_dir / ".auto-claude",
+                original_project_dir / ".juict-agentic-os",
                 original_project_dir / ".worktrees",  # Legacy support
             ]
 
@@ -748,7 +748,7 @@ def create_client(
                 f"Read({spec_path_str}/**)",
                 f"Write({spec_path_str}/**)",
                 f"Edit({spec_path_str}/**)",
-                # Allow original project's .auto-claude/ and .worktrees/ directories
+                # Allow original project's .juict-agentic-os/ and .worktrees/ directories
                 # when running in a worktree (fixes issue #385 - permission errors)
                 *original_project_permissions,
                 # Bash permission granted here, but actual commands are validated

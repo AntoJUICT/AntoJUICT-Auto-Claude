@@ -87,16 +87,16 @@ class TestCheckGitMergeConflicts:
         assert result["base_branch"] in ["main", "master"]
 
     def test_excludes_auto_claude_files(self, with_conflicting_branches: Path):
-        """Excludes .auto-claude files from conflicts."""
-        # This would require setup with actual .auto-claude conflicts
+        """Excludes .juict-agentic-os files from conflicts."""
+        # This would require setup with actual .juict-agentic-os conflicts
         # For now, test the filtering logic exists
         result = workspace_commands._check_git_merge_conflicts(
             with_conflicting_branches, TEST_SPEC_NAME, base_branch="main"
         )
 
-        # Verify no .auto-claude files in conflicting files
+        # Verify no .juict-agentic-os files in conflicting files
         for file_path in result["conflicting_files"]:
-            assert ".auto-claude" not in file_path
+            assert ".juict-agentic-os" not in file_path
 
 
 # =============================================================================
@@ -478,24 +478,24 @@ class TestCheckGitMergeConflictsEdgeCases:
     def test_filters_auto_claude_files_from_conflicts(
         self, mock_run, mock_project_dir: Path
     ):
-        """Filters .auto-claude files from conflict list."""
+        """Filters .juict-agentic-os files from conflict list."""
         mock_run.side_effect = [
             MagicMock(returncode=0, stdout="main\n"),
             MagicMock(returncode=0, stdout="abc123\n"),
             MagicMock(returncode=0, stdout="0\n"),
             # Fallback diffs
-            MagicMock(returncode=0, stdout=".auto-claude/config.json\nnormal_file.txt\n"),
-            MagicMock(returncode=0, stdout=".auto-claude/config.json\nnormal_file.txt\n"),
+            MagicMock(returncode=0, stdout=".juict-agentic-os/config.json\nnormal_file.txt\n"),
+            MagicMock(returncode=0, stdout=".juict-agentic-os/config.json\nnormal_file.txt\n"),
         ]
 
         result = workspace_commands._check_git_merge_conflicts(
             mock_project_dir, TEST_SPEC_NAME, base_branch="main"
         )
 
-        # .auto-claude files should be filtered out
-        assert ".auto-claude/config.json" not in result["conflicting_files"]
+        # .juict-agentic-os files should be filtered out
+        assert ".juict-agentic-os/config.json" not in result["conflicting_files"]
         if result["conflicting_files"]:
-            assert all(".auto-claude" not in f for f in result["conflicting_files"])
+            assert all(".juict-agentic-os" not in f for f in result["conflicting_files"])
 
 
 # =============================================================================

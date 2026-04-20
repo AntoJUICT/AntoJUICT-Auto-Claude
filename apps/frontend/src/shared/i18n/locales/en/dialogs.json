@@ -3,7 +3,7 @@
     "title": "Initialize JUICT agentic OS",
     "description": "This project doesn't have JUICT agentic OS initialized. Would you like to set it up now?",
     "willDo": "This will:",
-    "createFolder": "Create a .auto-claude folder in your project",
+    "createFolder": "Create a .juict-agentic-os folder in your project",
     "copyFramework": "Copy the JUICT agentic OS framework files",
     "setupSpecs": "Set up the specs directory for your tasks",
     "sourcePathNotConfigured": "Source path not configured",

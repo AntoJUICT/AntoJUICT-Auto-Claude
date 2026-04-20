@@ -306,3 +306,18 @@ npm run dev:mcp    # Electron MCP server for AI debugging
 
 # Project data: .auto-claude/specs/ (gitignored)
 ```
+
+## Electron / IPC Lessons Learned
+
+| Datum | Fout | Correct | Oorzaak |
+|-------|------|---------|---------|
+| 2026-04-20 | `window.webContents.send(channel, { taskId, status })` — renderer ontvangt object als eerste arg, `status` is `undefined` | `window.webContents.send(channel, taskId, status)` — stuur losse args | Preload handler-signature verwacht `(taskId, status, projectId?)` als aparte parameters, niet één gebundeld object |
+| 2026-04-20 | Pipeline spawnt met systeem-Python (`py -3`) vóór venv klaar is | Wacht op `ensurePythonEnvReady()` voor spawn, zelfde als agentManager doet | `getPythonPath()` geeft al een path terug vóór de venv volledig is geïnitialiseerd |
+| 2026-04-20 | XState stuurt `PLANNING_STARTED` → `in_progress` vóór pipeline `brainstorming` emitteert voor fresh tasks | Check `hasSpecEarly` vóór XState-block; skip `PLANNING_STARTED` als geen spec én geen XState actor | XState actie is synchroon en wint van asynchrone pipeline-start |
+| 2026-04-20 | CDP smoke test WS_URL hardcoded — verouderd na Electron-herstart | Altijd `curl http://localhost:9222/json/list` vóór smoke test en WS_URL bijwerken | Electron geeft elke run een nieuw CDP page ID |
+
+## Regels
+
+- Gebruik NOOIT `window.webContents.send(channel, { object })` voor IPC-events die de preload als losse args verwacht — controleer altijd de preload handler-signature voordat je `.send()` aanroept.
+- Wacht ALTIJD op `ensurePythonEnvReady()` voordat je een Python subprocess spawnt vanuit de main process.
+- Bij CDP smoke tests: altijd `curl http://localhost:9222/json/list` uitvoeren voor het script en de `WS_URL` bijwerken — nooit een hardcoded page ID vertrouwen.
