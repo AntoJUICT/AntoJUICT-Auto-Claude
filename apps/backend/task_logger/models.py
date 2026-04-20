@@ -2,7 +2,7 @@
 Data models for task logging.
 """
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 
 
@@ -89,3 +89,4 @@ class TokenUsage:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
