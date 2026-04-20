@@ -105,6 +105,10 @@ export function registerTaskExecutionHandlers(
   agentManager: AgentManager,
   getMainWindow: () => BrowserWindow | null
 ): void {
+  pipeline.configure({
+    getPythonPath: () => agentManager.getPythonPath(),
+    getAutoBuildSourcePath: () => agentManager.getAutoBuildSourcePath(),
+  });
   /**
    * Start a task
    */
