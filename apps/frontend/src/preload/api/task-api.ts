@@ -40,6 +40,10 @@ export interface TaskAPI {
     feedback?: string,
     images?: ImageAttachment[]
   ) => Promise<IPCResult>;
+  approveSpec: (taskId: string) => Promise<IPCResult>;
+  approvePlan: (taskId: string) => Promise<IPCResult>;
+  approvePreview: (taskId: string) => Promise<IPCResult>;
+  sendBack: (taskId: string, target: import('../../shared/types').SendBackTarget, note?: string) => Promise<IPCResult>;
   updateTaskStatus: (
     taskId: string,
     status: TaskStatus,
@@ -130,6 +134,18 @@ export const createTaskAPI = (): TaskAPI => ({
     images?: ImageAttachment[]
   ): Promise<IPCResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.TASK_REVIEW, taskId, approved, feedback, images),
+
+  approveSpec: (taskId: string) =>
+    ipcRenderer.invoke(IPC_CHANNELS.TASK_APPROVE_SPEC, taskId),
+
+  approvePlan: (taskId: string) =>
+    ipcRenderer.invoke(IPC_CHANNELS.TASK_APPROVE_PLAN, taskId),
+
+  approvePreview: (taskId: string) =>
+    ipcRenderer.invoke(IPC_CHANNELS.TASK_APPROVE_PREVIEW, taskId),
+
+  sendBack: (taskId: string, target: import('../../shared/types').SendBackTarget, note?: string) =>
+    ipcRenderer.invoke(IPC_CHANNELS.TASK_SEND_BACK, taskId, target, note),
 
   updateTaskStatus: (
     taskId: string,
