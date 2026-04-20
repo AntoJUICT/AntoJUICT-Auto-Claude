@@ -124,6 +124,9 @@ export class TaskStateManager {
         }
         return true;
       }
+      case 'preview':
+        this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: true }, task, project);
+        return true;
       case 'backlog':
         this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: false }, task, project);
         return true;

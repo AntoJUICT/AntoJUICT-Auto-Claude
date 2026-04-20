@@ -247,12 +247,14 @@ describe('Task Order State Management', () => {
 
       expect(useTaskStore.getState().taskOrder).toEqual({
         backlog: [],
-        queue: [],
+        brainstorming: [],
+        spec_review: [],
+        planning: [],
+        plan_review: [],
         in_progress: [],
-        ai_review: [],
-        human_review: [],
+        preview: [],
+        pr_ready: [],
         done: [],
-        pr_created: [],
         error: []
       });
     });
@@ -278,12 +280,14 @@ describe('Task Order State Management', () => {
       // Should fall back to empty order state
       expect(useTaskStore.getState().taskOrder).toEqual({
         backlog: [],
-        queue: [],
+        brainstorming: [],
+        spec_review: [],
+        planning: [],
+        plan_review: [],
         in_progress: [],
-        ai_review: [],
-        human_review: [],
+        preview: [],
+        pr_ready: [],
         done: [],
-        pr_created: [],
         error: []
       });
     });
@@ -295,21 +299,25 @@ describe('Task Order State Management', () => {
         throw new Error('Storage quota exceeded');
       });
 
-      useTaskStore.getState().loadTaskOrder('project-1');
+      try {
+        useTaskStore.getState().loadTaskOrder('project-1');
 
-      // Should fall back to empty order state
-      expect(useTaskStore.getState().taskOrder).toEqual({
-        backlog: [],
-        queue: [],
-        in_progress: [],
-        ai_review: [],
-        human_review: [],
-        done: [],
-        pr_created: [],
-        error: []
-      });
-
-      localStorage.getItem = originalGetItem;
+        // Should fall back to empty order state
+        expect(useTaskStore.getState().taskOrder).toEqual({
+          backlog: [],
+          brainstorming: [],
+          spec_review: [],
+          planning: [],
+          plan_review: [],
+          in_progress: [],
+          preview: [],
+          pr_ready: [],
+          done: [],
+          error: []
+        });
+      } finally {
+        localStorage.getItem = originalGetItem;
+      }
     });
   });
 
@@ -581,12 +589,14 @@ describe('Task Order State Management', () => {
       // Empty string causes JSON.parse to throw - should fall back to empty order
       expect(useTaskStore.getState().taskOrder).toEqual({
         backlog: [],
-        queue: [],
+        brainstorming: [],
+        spec_review: [],
+        planning: [],
+        plan_review: [],
         in_progress: [],
-        ai_review: [],
-        human_review: [],
+        preview: [],
+        pr_ready: [],
         done: [],
-        pr_created: [],
         error: []
       });
 

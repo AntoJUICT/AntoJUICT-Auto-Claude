@@ -129,9 +129,9 @@ export const taskMachine = createMachine(
       },
       error: {
         on: {
-          USER_RESUMED: 'coding',
+          USER_RESUMED: { target: 'coding', actions: 'clearError' },
           // Allow restarting from error back to planning (e.g., spec creation crashed)
-          PLANNING_STARTED: 'planning',
+          PLANNING_STARTED: { target: 'planning', actions: 'clearError' },
           MARK_DONE: 'done'
         }
       },
@@ -168,6 +168,9 @@ export const taskMachine = createMachine(
           }
           return undefined;
         }
+      }),
+      clearError: assign({
+        error: () => undefined
       })
     }
   }

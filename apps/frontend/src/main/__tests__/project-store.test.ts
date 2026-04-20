@@ -371,7 +371,7 @@ describe('ProjectStore', () => {
       expect(tasks[0].status).toBe('backlog');
     });
 
-    it('should determine status as ai_review when all subtasks completed', async () => {
+    it('should determine status as preview when all subtasks completed', async () => {
       const specsDir = path.join(TEST_PROJECT_PATH, '.auto-claude', 'specs', '003-complete');
       mkdirSync(specsDir, { recursive: true });
 
@@ -379,7 +379,7 @@ describe('ProjectStore', () => {
         feature: 'Complete Feature',
         workflow_type: 'feature',
         services_involved: [],
-        status: 'ai_review',
+        status: 'preview',
         phases: [
           {
             phase: 1,
@@ -408,10 +408,10 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('ai_review');
+      expect(tasks[0].status).toBe('preview');
     });
 
-    it('should determine status as human_review when plan status is human_review', async () => {
+    it('should determine status as preview when plan status is preview (user review)', async () => {
       const specsDir = path.join(TEST_PROJECT_PATH, '.auto-claude', 'specs', '004-rejected');
       mkdirSync(specsDir, { recursive: true });
 
@@ -419,8 +419,7 @@ describe('ProjectStore', () => {
         feature: 'Rejected Feature',
         workflow_type: 'feature',
         services_involved: [],
-        status: 'human_review',
-        reviewReason: 'qa_rejected',
+        status: 'preview',
         phases: [
           {
             phase: 1,
@@ -448,7 +447,7 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('human_review');
+      expect(tasks[0].status).toBe('preview');
     });
 
     it('should determine reviewReason from plan when status is human_review', async () => {

@@ -688,9 +688,8 @@ describe("IPC Handlers", { timeout: 30000 }, () => {
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         "task:statusChange",
         "task-1",
-        "human_review",
-        expect.any(String), // projectId for multi-project filtering
-        "errors"
+        "error",
+        expect.any(String) // projectId for multi-project filtering
       );
     });
   });
