@@ -1,3 +1,9 @@
+## 2.7.7 - Pipeline Status Persistence Fix
+
+### 🐛 Bug Fixes
+
+- **Pipeline task refresh bug** — Tasks starting from backlog no longer revert to backlog after a page refresh. Every pipeline phase transition (brainstorming → spec_review → plan_review → preview) is now immediately written to `implementation_plan.json`, so the renderer always reads the correct status from disk.
+
 ## 2.7.6 - Stability & Feature Enhancements
 
 ### ✨ New Features
