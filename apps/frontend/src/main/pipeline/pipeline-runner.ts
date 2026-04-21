@@ -4,6 +4,7 @@ import { BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '@shared/constants/ipc';
 import type { TaskStatus } from '@shared/types/task';
 import { parsePythonCommand } from '../python-detector';
+import { persistPlanStatusAndReasonSync } from '../ipc-handlers/task/plan-file-utils';
 
 interface PipelineProcessConfig {
   getPythonPath: () => string;
@@ -27,6 +28,7 @@ interface PipelineTask {
   taskId: string;
   specId: string;
   projectPath: string;
+  planPath: string;
   phase: PipelinePhase;
   subtaskIndex: number;
   totalSubtasks: number;
@@ -49,6 +51,7 @@ export function startPipeline(
   taskId: string,
   specId: string,
   projectPath: string,
+  planPath: string,
   modelOverride?: string,
   taskTitle?: string,
   taskDescription?: string
@@ -57,6 +60,7 @@ export function startPipeline(
     taskId,
     specId,
     projectPath,
+    planPath,
     phase: 'brainstorming',
     subtaskIndex: 0,
     totalSubtasks: 0,
@@ -122,6 +126,11 @@ export function sendBack(
 function emitStatusChange(window: BrowserWindow, taskId: string, status: TaskStatus): void {
   // Send as separate args to match the preload handler signature: (taskId, status, projectId?)
   window.webContents.send(IPC_CHANNELS.TASK_STATUS_CHANGE, taskId, status);
+  // Persist to disk so page refresh reflects the correct status (not stale 'backlog')
+  const task = activePipelines.get(taskId);
+  if (task) {
+    persistPlanStatusAndReasonSync(task.planPath, status);
+  }
 }
 
 export function emitSubtaskProgress(

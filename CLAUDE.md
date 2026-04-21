@@ -315,9 +315,13 @@ npm run dev:mcp    # Electron MCP server for AI debugging
 | 2026-04-20 | Pipeline spawnt met systeem-Python (`py -3`) vóór venv klaar is | Wacht op `ensurePythonEnvReady()` voor spawn, zelfde als agentManager doet | `getPythonPath()` geeft al een path terug vóór de venv volledig is geïnitialiseerd |
 | 2026-04-20 | XState stuurt `PLANNING_STARTED` → `in_progress` vóór pipeline `brainstorming` emitteert voor fresh tasks | Check `hasSpecEarly` vóór XState-block; skip `PLANNING_STARTED` als geen spec én geen XState actor | XState actie is synchroon en wint van asynchrone pipeline-start |
 | 2026-04-20 | CDP smoke test WS_URL hardcoded — verouderd na Electron-herstart | Altijd `curl http://localhost:9222/json/list` vóór smoke test en WS_URL bijwerken | Electron geeft elke run een nieuw CDP page ID |
+| 2026-04-21 | GitHub token `github_pat_ghp_...` → 401 bij electron-builder publish | Gebruik een classic PAT (`ghp_...`) of fine-grained PAT (`github_pat_...`), nooit gecombineerd | Twee token-prefixen samengevoegd = ongeldig token |
+| 2026-04-21 | `latest.yml` url: `JUICT-agentic-OS-...exe` → auto-updater vindt bestand niet | Bij `gh release upload` converteert GitHub spaties naar punten: gebruik `JUICT.agentic.OS-...exe` in `latest.yml` | GitHub hernoemt assets: spaties → punten |
 
 ## Regels
 
 - Gebruik NOOIT `window.webContents.send(channel, { object })` voor IPC-events die de preload als losse args verwacht — controleer altijd de preload handler-signature voordat je `.send()` aanroept.
 - Wacht ALTIJD op `ensurePythonEnvReady()` voordat je een Python subprocess spawnt vanuit de main process.
 - Bij CDP smoke tests: altijd `curl http://localhost:9222/json/list` uitvoeren voor het script en de `WS_URL` bijwerken — nooit een hardcoded page ID vertrouwen.
+- Bij handmatig uploaden via `gh release upload`: GitHub converteert spaties naar punten in asset-namen. Zorg dat `latest.yml` de punt-variant gebruikt als URL, niet de koppelteken-variant.
+- Een GitHub PAT token moet beginnen met óf `ghp_` (classic) óf `github_pat_` (fine-grained) — nooit beide prefixen gecombineerd.

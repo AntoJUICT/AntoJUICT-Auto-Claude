@@ -319,7 +319,7 @@ export function registerTaskExecutionHandlers(
       if (needsSpecCreation) {
         // Fresh task — run through the superpowers pipeline (brainstorming → spec_review → planning → plan_review → in_progress → preview → pr_ready)
         console.warn('[TASK_START] Starting superpowers pipeline for:', task.specId);
-        pipeline.startPipeline(mainWindow, taskId, task.specId, project.path, undefined, task.title, task.description);
+        pipeline.startPipeline(mainWindow, taskId, task.specId, project.path, planPath, undefined, task.title, task.description);
       } else if (needsImplementation) {
         // Spec exists but no valid subtasks in implementation plan
         // FIX (#1562): Use startTaskExecution (run.py) which will create the planner
