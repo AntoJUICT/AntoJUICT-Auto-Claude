@@ -17,15 +17,11 @@ export function useSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Store the original theme settings when the hook mounts (dialog opens)
-  // This allows us to revert if the user cancels
   const originalThemeRef = useRef<{
     theme: AppSettings['theme'];
-    colorTheme: AppSettings['colorTheme'];
     uiScale: number;
   }>({
     theme: currentSettings.theme,
-    colorTheme: currentSettings.colorTheme,
     uiScale: currentSettings.uiScale ?? UI_SCALE_DEFAULT
   });
 
@@ -43,19 +39,16 @@ export function useSettings() {
   useEffect(() => {
     originalThemeRef.current = {
       theme: currentSettings.theme,
-      colorTheme: currentSettings.colorTheme,
       uiScale: currentSettings.uiScale ?? UI_SCALE_DEFAULT
     };
-  }, [currentSettings.colorTheme, currentSettings.theme, currentSettings.uiScale]);
+  }, [currentSettings.theme, currentSettings.uiScale]);
 
   const saveSettings = async () => {
     setIsSaving(true);
     setError(null);
-
     try {
       const success = await saveSettingsToStore(settings);
       if (success) {
-        // Apply theme immediately
         applyTheme(settings.theme);
         return true;
       } else {
@@ -71,16 +64,20 @@ export function useSettings() {
   };
 
   const applyTheme = (theme: 'light' | 'dark' | 'system') => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else if (theme === 'light') {
-      document.documentElement.classList.remove('dark');
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    } else if (theme === 'dark') {
+      root.classList.remove('light');
+      root.classList.remove('dark');
     } else {
-      // System preference
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        root.classList.add('light');
+        root.classList.remove('dark');
       } else {
-        document.documentElement.classList.remove('dark');
+        root.classList.remove('light');
+        root.classList.remove('dark');
       }
     }
   };
@@ -97,7 +94,6 @@ export function useSettings() {
     const original = originalThemeRef.current;
     updateStoreSettings({
       theme: original.theme,
-      colorTheme: original.colorTheme,
       uiScale: original.uiScale
     });
   }, [updateStoreSettings]);
@@ -109,10 +105,9 @@ export function useSettings() {
   const commitTheme = useCallback(() => {
     originalThemeRef.current = {
       theme: settings.theme,
-      colorTheme: settings.colorTheme,
       uiScale: settings.uiScale ?? UI_SCALE_DEFAULT
     };
-  }, [settings.theme, settings.colorTheme, settings.uiScale]);
+  }, [settings.theme, settings.uiScale]);
 
   return {
     settings,
