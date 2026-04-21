@@ -38,3 +38,6 @@ export * from './config';
 
 // Spell check configuration
 export * from './spellcheck';
+
+// Skills and kanban checklist constants
+export * from './skills';
