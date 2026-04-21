@@ -316,7 +316,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
       <div
         ref={setNodeRef}
         className={cn(
-          'flex flex-col rounded-xl border border-white/5 bg-linear-to-b from-secondary/30 to-transparent backdrop-blur-sm transition-all duration-200',
+          'flex flex-col rounded-[6px] border border-[var(--border)] bg-[var(--surface)] transition-all duration-200',
           getColumnBorderColor(),
           'border-t-2',
           isOver && 'drop-zone-highlight'
@@ -324,7 +324,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
         style={{ width: COLLAPSED_COLUMN_WIDTH_REM, minWidth: COLLAPSED_COLUMN_WIDTH_REM, maxWidth: COLLAPSED_COLUMN_WIDTH_REM }}
       >
         {/* Expand button at top */}
-        <div className="flex justify-center p-2 border-b border-white/5">
+        <div className="flex justify-center p-2 border-b border-[var(--border)]">
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
               <Button
@@ -369,7 +369,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
       <div
         ref={setNodeRef}
         className={cn(
-          'flex flex-1 flex-col rounded-xl border border-white/5 bg-linear-to-b from-secondary/30 to-transparent backdrop-blur-sm transition-all duration-200',
+          'flex flex-1 flex-col rounded-[6px] border border-[var(--border)] bg-[var(--surface)] transition-all duration-200',
           !columnWidth && 'min-w-80 max-w-[30rem]',
           getColumnBorderColor(),
           'border-t-2',
@@ -377,7 +377,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
         )}
       >
         {/* Column header - enhanced styling */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
+        <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border)]">
         <div className="flex items-center gap-2.5">
           {/* Collapse button */}
           {onToggleCollapsed && (
@@ -417,18 +417,23 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
               </TooltipContent>
             </Tooltip>
           )}
-          <h2 className="font-semibold text-sm text-foreground">
+          {status === 'in_progress' && tasks.length > 0 && (
+            <span className="h-2 w-2 rounded-full bg-[var(--brand-cyan)] animate-pulse-subtle" />
+          )}
+          <h2 className="text-[12px] font-semibold text-[var(--foreground)] uppercase tracking-wide">
             {t(TASK_STATUS_LABELS[status])}
           </h2>
           {status === 'in_progress' && maxParallelTasks ? (
             <span className={cn(
-              "column-count-badge",
-              tasks.length >= maxParallelTasks && "bg-warning/20 text-warning border-warning/30"
+              'rounded-[4px] px-1.5 py-0.5 font-mono text-[10px]',
+              tasks.length >= maxParallelTasks
+                ? 'bg-[var(--warning)]/15 text-[var(--warning)]'
+                : 'bg-[var(--surface)] text-[var(--text-mute)]'
             )}>
-              {tasks.length}/{maxParallelTasks}
+              wip {tasks.length}/{maxParallelTasks}
             </span>
           ) : (
-            <span className="column-count-badge">
+            <span className="font-mono text-[11px] text-[var(--text-mute)]">
               {tasks.length}
             </span>
           )}
@@ -618,7 +623,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
 }, droppableColumnPropsAreEqual);
 
 export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isRefreshing }: KanbanBoardProps) {
-  const { t } = useTranslation(['tasks', 'dialogs', 'common']);
+  const { t } = useTranslation(['tasks', 'dialogs', 'common', 'navigation']);
   const { toast } = useToast();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
@@ -1419,39 +1424,45 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
   return (
     <div className="flex h-full flex-col">
-      {/* Kanban header with refresh button and expand all */}
-      {(onRefresh || collapsedColumnCount >= 3) && (
-        <div className="flex items-center justify-between px-6 pt-4 pb-2">
-          <div className="flex items-center gap-2">
-            {/* Expand All button - appears when 3+ columns are collapsed */}
-            {collapsedColumnCount >= 3 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExpandAll}
-                className="gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronsRight className="h-4 w-4" />
-                {t('tasks:kanban.expandAll')}
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {onRefresh && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onRefresh}
-                disabled={isRefreshing}
-                className="gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-                {isRefreshing ? t('common:buttons.refreshing') : t('tasks:refreshTasks')}
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Kanban toolbar */}
+      <div className="flex items-center gap-3 px-6 pt-4 pb-2">
+        <h1 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ fontFamily: 'var(--font-display)' }}>
+          {t('navigation:items.kanban')}
+        </h1>
+
+        {/* Active runs chip */}
+        {tasksByStatus['in_progress']?.length > 0 && (
+          <span className="flex items-center gap-1.5 rounded-[5px] bg-[var(--primary-wash)] px-2 py-0.5 text-[11px] text-[var(--primary)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
+            {tasksByStatus['in_progress'].length} running
+          </span>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Collapse expand all */}
+        {collapsedColumnCount >= 3 && (
+          <button
+            onClick={handleExpandAll}
+            className="flex items-center gap-1 rounded-[5px] border border-[var(--border)] px-2.5 py-1 text-[11px] text-[var(--text-dim)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors"
+          >
+            <ChevronsRight className="h-3.5 w-3.5" />
+            {t('tasks:kanban.expandAll')}
+          </button>
+        )}
+
+        {/* Refresh button */}
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1 rounded-[5px] border border-[var(--border)] px-2.5 py-1 text-[11px] text-[var(--text-dim)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={cn('h-3.5 w-3.5', isRefreshing && 'animate-spin')} />
+            {isRefreshing ? t('common:buttons.refreshing') : t('tasks:refreshTasks')}
+          </button>
+        )}
+      </div>
       {/* Kanban columns */}
       <DndContext
         sensors={sensors}
