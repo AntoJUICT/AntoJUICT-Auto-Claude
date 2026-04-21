@@ -1,3 +1,12 @@
+## 2.7.8 - Agent Token Optimizations
+
+### 🛠️ Improvements
+
+- **Reduced thinking budget for lightweight phases** — Planning, research, context, quick-spec, and historical-context phases now use 1024 thinking tokens instead of 4096. These phases perform lookup and classification tasks that don't benefit from extended reasoning, cutting token usage by ~6000–8000 tokens per pipeline run.
+- **Simplified planner output** — The `implementation_plan.json` schema no longer includes a granular `steps[]` array per subtask. Coder agents determine their own implementation steps, reducing plan output size without losing planning quality.
+
+---
+
 ## 2.7.7 - Pipeline Status Persistence Fix
 
 ### 🐛 Bug Fixes
