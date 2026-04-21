@@ -18,6 +18,7 @@ import { cn, formatRelativeTime, sanitizeMarkdownForDisplay } from '../lib/utils
 import { ApprovalActions } from './ApprovalActions';
 import { SkillBadge } from './task-card/SkillBadge';
 import { SkillChecklist } from './task-card/SkillChecklist';
+import { PhaseProgressBar } from './task-card/PhaseProgressBar';
 import {
   TASK_CATEGORY_LABELS,
   TASK_CATEGORY_COLORS,
@@ -38,6 +39,7 @@ import {
 import { stopTask, checkTaskRunning, recoverStuckTask, isIncompleteHumanReview, archiveTasks, hasRecentActivity, startTaskOrQueue } from '../stores/task-store';
 import { useToast } from '../hooks/use-toast';
 import type { Task, TaskCategory, TaskStatus } from '../../shared/types';
+import type { SendBackTarget } from '../../shared/types/task';
 
 // Category icon mapping
 const CategoryIcon: Record<TaskCategory, typeof Zap> = {
@@ -105,6 +107,7 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.skillProgress?.currentStepIndex === nextTask.skillProgress?.currentStepIndex &&
     prevTask.executionProgress?.phase === nextTask.executionProgress?.phase &&
     prevTask.executionProgress?.phaseProgress === nextTask.executionProgress?.phaseProgress &&
+    prevTask.executionProgress?.completedPhases?.length === nextTask.executionProgress?.completedPhases?.length &&
     prevTask.subtasks.length === nextTask.subtasks.length &&
     prevTask.metadata?.fastMode === nextTask.metadata?.fastMode &&
     prevTask.metadata?.category === nextTask.metadata?.category &&
@@ -282,7 +285,10 @@ export const TaskCard = memo(function TaskCard({
   };
 
   const handleSendBack = async () => {
-    const target = task.status === 'verifying' ? ('plan_review' as const) : (task.reviewState === 'plan_review' ? ('spec_review' as const) : ('spec_review' as const));
+    const target: SendBackTarget =
+      task.reviewState === 'plan_review' || task.status === 'verifying'
+        ? 'plan_review'
+        : 'spec_review';
     await window.electronAPI.sendBack(task.id, target);
   };
 
@@ -462,6 +468,7 @@ export const TaskCard = memo(function TaskCard({
             <SkillChecklist skillProgress={task.skillProgress} />
           )}
         </div>
+        <PhaseProgressBar completedPhases={task.executionProgress?.completedPhases} />
 
         {/* Metadata badges */}
         {(task.metadata || isStuck || isIncomplete || hasActiveExecution || reviewReasonInfo) && (
