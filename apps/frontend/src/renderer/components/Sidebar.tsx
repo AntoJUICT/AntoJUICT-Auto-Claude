@@ -416,8 +416,8 @@ export function Sidebar({
             <span className="h-2 w-2 rounded-full bg-[var(--brand-cyan)] shadow-[0_0_6px_var(--brand-cyan)]" />
             <div className="flex-1 min-w-0">
               <p className="truncate text-[11px] font-medium text-[var(--foreground)]">{selectedProject.name}</p>
-              {gitStatus?.branch && (
-                <p className="truncate font-mono text-[9px] text-[var(--text-mute)]">{gitStatus.branch}</p>
+              {gitStatus?.currentBranch && (
+                <p className="truncate font-mono text-[9px] text-[var(--text-mute)]">{gitStatus.currentBranch}</p>
               )}
             </div>
           </div>
