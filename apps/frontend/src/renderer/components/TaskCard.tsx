@@ -339,14 +339,18 @@ export const TaskCard = memo(function TaskCard({
   return (
     <Card
       className={cn(
-        'card-surface task-card-enhanced cursor-pointer',
-        isRunning && !isStuck && 'ring-2 ring-primary border-primary task-running-pulse',
+        'card-surface task-card-enhanced cursor-pointer relative overflow-hidden',
+        isRunning && !isStuck && 'ring-1 ring-[var(--primary)]/30 task-running-pulse',
         isStuck && 'ring-2 ring-warning border-warning task-stuck-pulse',
         isArchived && 'opacity-60 hover:opacity-80',
         isSelectable && isSelected && 'ring-2 ring-ring border-ring bg-accent/10'
       )}
       onClick={onClick}
     >
+      {/* Left border for running state */}
+      {isRunning && !isStuck && (
+        <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--primary)]" />
+      )}
       <CardContent className="p-4">
         <div className={isSelectable ? 'flex gap-3' : undefined}>
           {/* Checkbox for selectable mode - stops event propagation */}
@@ -362,9 +366,35 @@ export const TaskCard = memo(function TaskCard({
           )}
 
           <div className={isSelectable ? 'flex-1 min-w-0' : undefined}>
+            {/* ID + priority row */}
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="font-mono text-[10px] text-[var(--text-mute)]">
+                #{task.specId?.replace(/^0+/, '') || task.id.slice(0, 6)}
+              </span>
+              {task.metadata?.priority && (
+                <>
+                  <span className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    task.metadata.priority === 'urgent' ? 'bg-[var(--destructive)]' :
+                    task.metadata.priority === 'high' ? 'bg-[var(--warning)]' :
+                    task.metadata.priority === 'medium' ? 'bg-[var(--primary)]' :
+                    'bg-[var(--text-mute)]'
+                  )} />
+                  <span className={cn(
+                    'rounded-[3px] px-1 py-0 font-mono text-[9px] uppercase tracking-wide',
+                    task.metadata.priority === 'urgent' ? 'bg-[var(--destructive)]/15 text-[var(--destructive)]' :
+                    task.metadata.priority === 'high' ? 'bg-[var(--warning)]/15 text-[var(--warning)]' :
+                    task.metadata.priority === 'medium' ? 'bg-[var(--primary)]/15 text-[var(--primary)]' :
+                    'bg-[var(--surface)] text-[var(--text-mute)]'
+                  )}>
+                    {task.metadata.priority}
+                  </span>
+                </>
+              )}
+            </div>
             {/* Title - full width, no wrapper */}
             <h3
-              className="font-semibold text-sm text-foreground line-clamp-2 leading-snug"
+              className="text-[13px] font-medium text-[var(--foreground)] line-clamp-2 leading-snug"
               title={displayTitle}
             >
               {displayTitle}
@@ -375,6 +405,23 @@ export const TaskCard = memo(function TaskCard({
           <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
             {sanitizedDescription}
           </p>
+        )}
+
+        {/* Progress bar for running tasks */}
+        {isRunning && !isStuck && (
+          <div className="mt-2">
+            <div className="h-[3px] w-full rounded-full bg-[var(--surface-hi)] overflow-hidden">
+              <div
+                className="h-full rounded-full animate-indeterminate"
+                style={{ background: 'var(--brand-gradient)', width: '60%' }}
+              />
+            </div>
+            <div className="mt-1 flex items-center justify-between">
+              <span className="font-mono text-[9px] text-[var(--text-mute)]">
+                {task.executionProgress?.phase || 'running'}
+              </span>
+            </div>
+          </div>
         )}
 
         {/* Metadata badges */}
