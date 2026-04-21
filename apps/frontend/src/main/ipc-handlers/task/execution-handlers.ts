@@ -274,7 +274,7 @@ export function registerTaskExecutionHandlers(
         // Uses planHasSubtasks from implementation_plan.json (more reliable than task.subtasks.length).
         console.warn('[TASK_START] No XState actor, error with no plan subtasks -> planning via PLANNING_STARTED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLANNING_STARTED' }, task, project);
-      } else if (task.status === 'preview' || task.status === 'error') {
+      } else if (task.status === 'verifying' || task.status === 'error') {
         // No XState actor - fallback to task data for resuming
         console.warn('[TASK_START] No XState actor, task data:', task.status, '-> coding via USER_RESUMED');
         taskStateManager.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
@@ -730,9 +730,9 @@ export function registerTaskExecutionHandlers(
         }
       }
 
-      // Validate status transition - 'preview' requires actual work to have been done
+      // Validate status transition - 'verifying' requires actual work to have been done
       // This prevents tasks from being incorrectly marked as ready for review when execution failed
-      if (status === 'preview') {
+      if (status === 'verifying') {
         const specsBaseDirForValidation = getSpecsDir(project.autoBuildPath);
         const specDirForValidation = path.join(
           project.path,
@@ -780,15 +780,15 @@ export function registerTaskExecutionHandlers(
           }
         }
 
-        // Auto-stop task when status changes AWAY from 'in_progress' and process IS running
-        // This handles the case where user drags a running task back to Planning/backlog
-        if (status !== 'in_progress' && agentManager.isRunning(taskId)) {
-          console.warn('[TASK_UPDATE_STATUS] Stopping task due to status change away from in_progress:', taskId);
+        // Auto-stop task when status changes AWAY from 'executing' and process IS running
+        // This handles the case where user drags a running task back to Planning/inbox
+        if (status !== 'executing' && agentManager.isRunning(taskId)) {
+          console.warn('[TASK_UPDATE_STATUS] Stopping task due to status change away from executing:', taskId);
           agentManager.killTask(taskId);
         }
 
-        // Auto-start task when status changes to 'in_progress' and no process is running
-        if (status === 'in_progress' && !agentManager.isRunning(taskId)) {
+        // Auto-start task when status changes to 'executing' and no process is running
+        if (status === 'executing' && !agentManager.isRunning(taskId)) {
           // Clear stale tracking state before starting a new process
           taskStateManager.prepareForRestart(taskId);
           const mainWindow = getMainWindow();
@@ -917,7 +917,7 @@ export function registerTaskExecutionHandlers(
             mainWindow.webContents.send(
               IPC_CHANNELS.TASK_STATUS_CHANGE,
               taskId,
-              'in_progress',
+              'executing',
               project.id
             );
           }
@@ -1034,7 +1034,7 @@ export function registerTaskExecutionHandlers(
           data: {
             taskId,
             recovered: false,
-            newStatus: 'in_progress' as TaskStatus,
+            newStatus: 'executing' as TaskStatus,
             message: 'Task is still running'
           }
         };
@@ -1096,7 +1096,7 @@ export function registerTaskExecutionHandlers(
 
         // Determine the target status intelligently based on subtask progress
         // If targetStatus is explicitly provided, use it; otherwise calculate from subtasks
-        let newStatus: TaskStatus = targetStatus || 'backlog';
+        let newStatus: TaskStatus = targetStatus || 'inbox';
 
         if (!targetStatus && plan?.phases && Array.isArray(plan.phases)) {
           // Analyze subtask statuses to determine appropriate recovery status
@@ -1104,14 +1104,14 @@ export function registerTaskExecutionHandlers(
 
           if (totalCount > 0) {
             if (allCompleted) {
-              // All subtasks completed - should go to review (preview = human review before PR)
-              // For recovery, preview is safer as it requires manual verification
-              newStatus = 'preview';
+              // All subtasks completed - should go to review (verifying = human review before done)
+              // For recovery, verifying is safer as it requires manual verification
+              newStatus = 'verifying';
             } else if (completedCount > 0) {
               // Some subtasks completed, some still pending - task is in progress
-              newStatus = 'in_progress';
+              newStatus = 'executing';
             }
-            // else: no subtasks completed, stay with 'backlog'
+            // else: no subtasks completed, stay with 'inbox'
           }
         }
 
@@ -1119,9 +1119,8 @@ export function registerTaskExecutionHandlers(
           // Update status
           plan.status = newStatus;
           plan.planStatus = newStatus === 'done' ? 'completed'
-            : newStatus === 'in_progress' ? 'in_progress'
-            : newStatus === 'preview' ? 'review'
-            : newStatus === 'pr_ready' ? 'review'
+            : newStatus === 'executing' ? 'in_progress'
+            : newStatus === 'verifying' ? 'review'
             : 'pending';
           plan.updated_at = new Date().toISOString();
 
@@ -1132,10 +1131,10 @@ export function registerTaskExecutionHandlers(
           const { allCompleted } = checkSubtasksCompletion(plan);
 
           if (allCompleted) {
-            console.log('[Recovery] Task is fully complete (all subtasks done), setting to preview without restart');
+            console.log('[Recovery] Task is fully complete (all subtasks done), setting to verifying without restart');
             // Don't reset any subtasks - task is done!
             // Just update status in plan file (project store reads from file, no separate update needed)
-            plan.status = 'preview';
+            plan.status = 'verifying';
             plan.planStatus = 'review';
 
             // Write to ALL plan file locations to ensure consistency
@@ -1168,7 +1167,7 @@ export function registerTaskExecutionHandlers(
               data: {
                 taskId,
                 recovered: true,
-                newStatus: 'preview',
+                newStatus: 'verifying',
                 message: 'Task is complete and ready for review',
                 autoRestarted: false
               }
@@ -1273,12 +1272,12 @@ export function registerTaskExecutionHandlers(
           }
 
           try {
-            // Set status to in_progress for the restart
-            newStatus = 'in_progress';
+            // Set status to executing for the restart
+            newStatus = 'executing';
 
             // Update plan status for restart - write to ALL locations
             if (plan) {
-              plan.status = 'in_progress';
+              plan.status = 'executing';
               plan.planStatus = 'in_progress';
               const restartPlanContent = JSON.stringify(plan, null, 2);
               for (const pathToUpdate of planPathsToUpdate) {
