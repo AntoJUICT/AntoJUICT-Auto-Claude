@@ -18,15 +18,15 @@ import {
   FileText,
   Sparkles,
   GitBranch,
-  HelpCircle,
-  Heart,
   Wrench,
   PanelLeft,
-  PanelLeftClose
+  PanelLeftClose,
+  Clock,
+  Star
 } from 'lucide-react';
 import { Button } from './ui/button';
+import { MeshMark } from './ui/MeshMark';
 import { ScrollArea } from './ui/scroll-area';
-import { Separator } from './ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -301,19 +301,24 @@ export function Sidebar({
         disabled={!selectedProjectId}
         aria-keyshortcuts={item.shortcut}
         className={cn(
-          'flex w-full items-center rounded-lg text-sm transition-all duration-200',
-          'hover:bg-accent hover:text-accent-foreground',
-          'disabled:pointer-events-none disabled:opacity-50',
-          isActive && 'bg-accent text-accent-foreground',
-          isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
+          'relative flex w-full items-center rounded-[5px] text-sm transition-all duration-150',
+          'disabled:pointer-events-none disabled:opacity-40',
+          isActive
+            ? 'bg-[var(--primary-wash)] text-[var(--foreground)]'
+            : 'text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]',
+          isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2'
         )}
       >
+        {/* Active left bar */}
+        {isActive && (
+          <span className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full bg-[var(--primary)]" />
+        )}
         <Icon className="h-4 w-4 shrink-0" />
         {!isCollapsed && (
           <>
-            <span className="flex-1 text-left">{t(item.labelKey)}</span>
+            <span className="flex-1 text-left text-[13px]">{t(item.labelKey)}</span>
             {item.shortcut && (
-              <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded-md border border-border bg-secondary px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
+              <kbd className="pointer-events-none select-none rounded border border-[var(--border)] bg-[var(--surface)] px-1 font-mono text-[9px] text-[var(--text-mute)]">
                 {item.shortcut}
               </kbd>
             )}
@@ -322,7 +327,6 @@ export function Sidebar({
       </button>
     );
 
-    // Wrap in tooltip when collapsed
     if (isCollapsed) {
       return (
         <Tooltip key={item.id}>
@@ -344,159 +348,175 @@ export function Sidebar({
 
   return (
     <TooltipProvider>
-      <div className={cn(
-        "flex h-full flex-col bg-sidebar border-r border-border transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
-      )}>
-        {/* Header with drag area - extra top padding for macOS traffic lights */}
-        <div className={cn(
-          "electron-drag flex h-14 items-center pt-6 transition-all duration-300",
-          isCollapsed ? "justify-center px-2" : "px-4"
-        )}>
+      <aside
+        className={cn(
+          'flex h-full flex-col bg-[var(--sidebar)] border-r border-[var(--sidebar-border)] transition-[width] duration-200 ease-out overflow-hidden',
+          isCollapsed ? 'w-[60px]' : 'w-[240px]'
+        )}
+      >
+        {/* Header 48px — electron drag region */}
+        <div className="electron-drag flex h-12 shrink-0 items-center px-3 gap-2">
+          {/* Brand tile */}
+          <div className="flex shrink-0 items-center justify-center w-7 h-7 rounded-[5px] bg-gradient-to-br from-[#002345] to-[#ff3862]">
+            <MeshMark size={18} stroke="white" accent="white" />
+          </div>
+
           {!isCollapsed && (
-            <span className="electron-no-drag text-lg font-bold text-primary">JUICT Agentic OS</span>
+            <>
+              {/* Wordmark */}
+              <div className="electron-no-drag flex flex-col leading-none">
+                <span className="font-display text-[13px] font-600 text-[var(--foreground)] tracking-wide" style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                  JUICT
+                </span>
+                <span className="font-display text-[9px] font-400 text-[var(--text-mute)] tracking-widest" style={{ fontFamily: 'var(--font-display)', fontWeight: 400 }}>
+                  AGENTIC OS
+                </span>
+              </div>
+
+              {/* Spacer */}
+              <div className="flex-1" />
+
+              {/* Theme toggle pill */}
+              <div className="electron-no-drag">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={toggleSidebar}
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--foreground)] transition-colors"
+                      aria-label={isCollapsed ? t('actions.expandSidebar') : t('actions.collapseSidebar')}
+                    >
+                      <PanelLeftClose className="h-3 w-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{t('actions.collapseSidebar')}</TooltipContent>
+                </Tooltip>
+              </div>
+            </>
+          )}
+
+          {isCollapsed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleSidebar}
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--foreground)] transition-colors"
+                  aria-label={t('actions.expandSidebar')}
+                >
+                  <PanelLeft className="h-3 w-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">{t('actions.expandSidebar')}</TooltipContent>
+            </Tooltip>
           )}
         </div>
 
-        <Separator className="mt-2" />
-
-        {/* Toggle button */}
-        <div className={cn(
-          "flex py-2 transition-all duration-300",
-          isCollapsed ? "justify-center px-2" : "justify-end px-3"
-        )}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={toggleSidebar}
-                aria-label={isCollapsed ? t('actions.expandSidebar') : t('actions.collapseSidebar')}
-              >
-                {isCollapsed ? (
-                  <PanelLeft className="h-4 w-4" />
-                ) : (
-                  <PanelLeftClose className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {isCollapsed ? t('actions.expandSidebar') : t('actions.collapseSidebar')}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
-        <Separator />
+        {/* Workspace pill */}
+        {!isCollapsed && selectedProject && (
+          <div className="mx-3 mb-1 flex items-center gap-2 rounded-[5px] bg-[var(--surface)] px-2.5 py-1.5">
+            <span className="h-2 w-2 rounded-full bg-[var(--brand-cyan)] shadow-[0_0_6px_var(--brand-cyan)]" />
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-[11px] font-medium text-[var(--foreground)]">{selectedProject.name}</p>
+              {gitStatus?.branch && (
+                <p className="truncate font-mono text-[9px] text-[var(--text-mute)]">{gitStatus.branch}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <ScrollArea className="flex-1">
-          <div className={cn("py-4 transition-all duration-300", isCollapsed ? "px-2" : "px-3")}>
-            {/* Project Section */}
-            <div>
-              {!isCollapsed && (
-                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t('sections.project')}
-                </h3>
-              )}
-              <nav className="space-y-1">
-                {visibleNavItems.map(renderNavItem)}
-              </nav>
-            </div>
+          <div className={cn('py-2 transition-all duration-200', isCollapsed ? 'px-1.5' : 'px-2')}>
+            <nav className="space-y-0.5">
+              {visibleNavItems.map(renderNavItem)}
+            </nav>
           </div>
         </ScrollArea>
 
-        <Separator />
-
-        {/* Rate Limit Indicator - shows when Claude is rate limited */}
+        {/* Rate Limit */}
         <RateLimitIndicator />
 
-        {/* Update Banner - shows when app update is available */}
+        {/* Update Banner */}
         <UpdateBanner />
 
-        {/* Bottom section with Settings, Help, and New Task */}
-        <div className={cn("space-y-3 transition-all duration-300", isCollapsed ? "p-2" : "p-4")}>
-          {/* Claude Code Status Badge */}
-          {!isCollapsed && <ClaudeCodeStatusBadge />}
+        {/* Bottom section */}
+        <div className={cn('border-t border-[var(--sidebar-border)] transition-all duration-200', isCollapsed ? 'p-1.5' : 'p-3')}>
+          {/* Claude Code status */}
+          {!isCollapsed && <div className="mb-2"><ClaudeCodeStatusBadge /></div>}
 
-          {/* Settings and Help row */}
-          <div className={cn(
-            "flex items-center",
-            isCollapsed ? "flex-col gap-1" : "gap-2"
-          )}>
+          {/* Icon buttons row */}
+          <div className={cn('flex items-center', isCollapsed ? 'flex-col gap-1' : 'gap-1 mb-2')}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size={isCollapsed ? "icon" : "sm"}
-                  className={isCollapsed ? "" : "flex-1 justify-start gap-2"}
+                <button
                   onClick={onSettingsClick}
+                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
                 >
                   <Settings className="h-4 w-4" />
-                  {!isCollapsed && t('actions.settings')}
-                </Button>
+                </button>
               </TooltipTrigger>
-              <TooltipContent side={isCollapsed ? "right" : "top"}>{t('tooltips.settings')}</TooltipContent>
+              <TooltipContent side={isCollapsed ? 'right' : 'top'}>{t('tooltips.settings')}</TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
                   onClick={() => window.open('https://github.com/AndyMik90/Auto-Claude/issues', '_blank')}
-                  aria-label={t('tooltips.help')}
                 >
-                  <HelpCircle className="h-4 w-4" />
-                </Button>
+                  <Clock className="h-4 w-4" />
+                </button>
               </TooltipTrigger>
-              <TooltipContent side={isCollapsed ? "right" : "top"}>{t('tooltips.help')}</TooltipContent>
+              <TooltipContent side={isCollapsed ? 'right' : 'top'}>{t('tooltips.help')}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                  onClick={() => window.open('https://github.com/sponsors/AndyMik90', '_blank')}
+                >
+                  <Star className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side={isCollapsed ? 'right' : 'top'}>{t('actions.sponsor')}</TooltipContent>
             </Tooltip>
           </div>
 
-          {/* Sponsor link */}
+          {/* New Task gradient button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => window.open('https://github.com/sponsors/AndyMik90', '_blank')}
-                className={cn(
-                  'flex w-full items-center text-xs transition-colors',
-                  'text-amber-500/70 hover:text-amber-400',
-                  isCollapsed ? 'justify-center' : 'gap-1.5 px-3'
-                )}
-              >
-                <Heart className="h-3.5 w-3.5" />
-                {!isCollapsed && <span>{t('actions.sponsor')}</span>}
-              </button>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">{t('actions.sponsor')}</TooltipContent>
-            )}
-          </Tooltip>
-
-          {/* New Task button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="w-full"
-                size={isCollapsed ? "icon" : "default"}
                 onClick={onNewTaskClick}
                 disabled={!selectedProjectId || !selectedProject?.autoBuildPath}
+                className={cn(
+                  'flex w-full items-center justify-center gap-2 rounded-[5px] text-white transition-all',
+                  'bg-[var(--brand-gradient)] hover:opacity-90 shadow-[var(--shadow-cta)]',
+                  'disabled:opacity-40 disabled:cursor-not-allowed',
+                  isCollapsed ? 'h-8 w-8 mx-auto' : 'h-8 px-3'
+                )}
+                style={{ background: 'var(--brand-gradient)' }}
               >
-                <Plus className={isCollapsed ? "h-4 w-4" : "mr-2 h-4 w-4"} />
-                {!isCollapsed && t('actions.newTask')}
-              </Button>
+                <Plus className="h-4 w-4 shrink-0" />
+                {!isCollapsed && (
+                  <>
+                    <span className="text-sm font-medium">{t('actions.newTask')}</span>
+                    <kbd className="ml-auto font-mono text-[9px] text-white/70">Ctrl N</kbd>
+                  </>
+                )}
+              </button>
             </TooltipTrigger>
             {isCollapsed && (
               <TooltipContent side="right">{t('actions.newTask')}</TooltipContent>
             )}
           </Tooltip>
+
           {!isCollapsed && selectedProject && !selectedProject.autoBuildPath && (
-            <p className="mt-2 text-xs text-muted-foreground text-center">
+            <p className="mt-2 text-xs text-[var(--text-mute)] text-center">
               {t('messages.initializeToCreateTasks')}
             </p>
           )}
         </div>
-      </div>
+      </aside>
 
       {/* Initialize Auto Claude Dialog */}
       <Dialog open={showInitDialog} onOpenChange={(open) => {
