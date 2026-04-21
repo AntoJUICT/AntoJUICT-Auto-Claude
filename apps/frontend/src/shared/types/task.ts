@@ -4,6 +4,7 @@
 
 import type { ThinkingLevel, PhaseModelConfig, PhaseThinkingConfig } from './settings';
 import type { ExecutionPhase as ExecutionPhaseType, CompletablePhase } from '../constants/phase-protocol';
+import type { SkillKey } from '../constants/skills';
 
 export type TaskStatus =
   | 'inbox'
@@ -24,7 +25,7 @@ export type TaskReviewState = 'none' | 'spec_review' | 'plan_review' | 'approval
 
 // Skill progress shown on task card
 export interface TaskSkillProgress {
-  skill: 'brainstorming' | 'writing-plans' | 'executing-plans' | 'verification' | null;
+  skill: SkillKey | null;
   currentStepIndex: number;
   totalSteps: number;
 }
