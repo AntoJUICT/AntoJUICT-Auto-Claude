@@ -8,11 +8,11 @@ const PHASE_SEGMENTS: { phase: CompletablePhase; color: string }[] = [
 ];
 
 interface PhaseProgressBarProps {
-  completedPhases: CompletablePhase[];
+  completedPhases?: CompletablePhase[];
 }
 
 export function PhaseProgressBar({ completedPhases }: PhaseProgressBarProps) {
-  if (completedPhases.length === 0) return null;
+  if (!completedPhases || completedPhases.length === 0) return null;
 
   return (
     <div className="mt-2 flex gap-px">
