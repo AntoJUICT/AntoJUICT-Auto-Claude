@@ -1,9 +1,8 @@
 name: JUICT Release (Windows)
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -25,6 +24,12 @@ jobs:
           key: python-bundle-windows-x64-3.12.8-${{ hashFiles('apps/backend/requirements.txt') }}
           restore-keys: |
             python-bundle-windows-x64-3.12.8-
+
+      - name: Set version from release tag
+        if: github.event_name == 'release'
+        run: |
+          $tag = "${{ github.event.release.tag_name }}" -replace '^v', ''
+          npm version $tag --no-git-tag-version --prefix apps/frontend
 
       - name: Build and publish Windows
         run: cd apps/frontend && npm run package:win -- --publish always
