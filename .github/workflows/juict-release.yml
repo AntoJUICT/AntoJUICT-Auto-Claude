@@ -1,0 +1,33 @@
+name: JUICT Release (Windows)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js and install dependencies
+        uses: ./.github/actions/setup-node-frontend
+
+      - name: Cache bundled Python
+        uses: actions/cache@v5
+        with:
+          path: apps/frontend/python-runtime
+          key: python-bundle-windows-x64-3.12.8-${{ hashFiles('apps/backend/requirements.txt') }}
+          restore-keys: |
+            python-bundle-windows-x64-3.12.8-
+
+      - name: Build and publish Windows
+        run: cd apps/frontend && npm run package:win -- --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
