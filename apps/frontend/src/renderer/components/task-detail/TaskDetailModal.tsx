@@ -349,20 +349,21 @@ function TaskDetailModalContent({ open, task, onOpenChange, onSwitchToTerminals,
           {/* Semi-transparent overlay - can see background content */}
           <DialogPrimitive.Overlay
             className={cn(
-              'fixed inset-0 z-50 bg-black/60',
+              'fixed inset-0 z-50',
               'data-[state=open]:animate-in data-[state=closed]:animate-out',
               'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0'
             )}
+            style={{ backgroundColor: 'rgba(0,35,69,0.55)', backdropFilter: 'blur(10px)' }}
           />
 
           {/* Full-height centered modal content */}
           <DialogPrimitive.Content
             className={cn(
-              'fixed left-[50%] top-4 z-50',
+              'fixed left-[50%] top-[6%] z-50',
               'translate-x-[-50%]',
-              'w-[95vw] max-w-5xl h-[calc(100vh-32px)]',
-              'bg-card border border-border rounded-xl',
-              'shadow-2xl overflow-hidden flex flex-col',
+              'w-[900px] max-w-[95vw] h-[88vh]',
+              'bg-[var(--bg-elev)] border border-[var(--border-strong)] rounded-[10px]',
+              'shadow-[var(--shadow-modal)] overflow-hidden flex flex-col',
               'data-[state=open]:animate-in data-[state=closed]:animate-out',
               'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
               'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -370,10 +371,13 @@ function TaskDetailModalContent({ open, task, onOpenChange, onSwitchToTerminals,
             )}
           >
             {/* Header */}
-            <div className="p-5 pb-4 border-b border-border shrink-0">
+            <div className="px-5 pt-4 pb-3 border-b border-[var(--border)] shrink-0">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0 overflow-hidden">
-                  <DialogPrimitive.Title className="text-xl font-semibold leading-tight text-foreground truncate">
+                  <DialogPrimitive.Title
+                    className="leading-tight text-[var(--foreground)] truncate"
+                    style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 700 }}
+                  >
                     {task.title}
                   </DialogPrimitive.Title>
                   <DialogPrimitive.Description asChild>
