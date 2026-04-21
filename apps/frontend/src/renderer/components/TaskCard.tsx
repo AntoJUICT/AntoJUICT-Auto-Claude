@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, useMemo } from 'react';
+import { useState, useEffect, useRef, memo, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Square, Clock, Zap, Target, Shield, Gauge, Palette, FileCode, Bug, Wrench, Loader2, AlertTriangle, RotateCcw, Archive, GitPullRequest, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
@@ -15,9 +15,9 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { cn, formatRelativeTime, sanitizeMarkdownForDisplay } from '../lib/utils';
-import { PhaseProgressIndicator } from './PhaseProgressIndicator';
-import { SubtaskProgress } from './SubtaskProgress';
 import { ApprovalActions } from './ApprovalActions';
+import { SkillBadge } from './task-card/SkillBadge';
+import { SkillChecklist } from './task-card/SkillChecklist';
 import {
   TASK_CATEGORY_LABELS,
   TASK_CATEGORY_COLORS,
@@ -31,6 +31,7 @@ import {
   EXECUTION_PHASE_BADGE_COLORS,
   TASK_STATUS_COLUMNS,
   TASK_STATUS_LABELS,
+  SKILL_COLUMN_META,
   JSON_ERROR_PREFIX,
   JSON_ERROR_TITLE_SUFFIX
 } from '../../shared/constants';
@@ -99,6 +100,9 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.title === nextTask.title &&
     prevTask.description === nextTask.description &&
     prevTask.updatedAt === nextTask.updatedAt &&
+    prevTask.reviewState === nextTask.reviewState &&
+    prevTask.skillProgress?.skill === nextTask.skillProgress?.skill &&
+    prevTask.skillProgress?.currentStepIndex === nextTask.skillProgress?.currentStepIndex &&
     prevTask.executionProgress?.phase === nextTask.executionProgress?.phase &&
     prevTask.executionProgress?.phaseProgress === nextTask.executionProgress?.phaseProgress &&
     prevTask.subtasks.length === nextTask.subtasks.length &&
@@ -139,9 +143,15 @@ export const TaskCard = memo(function TaskCard({
   const { toast } = useToast();
   const [isStuck, setIsStuck] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const stuckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const isRunning = task.status === 'in_progress';
+  const handleToggleExpand = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(v => !v);
+  }, []);
+
+  const isRunning = task.status === 'executing';
   const executionPhase = task.executionProgress?.phase;
   const hasActiveExecution = executionPhase && executionPhase !== 'idle' && executionPhase !== 'complete' && executionPhase !== 'failed';
 
@@ -266,13 +276,13 @@ export const TaskCard = memo(function TaskCard({
   };
 
   const handleApprove = async () => {
-    if (task.status === 'spec_review') await window.electronAPI.approveSpec(task.id);
-    else if (task.status === 'plan_review') await window.electronAPI.approvePlan(task.id);
-    else if (task.status === 'preview') await window.electronAPI.approvePreview(task.id);
+    if (task.reviewState === 'spec_review') await window.electronAPI.approveSpec(task.id);
+    else if (task.reviewState === 'plan_review') await window.electronAPI.approvePlan(task.id);
+    else if (task.status === 'verifying') await window.electronAPI.approvePreview(task.id);
   };
 
   const handleSendBack = async () => {
-    const target = task.status === 'preview' ? ('plan_review' as const) : (task.status === 'plan_review' ? ('spec_review' as const) : ('spec_review' as const));
+    const target = task.status === 'verifying' ? ('plan_review' as const) : (task.reviewState === 'plan_review' ? ('spec_review' as const) : ('spec_review' as const));
     await window.electronAPI.sendBack(task.id, target);
   };
 
@@ -331,8 +341,8 @@ export const TaskCard = memo(function TaskCard({
     }
   };
 
-  // Show review reason info when task is in preview (awaiting human review)
-  const reviewReasonInfo = task.status === 'preview' ? getReviewReasonLabel('completed') : null;
+  // Show review reason info when task is in verifying (awaiting human review)
+  const reviewReasonInfo = task.status === 'verifying' ? getReviewReasonLabel('completed') : null;
 
   const isArchived = !!task.metadata?.archivedAt;
 
@@ -407,22 +417,51 @@ export const TaskCard = memo(function TaskCard({
           </p>
         )}
 
-        {/* Progress bar for running tasks */}
-        {isRunning && !isStuck && (
-          <div className="mt-2">
-            <div className="h-[3px] w-full rounded-full bg-[var(--surface-hi)] overflow-hidden">
-              <div
-                className="h-full rounded-full animate-indeterminate"
-                style={{ background: 'var(--brand-gradient)', width: '60%' }}
-              />
+        {/* Skill badge — shows active skill or review badge */}
+        <div className="mt-2">
+          <SkillBadge
+            skillProgress={task.skillProgress}
+            reviewState={task.reviewState ?? 'none'}
+          />
+
+          {/* Progress bar */}
+          {task.skillProgress && (task.reviewState ?? 'none') === 'none' && (
+            <div className="mt-1.5">
+              <div className="h-1 w-full rounded-full bg-black/20">
+                <div
+                  className="h-1 rounded-full transition-all"
+                  style={{
+                    width: `${Math.round(
+                      (task.skillProgress.currentStepIndex / task.skillProgress.totalSteps) * 100
+                    )}%`,
+                    background: SKILL_COLUMN_META.find(
+                      m => m.skill === task.skillProgress?.skill
+                    )?.color ?? '#6366f1',
+                  }}
+                />
+              </div>
             </div>
-            <div className="mt-1 flex items-center justify-between">
-              <span className="font-mono text-[9px] text-[var(--text-mute)]">
-                {task.executionProgress?.phase || 'running'}
+          )}
+
+          {/* Expandable checklist trigger */}
+          {task.skillProgress?.skill && (
+            <button
+              type="button"
+              onClick={handleToggleExpand}
+              className="mt-1 flex w-full items-center justify-between border-t border-border/40 pt-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>
+                → Step {task.skillProgress.currentStepIndex + 1} of {task.skillProgress.totalSteps}
               </span>
-            </div>
-          </div>
-        )}
+              <span>{isExpanded ? '▴' : '▾'}</span>
+            </button>
+          )}
+
+          {/* Expanded checklist */}
+          {isExpanded && task.skillProgress && (
+            <SkillChecklist skillProgress={task.skillProgress} />
+          )}
+        </div>
 
         {/* Metadata badges */}
         {(task.metadata || isStuck || isIncomplete || hasActiveExecution || reviewReasonInfo) && (
@@ -563,27 +602,8 @@ export const TaskCard = memo(function TaskCard({
           </div>
         )}
 
-        {/* Progress section - Phase-aware with animations */}
-        {(task.subtasks.length > 0 || hasActiveExecution || isRunning || isStuck) && (
-          <div className="mt-4">
-            <PhaseProgressIndicator
-              phase={executionPhase}
-              subtasks={task.subtasks}
-              phaseProgress={task.executionProgress?.phaseProgress}
-              isStuck={isStuck}
-              isRunning={isRunning}
-            />
-          </div>
-        )}
-        {task.status === 'in_progress' && task.executionProgress?.subtaskProgress && (
-          <SubtaskProgress
-            currentIndex={task.executionProgress.subtaskProgress.currentIndex}
-            total={task.executionProgress.subtaskProgress.total}
-            agentPhase={task.executionProgress.subtaskProgress.agentPhase}
-          />
-        )}
         <ApprovalActions
-          status={task.status}
+          reviewState={task.reviewState}
           onApprove={handleApprove}
           onSendBack={handleSendBack}
         />
@@ -663,7 +683,7 @@ export const TaskCard = memo(function TaskCard({
                 <Archive className="mr-1.5 h-3 w-3" />
                 {t('actions.archive')}
               </Button>
-            ) : (task.status === 'backlog' || task.status === 'in_progress' || task.status === 'error') && (
+            ) : (task.status === 'inbox' || task.status === 'executing') && (
               <Button
                 variant={isRunning ? 'destructive' : 'default'}
                 size="sm"
