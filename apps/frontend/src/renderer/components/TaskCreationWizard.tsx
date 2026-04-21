@@ -571,6 +571,11 @@ export function TaskCreationWizard({
         setDescription(description);
         setChatFromConversation(true);
         setIsAiReady(true);
+      } else if (done && !description) {
+        setChatMessages([
+          ...newMessages,
+          { role: 'assistant', content: t('tasks:chat.error') },
+        ]);
       } else if (question) {
         setChatMessages([
           ...newMessages,
