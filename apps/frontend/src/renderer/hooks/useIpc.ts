@@ -237,8 +237,10 @@ export function useIpcListeners(): void {
 
     const cleanupStatus = window.electronAPI.onTaskStatusChange(
       (taskId: string, rawStatus: string, projectId?: string) => {
-        // Debug: Log received status change
-        console.log(`[useIpc] Received TASK_STATUS_CHANGE:`, { taskId, rawStatus, projectId });
+        // Debug: Log received status change (dev only)
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[useIpc] Received TASK_STATUS_CHANGE:`, { taskId, rawStatus, projectId });
+        }
         // Filter by project to prevent multi-project interference
         if (!isTaskForCurrentProject(projectId)) return;
         const { status, reviewState } = mapBackendStatus(rawStatus);
