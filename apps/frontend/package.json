@@ -34,6 +34,7 @@
     "package": "node scripts/package-with-python.cjs",
     "package:mac": "node scripts/package-with-python.cjs --mac",
     "package:win": "node scripts/package-with-python.cjs --win",
+    "release:win": "node scripts/release-win.cjs",
     "package:linux": "node scripts/package-with-python.cjs --linux",
     "package:flatpak": "node scripts/package-with-python.cjs --linux flatpak",
     "verify:linux": "node scripts/verify-linux-packages.cjs dist",
