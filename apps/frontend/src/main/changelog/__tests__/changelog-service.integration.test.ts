@@ -1,6 +1,6 @@
 /**
  * Integration tests for ChangelogService task filtering
- * Tests task filtering with all completion states: done, pr_created, and human_review+completed
+ * Tests task filtering with all completion states: done, verifying
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, writeFileSync, rmSync, existsSync } from 'fs';
@@ -71,6 +71,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           title: 'Test Feature',
           description: 'A test feature',
           status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -90,7 +91,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed[0].title).toBe('Test Feature');
     });
 
-    it('should include tasks with "pr_created" status', async () => {
+    it('should include tasks with "done" status (formerly pr_ready)', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -101,7 +102,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'PR Feature',
           description: 'A feature with PR created',
-          status: 'pr_ready',
+          status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -121,7 +123,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed[0].title).toBe('PR Feature');
     });
 
-    it('should include tasks with "preview" status (ready for review)', async () => {
+    it('should include tasks with "verifying" status (ready for review)', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -132,7 +134,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'QA Passed Feature',
           description: 'A feature that passed QA',
-          status: 'preview',
+          status: 'verifying',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -152,7 +155,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed[0].title).toBe('QA Passed Feature');
     });
 
-    it('should exclude tasks with "error" status', async () => {
+    it('should exclude tasks with "inbox" status (formerly error)', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -163,7 +166,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Failed Feature',
           description: 'A feature with errors',
-          status: 'error',
+          status: 'inbox',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -181,7 +185,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed).toHaveLength(0);
     });
 
-    it('should exclude tasks with "in_progress" status', async () => {
+    it('should exclude tasks with "executing" status (formerly in_progress)', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -192,7 +196,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'In Progress Feature',
           description: 'A feature still in progress',
-          status: 'in_progress',
+          status: 'executing',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -205,7 +210,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
       expect(completed).toHaveLength(0);
     });
 
-    it('should exclude tasks with "plan_review" status', async () => {
+    it('should exclude tasks with "planning" status (formerly plan_review)', async () => {
       const { ChangelogService } = await import('../changelog-service');
       const service = new ChangelogService();
 
@@ -216,7 +221,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Plan Review Feature',
           description: 'A feature in plan review',
-          status: 'plan_review',
+          status: 'planning',
+          reviewState: 'plan_review',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -241,6 +247,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           title: 'Done Task',
           description: 'Task with done status',
           status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -251,8 +258,9 @@ describe('ChangelogService - Task Filtering Integration', () => {
           specId: '002-pr',
           projectId: 'project-1',
           title: 'PR Task',
-          description: 'Task with PR ready',
-          status: 'pr_ready',
+          description: 'Task with PR merged (done)',
+          status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -264,7 +272,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'QA Passed Task',
           description: 'Task that passed QA',
-          status: 'preview',
+          status: 'verifying',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -276,7 +285,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'In Progress Task',
           description: 'Task still in progress',
-          status: 'in_progress',
+          status: 'executing',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -288,7 +298,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Error Task',
           description: 'Task with errors',
-          status: 'error',
+          status: 'inbox',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -305,7 +316,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
 
       const completed = service.getCompletedTasks(projectPath, tasks);
 
-      // Should include: done, pr_ready, and preview
+      // Should include: done (x2) and verifying
       expect(completed).toHaveLength(3);
 
       const completedIds = completed.map(t => t.id);
@@ -328,6 +339,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           title: 'Archived Task',
           description: 'An archived task',
           status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           metadata: {
@@ -355,6 +367,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           title: 'First Task',
           description: 'Oldest update',
           status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -366,7 +379,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Second Task',
           description: 'Newest update',
-          status: 'pr_ready',
+          status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-02'),
@@ -378,7 +392,8 @@ describe('ChangelogService - Task Filtering Integration', () => {
           projectId: 'project-1',
           title: 'Third Task',
           description: 'Middle update',
-          status: 'preview',
+          status: 'verifying',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -414,6 +429,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           title: 'Task With Spec',
           description: 'Has spec file',
           status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),
@@ -426,6 +442,7 @@ describe('ChangelogService - Task Filtering Integration', () => {
           title: 'Task Without Spec',
           description: 'No spec file',
           status: 'done',
+          reviewState: 'none',
           subtasks: [],
           logs: [],
           createdAt: new Date('2024-01-01'),

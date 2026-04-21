@@ -14,7 +14,8 @@ function createTestTask(overrides: Partial<Task> = {}): Task {
     projectId: 'project-1',
     title: 'Test Task',
     description: 'Test description',
-    status: 'backlog' as TaskStatus,
+    status: 'inbox' as TaskStatus,
+    reviewState: 'none' as const,
     subtasks: [],
     logs: [],
     createdAt: new Date(),
@@ -162,17 +163,17 @@ describe('Task Store', () => {
   describe('updateTaskStatus', () => {
     it('should update task status by id', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'backlog' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'inbox' })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'in_progress');
+      useTaskStore.getState().updateTaskStatus('task-1', 'executing');
 
-      expect(useTaskStore.getState().tasks[0].status).toBe('in_progress');
+      expect(useTaskStore.getState().tasks[0].status).toBe('executing');
     });
 
     it('should update task status by specId', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', specId: 'spec-001', status: 'backlog' })]
+        tasks: [createTestTask({ id: 'task-1', specId: 'spec-001', status: 'inbox' })]
       });
 
       useTaskStore.getState().updateTaskStatus('spec-001', 'done');
@@ -186,44 +187,44 @@ describe('Task Store', () => {
         tasks: [createTestTask({ id: 'task-1', updatedAt: originalDate })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'in_progress');
+      useTaskStore.getState().updateTaskStatus('task-1', 'executing');
 
       expect(useTaskStore.getState().tasks[0].updatedAt.getTime()).toBeGreaterThan(
         originalDate.getTime()
       );
     });
 
-    it('should update task to plan_review status', () => {
+    it('should update task to planning status', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'executing' })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'plan_review');
+      useTaskStore.getState().updateTaskStatus('task-1', 'planning');
 
       const task = useTaskStore.getState().tasks[0];
-      expect(task.status).toBe('plan_review');
+      expect(task.status).toBe('planning');
     });
 
-    it('should update task from plan_review to in_progress', () => {
+    it('should update task from planning to executing', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'plan_review' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'planning' })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'in_progress');
+      useTaskStore.getState().updateTaskStatus('task-1', 'executing');
 
       const task = useTaskStore.getState().tasks[0];
-      expect(task.status).toBe('in_progress');
+      expect(task.status).toBe('executing');
     });
 
-    it('should update task to preview status', () => {
+    it('should update task to verifying status', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'executing' })]
       });
 
-      useTaskStore.getState().updateTaskStatus('task-1', 'preview');
+      useTaskStore.getState().updateTaskStatus('task-1', 'verifying');
 
       const task = useTaskStore.getState().tasks[0];
-      expect(task.status).toBe('preview');
+      expect(task.status).toBe('verifying');
     });
   });
 
@@ -295,42 +296,42 @@ describe('Task Store', () => {
 
     it('should keep status when plan has no status', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'executing' })]
       });
 
       const plan = createTestPlan();
 
       useTaskStore.getState().updateTaskFromPlan('task-1', plan);
 
-      expect(useTaskStore.getState().tasks[0].status).toBe('in_progress');
+      expect(useTaskStore.getState().tasks[0].status).toBe('executing');
     });
 
     it('should NOT modify status from plan (XState is source of truth)', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'executing' })]
       });
 
       const plan = createTestPlan({
-        status: 'preview'
+        status: 'verifying'
       });
 
       useTaskStore.getState().updateTaskFromPlan('task-1', plan);
 
       // Status should remain unchanged - XState controls status via TASK_STATUS_CHANGE
-      expect(useTaskStore.getState().tasks[0].status).toBe('in_progress');
+      expect(useTaskStore.getState().tasks[0].status).toBe('executing');
     });
 
     it('should preserve existing status when plan has different values', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'preview' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'verifying' })]
       });
 
-      const plan = createTestPlan({ status: 'in_progress' });
+      const plan = createTestPlan({ status: 'executing' });
 
       useTaskStore.getState().updateTaskFromPlan('task-1', plan);
 
       // Status should remain unchanged - XState is source of truth
-      expect(useTaskStore.getState().tasks[0].status).toBe('preview');
+      expect(useTaskStore.getState().tasks[0].status).toBe('verifying');
     });
 
     it('should skip update when plan is invalid', () => {
@@ -492,7 +493,7 @@ describe('Task Store', () => {
 
     it('should record activity when updateTaskStatus is called', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'backlog' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'inbox' })]
       });
 
       // Clear any prior activity
@@ -500,14 +501,14 @@ describe('Task Store', () => {
       expect(hasRecentActivity('task-1')).toBe(false);
 
       // Status change should record activity
-      useTaskStore.getState().updateTaskStatus('task-1', 'in_progress');
+      useTaskStore.getState().updateTaskStatus('task-1', 'executing');
 
       expect(hasRecentActivity('task-1')).toBe(true);
     });
 
     it('should record activity when batchAppendLogs is called', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'executing' })]
       });
 
       clearTaskActivity('task-1');
@@ -521,7 +522,7 @@ describe('Task Store', () => {
 
     it('should record activity when updateExecutionProgress is called', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ id: 'task-1', status: 'in_progress' })]
+        tasks: [createTestTask({ id: 'task-1', status: 'executing' })]
       });
 
       clearTaskActivity('task-1');
@@ -538,7 +539,7 @@ describe('Task Store', () => {
 
       // Status change for missing task should still record activity
       // (recordTaskActivity fires before the index check)
-      useTaskStore.getState().updateTaskStatus('nonexistent', 'in_progress');
+      useTaskStore.getState().updateTaskStatus('nonexistent', 'executing');
 
       expect(hasRecentActivity('nonexistent')).toBe(true);
       clearTaskActivity('nonexistent');
@@ -548,10 +549,10 @@ describe('Task Store', () => {
   describe('getTasksByStatus', () => {
     it('should return empty array when no tasks match status', () => {
       useTaskStore.setState({
-        tasks: [createTestTask({ status: 'backlog' })]
+        tasks: [createTestTask({ status: 'inbox' })]
       });
 
-      const tasks = useTaskStore.getState().getTasksByStatus('in_progress');
+      const tasks = useTaskStore.getState().getTasksByStatus('executing');
 
       expect(tasks).toHaveLength(0);
     });
@@ -559,13 +560,13 @@ describe('Task Store', () => {
     it('should return all tasks with matching status', () => {
       useTaskStore.setState({
         tasks: [
-          createTestTask({ id: 'task-1', status: 'in_progress' }),
-          createTestTask({ id: 'task-2', status: 'backlog' }),
-          createTestTask({ id: 'task-3', status: 'in_progress' })
+          createTestTask({ id: 'task-1', status: 'executing' }),
+          createTestTask({ id: 'task-2', status: 'inbox' }),
+          createTestTask({ id: 'task-3', status: 'executing' })
         ]
       });
 
-      const tasks = useTaskStore.getState().getTasksByStatus('in_progress');
+      const tasks = useTaskStore.getState().getTasksByStatus('executing');
 
       expect(tasks).toHaveLength(2);
       expect(tasks.map((t) => t.id)).toContain('task-1');
@@ -573,7 +574,7 @@ describe('Task Store', () => {
     });
 
     it('should filter by each status type', () => {
-      const statuses: TaskStatus[] = ['backlog', 'in_progress', 'preview', 'pr_ready', 'done'];
+      const statuses: TaskStatus[] = ['inbox', 'executing', 'verifying', 'done'];
 
       useTaskStore.setState({
         tasks: statuses.map((status) => createTestTask({ id: `task-${status}`, status }))

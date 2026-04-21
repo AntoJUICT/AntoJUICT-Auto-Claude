@@ -60,7 +60,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Test Task',
           description: 'Test description',
-          status: 'in_progress' as TaskStatus,
+          status: 'executing' as TaskStatus,
+          reviewState: 'none' as const,
           logs: ['Log line 1', 'Log line 2', 'Log line 3'],
           subtasks: [],
           createdAt: new Date(),
@@ -92,7 +93,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Test Task',
           description: 'Test',
-          status: 'in_progress' as TaskStatus,
+          status: 'executing' as TaskStatus,
+          reviewState: 'none' as const,
           logs: ['Initial log'],
           subtasks: [],
           createdAt: new Date(),
@@ -122,7 +124,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Test Task',
           description: 'Test',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
@@ -149,7 +152,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Test Task',
           description: 'Test',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
@@ -178,7 +182,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'in_progress' as TaskStatus,
+        status: 'executing' as TaskStatus,
+        reviewState: 'none' as const,
         logs: [],
         subtasks: [],
         createdAt: new Date(),
@@ -205,7 +210,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'in_progress' as TaskStatus,
+        status: 'executing' as TaskStatus,
+        reviewState: 'none' as const,
         logs: ['Existing log'],
         subtasks: [],
         createdAt: new Date(),
@@ -230,7 +236,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'in_progress' as TaskStatus,
+        status: 'executing' as TaskStatus,
+        reviewState: 'none' as const,
         logs: ['Log 1'],
         subtasks: [],
         createdAt: new Date(),
@@ -265,7 +272,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 1',
           description: 'Description 1',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: ['Log 1'],
           subtasks: [
             {
@@ -285,7 +293,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 2',
           description: 'Description 2',
-          status: 'in_progress' as TaskStatus,
+          status: 'executing' as TaskStatus,
+          reviewState: 'none' as const,
           logs: ['Log 2'],
           subtasks: [],
           executionProgress: {
@@ -393,7 +402,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'human_review' as TaskStatus,
+        status: 'verifying' as TaskStatus,
+        reviewState: 'none' as const,
         logs: ['Build complete'],
         subtasks: [
           {
@@ -422,8 +432,8 @@ describe('task-store-persistence', () => {
 
       // All subtasks completed
       expect(loadedTask.subtasks.every(s => s.status === 'completed')).toBe(true);
-      // Task in human_review
-      expect(loadedTask.status).toBe('human_review');
+      // Task in verifying (human review)
+      expect(loadedTask.status).toBe('verifying');
     });
 
     it('should handle incomplete subtasks correctly', () => {
@@ -435,7 +445,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'in_progress' as TaskStatus,
+        status: 'executing' as TaskStatus,
+        reviewState: 'none' as const,
         logs: ['Working...'],
         subtasks: [
           {
@@ -475,7 +486,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'backlog' as TaskStatus,
+        status: 'inbox' as TaskStatus,
+        reviewState: 'none' as const,
         logs: [],
         subtasks: [],
         createdAt: new Date(),
@@ -497,7 +509,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'in_progress' as TaskStatus,
+        status: 'executing' as TaskStatus,
+        reviewState: 'none' as const,
         logs: [],
         subtasks: [],
         executionProgress: {
@@ -533,7 +546,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'in_progress' as TaskStatus,
+        status: 'executing' as TaskStatus,
+        reviewState: 'none' as const,
         logs: [],
         subtasks: [],
         executionProgress: {
@@ -548,12 +562,12 @@ describe('task-store-persistence', () => {
       store.setTasks([task]);
 
       // Change status to backlog should reset execution progress
-      store.updateTaskStatus('task-1', 'backlog');
+      store.updateTaskStatus('task-1', 'inbox');
 
       const state = useTaskStore.getState();
-      expect(state.tasks[0].status).toBe('backlog');
+      expect(state.tasks[0].status).toBe('inbox');
       expect(state.tasks[0].executionProgress?.phase).toBe('idle');
-      expect(state.tasks[0].executionProgress?.phaseProgress).toBe(0);
+      expect(state.tasks[0].executionProgress?.phaseProgress).toBe(0); // inbox resets to idle
     });
 
     it('should initialize planning phase when status changes to in_progress without phase', () => {
@@ -565,7 +579,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'Test Task',
         description: 'Test',
-        status: 'backlog' as TaskStatus,
+        status: 'inbox' as TaskStatus,
+        reviewState: 'none' as const,
         logs: [],
         subtasks: [],
         createdAt: new Date(),
@@ -575,10 +590,10 @@ describe('task-store-persistence', () => {
       store.setTasks([task]);
 
       // Change status to in_progress should initialize planning phase
-      store.updateTaskStatus('task-1', 'in_progress');
+      store.updateTaskStatus('task-1', 'executing');
 
       const state = useTaskStore.getState();
-      expect(state.tasks[0].status).toBe('in_progress');
+      expect(state.tasks[0].status).toBe('executing');
       expect(state.tasks[0].executionProgress?.phase).toBe('planning');
       expect(state.tasks[0].executionProgress?.phaseProgress).toBe(0);
     });
@@ -592,7 +607,8 @@ describe('task-store-persistence', () => {
         projectId: 'test-project',
         title: 'New Task',
         description: 'New description',
-        status: 'backlog' as TaskStatus,
+        status: 'inbox' as TaskStatus,
+        reviewState: 'none' as const,
         logs: [],
         subtasks: [],
         createdAt: new Date(),
@@ -636,7 +652,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 1',
           description: 'Test',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
@@ -662,7 +679,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 1',
           description: 'Test',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
@@ -674,7 +692,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 2',
           description: 'Test',
-          status: 'in_progress' as TaskStatus,
+          status: 'executing' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
@@ -686,7 +705,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 3',
           description: 'Test',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
@@ -696,11 +716,11 @@ describe('task-store-persistence', () => {
 
       store.setTasks(tasks);
 
-      const backlogTasks = store.getTasksByStatus('backlog');
+      const backlogTasks = store.getTasksByStatus('inbox');
       expect(backlogTasks).toHaveLength(2);
-      expect(backlogTasks.every(t => t.status === 'backlog')).toBe(true);
+      expect(backlogTasks.every(t => t.status === 'inbox')).toBe(true);
 
-      const inProgressTasks = store.getTasksByStatus('in_progress');
+      const inProgressTasks = store.getTasksByStatus('executing');
       expect(inProgressTasks).toHaveLength(1);
       expect(inProgressTasks[0].id).toBe('task-2');
     });
@@ -715,7 +735,8 @@ describe('task-store-persistence', () => {
           projectId: 'test-project',
           title: 'Task 1',
           description: 'Test',
-          status: 'backlog' as TaskStatus,
+          status: 'inbox' as TaskStatus,
+          reviewState: 'none' as const,
           logs: [],
           subtasks: [],
           createdAt: new Date(),
