@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;700&amp;display=swap');
+      .t { font-family: 'Exo 2', system-ui, sans-serif; fill: #002345; }
+      .display { font-size: 120px; font-weight: 700; letter-spacing: 20px; }
+      .tag { font-size: 36px; font-weight: 300; letter-spacing: 12px; text-transform: uppercase; }
+    </style>
+  </defs>
+  <text x="20" y="130" class="t display">JUICT</text>
+  <text x="22" y="200" class="t tag">AGENTIC OS</text>
+</svg>

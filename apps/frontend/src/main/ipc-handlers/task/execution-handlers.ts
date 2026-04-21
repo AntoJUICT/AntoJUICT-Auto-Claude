@@ -1,6 +1,8 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS, AUTO_BUILD_PATHS, getSpecsDir } from '../../../shared/constants';
 import * as pipeline from '../../pipeline';
+import { getBestAvailableProfileEnv } from '../../rate-limit-detector';
+import { getAugmentedEnv } from '../../env-utils';
 import type { IPCResult, TaskStartOptions, TaskStatus, ImageAttachment } from '../../../shared/types';
 import path from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
@@ -109,6 +111,17 @@ export function registerTaskExecutionHandlers(
     getPythonPath: () => agentManager.getPythonPath(),
     getAutoBuildSourcePath: () => agentManager.getAutoBuildSourcePath(),
     ensurePythonEnvReady: () => agentManager.ensurePythonEnvReady(),
+    getSpawnEnv: () => {
+      const profileResult = getBestAvailableProfileEnv();
+      const augmented = getAugmentedEnv();
+      return {
+        ...augmented,
+        ...profileResult.env,
+        PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
+        PYTHONUTF8: '1',
+      };
+    },
   });
   /**
    * Start a task
@@ -297,7 +310,7 @@ export function registerTaskExecutionHandlers(
       if (needsSpecCreation) {
         // Fresh task — run through the superpowers pipeline (brainstorming → spec_review → planning → plan_review → in_progress → preview → pr_ready)
         console.warn('[TASK_START] Starting superpowers pipeline for:', task.specId);
-        pipeline.startPipeline(mainWindow, taskId, task.specId, project.path);
+        pipeline.startPipeline(mainWindow, taskId, task.specId, project.path, undefined, task.title, task.description);
       } else if (needsImplementation) {
         // Spec exists but no valid subtasks in implementation plan
         // FIX (#1562): Use startTaskExecution (run.py) which will create the planner

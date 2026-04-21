@@ -9,6 +9,7 @@ interface PipelineProcessConfig {
   getPythonPath: () => string;
   getAutoBuildSourcePath: () => string | null;
   ensurePythonEnvReady: () => Promise<{ ready: boolean; error?: string }>;
+  getSpawnEnv: () => NodeJS.ProcessEnv;
 }
 
 export type PipelinePhase =
@@ -30,6 +31,8 @@ interface PipelineTask {
   subtaskIndex: number;
   totalSubtasks: number;
   modelOverride?: string;
+  taskTitle?: string;
+  taskDescription?: string;
 }
 
 const activePipelines = new Map<string, PipelineTask>();
@@ -46,7 +49,9 @@ export function startPipeline(
   taskId: string,
   specId: string,
   projectPath: string,
-  modelOverride?: string
+  modelOverride?: string,
+  taskTitle?: string,
+  taskDescription?: string
 ): void {
   const task: PipelineTask = {
     taskId,
@@ -56,6 +61,8 @@ export function startPipeline(
     subtaskIndex: 0,
     totalSubtasks: 0,
     modelOverride,
+    taskTitle,
+    taskDescription,
   };
   activePipelines.set(taskId, task);
   emitStatusChange(window, taskId, 'brainstorming');
@@ -173,6 +180,12 @@ async function runPhase(
     '--spec-id', task.specId,
     '--project-dir', task.projectPath,
   ];
+  if (task.taskTitle) {
+    args.push('--task-title', task.taskTitle);
+  }
+  if (task.taskDescription) {
+    args.push('--task-description', task.taskDescription);
+  }
   if (task.modelOverride) {
     args.push('--model', task.modelOverride);
   }
@@ -180,14 +193,11 @@ async function runPhase(
     args.push('--send-back-note', sendBackNote);
   }
 
+  const spawnEnv = _config.getSpawnEnv();
+
   const child = spawn(pythonCmd, [...pythonBaseArgs, ...args], {
     cwd: task.projectPath,
-    env: {
-      ...process.env,
-      PYTHONUNBUFFERED: '1',
-      PYTHONIOENCODING: 'utf-8',
-      PYTHONUTF8: '1',
-    },
+    env: spawnEnv,
   });
 
   let stdoutBuf = '';
