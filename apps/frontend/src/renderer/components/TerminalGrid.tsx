@@ -467,9 +467,9 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full flex-col">
+      <div className="flex h-full flex-col bg-[#05080f]">
         {/* Toolbar */}
-        <div className="flex h-10 items-center justify-between border-b border-border bg-card/30 px-3">
+        <div className="flex h-10 items-center justify-between border-b border-[var(--border)] bg-[#0a1120] px-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">
               {terminals.length} / 12 terminals
@@ -569,7 +569,7 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
         <div className="flex flex-1 overflow-hidden">
           {/* Terminal grid using resizable panels */}
           <div className={cn(
-            "flex-1 overflow-hidden p-2 transition-all duration-300 ease-out",
+            "flex-1 overflow-hidden p-2 transition-all duration-300 ease-out bg-[#05080f]",
             fileExplorerOpen && "pr-0"
           )}>
             {expandedTerminalId ? (
@@ -611,7 +611,7 @@ export function TerminalGrid({ projectPath, onNewTaskClick, isActive = false }: 
                   }}
                 >
                   {terminals.map((terminal) => (
-                    <div key={terminal.id} className="p-1 min-h-0 min-w-0">
+                    <div key={terminal.id} className="p-1 min-h-0 min-w-0 bg-[#05080f]">
                       <SortableTerminalWrapper
                         id={terminal.id}
                         cwd={terminal.cwd || projectPath}
