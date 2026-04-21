@@ -25,16 +25,41 @@
     }
   },
   "columns": {
-    "backlog": "Backlog",
+    "inbox": "Inbox",
     "brainstorming": "Brainstorming",
-    "spec_review": "Spec Review",
     "planning": "Planning",
-    "plan_review": "Plan Review",
-    "in_progress": "Coding",
-    "preview": "Preview",
-    "pr_ready": "PR Ready",
-    "done": "Done",
-    "error": "Error"
+    "executing": "Executing",
+    "verifying": "Verifying",
+    "done": "Done"
+  },
+  "skills": {
+    "brainstorming": "brainstorming",
+    "writing-plans": "planning",
+    "executing-plans": "executing",
+    "verification": "verifying"
+  },
+  "review": {
+    "awaitingReview": "Waiting for you",
+    "spec_review": "Spec ready — review needed",
+    "plan_review": "Plan ready — review needed",
+    "approval": "Ready for approval"
+  },
+  "skillSteps": {
+    "explore": "Explore project context",
+    "questions": "Clarifying questions",
+    "approaches": "Propose approaches",
+    "design": "Present design",
+    "spec": "Write & commit spec",
+    "read": "Read design doc",
+    "breakdown": "Break into tasks",
+    "plan": "Write implementation plan",
+    "worktree": "Set up worktree",
+    "execute": "Execute subtasks",
+    "tests": "Run tests",
+    "fixes": "Fix issues",
+    "commit": "Commit & push",
+    "requirements": "Check all requirements",
+    "review": "Code review"
   },
   "subtaskProgress": {
     "label": "Subtask {{current}}/{{total}} — {{phase}}"

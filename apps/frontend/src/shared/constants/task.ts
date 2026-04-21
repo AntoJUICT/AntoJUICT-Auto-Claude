@@ -11,14 +11,11 @@ import type { TaskStatus } from '@shared/types/task';
 
 // Task status columns in Kanban board order
 export const TASK_STATUS_COLUMNS = [
-  'backlog',
+  'inbox',
   'brainstorming',
-  'spec_review',
   'planning',
-  'plan_review',
-  'in_progress',
-  'preview',
-  'pr_ready',
+  'executing',
+  'verifying',
   'done',
 ] as const;
 
@@ -26,46 +23,33 @@ export type TaskStatusColumn = typeof TASK_STATUS_COLUMNS[number];
 
 // Status label translation keys (use with t() from react-i18next)
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  backlog: 'kanban:columns.backlog',
+  inbox:         'kanban:columns.inbox',
   brainstorming: 'kanban:columns.brainstorming',
-  spec_review: 'kanban:columns.spec_review',
-  planning: 'kanban:columns.planning',
-  plan_review: 'kanban:columns.plan_review',
-  in_progress: 'kanban:columns.in_progress',
-  preview: 'kanban:columns.preview',
-  pr_ready: 'kanban:columns.pr_ready',
-  done: 'kanban:columns.done',
-  error: 'kanban:columns.error',
+  planning:      'kanban:columns.planning',
+  executing:     'kanban:columns.executing',
+  verifying:     'kanban:columns.verifying',
+  done:          'kanban:columns.done',
 };
 
-// Status colors for UI
+// Status colors for UI (Tailwind classes)
 export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
-  backlog: 'bg-muted text-muted-foreground',
+  inbox:         'bg-muted text-muted-foreground',
   brainstorming: 'bg-purple-500/10 text-purple-400',
-  spec_review: 'bg-orange-500/10 text-orange-400',
-  planning: 'bg-info/10 text-info',
-  plan_review: 'bg-orange-500/10 text-orange-400',
-  in_progress: 'bg-info/10 text-info',
-  preview: 'bg-teal-500/10 text-teal-400',
-  pr_ready: 'bg-success/10 text-success',
-  done: 'bg-success/10 text-success',
-  error: 'bg-destructive/10 text-destructive',
+  planning:      'bg-amber-500/10 text-amber-400',
+  executing:     'bg-emerald-500/10 text-emerald-400',
+  verifying:     'bg-blue-500/10 text-blue-400',
+  done:          'bg-success/10 text-success',
 };
 
 // Status priority for deduplication: higher = more complete
 // Used in project-store.ts to resolve duplicate tasks (main vs worktree)
-// IMPORTANT: Must follow workflow order: backlog < brainstorming < ... < done
 export const TASK_STATUS_PRIORITY: Record<TaskStatus, number> = {
-  done: 100,
-  pr_ready: 90,
-  preview: 80,
-  in_progress: 70,
-  plan_review: 60,
-  planning: 50,
-  spec_review: 40,
-  brainstorming: 30,
-  backlog: 20,
-  error: 10,
+  done:          100,
+  verifying:     80,
+  executing:     60,
+  planning:      40,
+  brainstorming: 20,
+  inbox:         10,
 } as const;
 
 // ============================================
