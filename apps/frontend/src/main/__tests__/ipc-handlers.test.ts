@@ -546,7 +546,7 @@ describe("IPC Handlers", { timeout: 30000 }, () => {
       expect(result).toHaveProperty("success", true);
       // Task is created in backlog status, spec creation starts when task:start is called
       const task = (result as { data: { status: string } }).data;
-      expect(task.status).toBe("backlog");
+      expect(task.status).toBe("inbox");
     });
   });
 
@@ -688,7 +688,7 @@ describe("IPC Handlers", { timeout: 30000 }, () => {
       expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
         "task:statusChange",
         "task-1",
-        "error",
+        "inbox",
         expect.any(String) // projectId for multi-project filtering
       );
     });

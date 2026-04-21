@@ -328,7 +328,7 @@ describe('ProjectStore', () => {
       expect(tasks[0].title).toBe('Test Feature');
       expect(tasks[0].specId).toBe('001-test-feature');
       expect(tasks[0].subtasks).toHaveLength(2);
-      expect(tasks[0].status).toBe('in_progress'); // Some completed, some pending
+      expect(tasks[0].status).toBe('executing'); // Some completed, some pending
     });
 
     it('should determine status as backlog when no subtasks completed', async () => {
@@ -368,7 +368,7 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('backlog');
+      expect(tasks[0].status).toBe('inbox');
     });
 
     it('should determine status as preview when all subtasks completed', async () => {
@@ -408,7 +408,7 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('preview');
+      expect(tasks[0].status).toBe('verifying');
     });
 
     it('should determine status as preview when plan status is preview (user review)', async () => {
@@ -447,7 +447,7 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('preview');
+      expect(tasks[0].status).toBe('verifying');
     });
 
     it('should determine reviewReason from plan when status is human_review', async () => {
@@ -486,7 +486,7 @@ describe('ProjectStore', () => {
       const project = store.addProject(TEST_PROJECT_PATH);
       const tasks = store.getTasks(project.id);
 
-      expect(tasks[0].status).toBe('preview');
+      expect(tasks[0].status).toBe('verifying');
     });
 
     it('should determine status as done when plan status is explicitly done', async () => {
