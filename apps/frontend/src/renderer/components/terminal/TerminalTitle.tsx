@@ -64,7 +64,7 @@ export function TerminalTitle({ title, associatedTask, onTitleChange, terminalCo
         onKeyDown={handleKeyDown}
         onBlur={handleSave}
         onClick={(e) => e.stopPropagation()}
-        className={cn("text-xs font-medium text-foreground bg-transparent border border-primary/50 rounded px-1 py-0.5 outline-none focus:border-primary", maxWidthClass)}
+        className={cn("font-mono text-[11px] text-[var(--foreground)] bg-transparent border border-primary/50 rounded px-1 py-0.5 outline-none focus:border-primary", maxWidthClass)}
         style={{ width: `${Math.max(editedTitle.length * 6 + 16, 60)}px` }}
       />
     );
@@ -76,7 +76,7 @@ export function TerminalTitle({ title, associatedTask, onTitleChange, terminalCo
         <Tooltip>
           <TooltipTrigger asChild>
             <span
-              className={cn("text-xs font-medium text-foreground truncate cursor-text hover:text-primary/80 transition-colors", maxWidthClass)}
+              className={cn("font-mono text-[11px] text-[var(--foreground)] truncate cursor-text hover:text-primary/80 transition-colors", maxWidthClass)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 handleStartEdit();
@@ -99,7 +99,7 @@ export function TerminalTitle({ title, associatedTask, onTitleChange, terminalCo
       <Tooltip>
         <TooltipTrigger asChild>
           <span
-            className={cn("text-xs font-medium text-foreground truncate cursor-text hover:text-primary/80 transition-colors", maxWidthClass)}
+            className={cn("font-mono text-[11px] text-[var(--foreground)] truncate cursor-text hover:text-primary/80 transition-colors", maxWidthClass)}
             onDoubleClick={(e) => {
               e.stopPropagation();
               handleStartEdit();

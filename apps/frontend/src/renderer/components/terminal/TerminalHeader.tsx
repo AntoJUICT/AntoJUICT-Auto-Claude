@@ -80,7 +80,7 @@ export function TerminalHeader({
   const showResumeAllButton = pendingResumeCount >= 2;
 
   return (
-    <div className="electron-no-drag group/header flex h-9 items-center justify-between border-b border-border/50 bg-card/30 px-2">
+    <div className="electron-no-drag group/header flex h-9 items-center justify-between border-b border-[var(--border)] bg-[#0a1120] px-2">
       <div className="flex items-center gap-2">
         {/* Drag handle - visible on hover */}
         {dragHandleListeners && (
@@ -100,7 +100,7 @@ export function TerminalHeader({
         )}
         <div className={cn('h-2 w-2 rounded-full', STATUS_COLORS[status])} />
         <div className="flex items-center gap-1.5">
-          <TerminalSquare className="h-3.5 w-3.5 text-muted-foreground" />
+          <TerminalSquare className="h-3.5 w-3.5 font-mono text-[11px] text-[var(--foreground)]" />
           <TerminalTitle
             title={title}
             associatedTask={associatedTask}
