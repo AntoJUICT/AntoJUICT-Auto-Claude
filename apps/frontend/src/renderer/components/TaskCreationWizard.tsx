@@ -21,6 +21,7 @@ import { TaskFormFields } from './task-form/TaskFormFields';
 import { type FileReferenceData } from './task-form/useImageUpload';
 import { TaskFileExplorerDrawer } from './TaskFileExplorerDrawer';
 import { FileAutocomplete } from './FileAutocomplete';
+import { TaskChatPhase, type ChatMessage } from './TaskChatPhase';
 import { createTask, saveDraft, loadDraft, clearDraft, isDraftEmpty } from '../stores/task-store';
 import { useProjectStore } from '../stores/project-store';
 import { buildBranchOptions } from '../lib/branch-utils';
@@ -128,6 +129,14 @@ export function TaskCreationWizard({
   // Fast mode
   const [fastMode, setFastMode] = useState(false);
 
+  // Chat phase state
+  const [phase, setPhase] = useState<'chat' | 'form'>('chat');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatStep, setChatStep] = useState(1);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isAiReady, setIsAiReady] = useState(false);
+  const [chatFromConversation, setChatFromConversation] = useState(false);
+
   // Show Fast Mode toggle when any phase uses an Opus model
   const showFastModeToggle = useMemo(() => {
     if (!phaseModels) return false;
@@ -178,6 +187,8 @@ export function TaskCreationWizard({
         if (draft.category || draft.priority || draft.complexity || draft.impact) {
           setShowClassification(true);
         }
+        setPhase('form'); // Bestaande draft — sla chat fase over
+        setChatFromConversation(false);
       } else {
         // No draft - reset to clean state for new task creation
         // This ensures no stale data from previous task creation persists
@@ -202,6 +213,12 @@ export function TaskCreationWizard({
         setShowClassification(false);
         setShowFileExplorer(false);
         setShowGitOptions(false);
+        setPhase('chat');
+        setChatMessages([]);
+        setChatStep(1);
+        setIsAiReady(false);
+        setIsChatLoading(false);
+        setChatFromConversation(false);
       }
     }
   }, [open, projectId, settings.selectedAgentProfile, settings.customPhaseModels, settings.customPhaseThinking, selectedProfile.model, selectedProfile.thinkingLevel, selectedProfile.phaseModels, selectedProfile.phaseThinking]);
@@ -252,6 +269,12 @@ export function TaskCreationWizard({
       isMounted = false;
     };
   }, [open, projectPath, projectId]);
+
+  // Show opening question when chat phase starts with no messages
+  useEffect(() => {
+    if (phase !== 'chat' || chatMessages.length > 0 || !open) return;
+    setChatMessages([{ role: 'assistant', content: t('tasks:chat.opening') }]);
+  }, [phase, chatMessages.length, open, t]);
 
   /**
    * Get current form state as a draft
@@ -496,6 +519,12 @@ export function TaskCreationWizard({
     setShowFileExplorer(false);
     setShowGitOptions(false);
     setIsDraftRestored(false);
+    setPhase('chat');
+    setChatMessages([]);
+    setChatStep(1);
+    setIsAiReady(false);
+    setIsChatLoading(false);
+    setChatFromConversation(false);
   };
 
   const handleClose = () => {
@@ -516,6 +545,59 @@ export function TaskCreationWizard({
     clearDraft(projectId);
     resetForm();
     setError(null);
+  };
+
+  const handleChatSend = async (userText: string) => {
+    const newMessages: ChatMessage[] = [
+      ...chatMessages,
+      { role: 'user', content: userText },
+    ];
+    setChatMessages(newMessages);
+    setIsChatLoading(true);
+
+    try {
+      const result = await window.electronAPI.taskChatMessage(newMessages);
+      if (!result.success || !result.data) {
+        setChatMessages([
+          ...newMessages,
+          { role: 'assistant', content: t('tasks:chat.error') },
+        ]);
+        return;
+      }
+
+      const { done, question, description } = result.data;
+
+      if (done && description) {
+        setDescription(description);
+        setChatFromConversation(true);
+        setIsAiReady(true);
+      } else if (question) {
+        setChatMessages([
+          ...newMessages,
+          { role: 'assistant', content: question },
+        ]);
+        setChatStep((s) => Math.min(s + 1, 3));
+      }
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
+  const handleChatSkip = () => {
+    setPhase('form');
+    setChatFromConversation(false);
+  };
+
+  const handleConfirmGenerate = () => {
+    setPhase('form');
+  };
+
+  const handleAddMore = () => {
+    setIsAiReady(false);
+    setChatMessages((msgs) => [
+      ...msgs,
+      { role: 'assistant', content: t('tasks:chat.inputPlaceholder') },
+    ]);
   };
 
   // Render @ mention highlight overlay for the description textarea
@@ -620,134 +702,156 @@ export function TaskCreationWizard({
         </div>
       }
     >
-      <div className="space-y-6">
-        {/* Worktree isolation info banner */}
-        <div className="flex items-start gap-3 p-4 bg-info/10 border border-info/30 rounded-lg">
-          <Info className="h-5 w-5 text-info flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-foreground mb-1">
-              {t('tasks:wizard.worktreeNotice.title')}
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              {t('tasks:wizard.worktreeNotice.description')}
-            </p>
-          </div>
-        </div>
-
-        {/* Main form fields */}
-        <TaskFormFields
-          description={description}
-          onDescriptionChange={handleDescriptionChange}
-          descriptionPlaceholder={t('tasks:wizard.descriptionPlaceholder')}
-          descriptionOverlay={descriptionOverlay}
-          descriptionRef={descriptionRef}
-          title={title}
-          onTitleChange={setTitle}
-          profileId={profileId}
-          model={model}
-          thinkingLevel={thinkingLevel}
-          phaseModels={phaseModels}
-          phaseThinking={phaseThinking}
-          onProfileChange={(newProfileId, newModel, newThinkingLevel) => {
-            setProfileId(newProfileId);
-            setModel(newModel);
-            setThinkingLevel(newThinkingLevel);
-          }}
-          onModelChange={setModel}
-          onThinkingLevelChange={setThinkingLevel}
-          onPhaseModelsChange={setPhaseModels}
-          onPhaseThinkingChange={setPhaseThinking}
-          category={category}
-          priority={priority}
-          complexity={complexity}
-          impact={impact}
-          onCategoryChange={setCategory}
-          onPriorityChange={setPriority}
-          onComplexityChange={setComplexity}
-          onImpactChange={setImpact}
-          showClassification={showClassification}
-          onShowClassificationChange={setShowClassification}
-          images={images}
-          onImagesChange={setImages}
-          requireReviewBeforeCoding={requireReviewBeforeCoding}
-          onRequireReviewChange={setRequireReviewBeforeCoding}
-          fastMode={fastMode}
-          onFastModeChange={setFastMode}
-          showFastModeToggle={showFastModeToggle}
-          disabled={isCreating}
-          error={error}
-          onError={setError}
-          onFileReferenceDrop={handleFileReferenceDrop}
-          idPrefix="create"
-        >
-          {/* File autocomplete popup - positioned relative to TaskFormFields */}
-          {autocomplete?.show && projectPath && (
-            <FileAutocomplete
-              query={autocomplete.query}
-              projectPath={projectPath}
-              position={autocomplete.position}
-              onSelect={handleAutocompleteSelect}
-              onClose={() => setAutocomplete(null)}
-            />
+      {phase === 'chat' ? (
+        <TaskChatPhase
+          messages={chatMessages}
+          onSend={handleChatSend}
+          onSkip={handleChatSkip}
+          onConfirmGenerate={handleConfirmGenerate}
+          onAddMore={handleAddMore}
+          isLoading={isChatLoading}
+          isAiReady={isAiReady}
+          step={chatStep}
+          maxSteps={3}
+        />
+      ) : (
+        <div className="space-y-6">
+          {/* Chat summary banner — alleen tonen als beschrijving uit chat komt */}
+          {chatFromConversation && (
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-info/10 border border-info/30 rounded-lg text-sm">
+              <span className="text-info">💬</span>
+              <span className="font-medium text-info">{t('tasks:chat.summaryBanner')}</span>
+            </div>
           )}
-        </TaskFormFields>
 
-        {/* Git Options Toggle - unique to creation */}
-        <button
-          type="button"
-          onClick={() => setShowGitOptions(!showGitOptions)}
-          className={cn(
-            'flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors',
-            'w-full justify-between py-2 px-3 rounded-md hover:bg-muted/50'
-          )}
-          disabled={isCreating}
-          aria-expanded={showGitOptions}
-          aria-controls="git-options-section"
-        >
-          <span className="flex items-center gap-2">
-            <GitBranch className="h-4 w-4" />
-            {t('tasks:wizard.gitOptions.title')}
-            {baseBranch && baseBranch !== PROJECT_DEFAULT_BRANCH && (
-              <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                {baseBranch}
-              </span>
-            )}
-          </span>
-          {showGitOptions ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </button>
-
-        {/* Git Options */}
-        {showGitOptions && (
-          <div id="git-options-section" className="space-y-4 p-4 rounded-lg border border-border bg-muted/30">
-            <div className="space-y-2">
-              <Label htmlFor="base-branch" className="text-sm font-medium text-foreground">
-                {t('tasks:wizard.gitOptions.baseBranchLabel')}
-              </Label>
-              <Combobox
-                id="base-branch"
-                value={baseBranch}
-                onValueChange={setBaseBranch}
-                options={branchOptions}
-                placeholder={projectDefaultBranch
-                  ? t('tasks:wizard.gitOptions.useProjectDefaultWithBranch', { branch: projectDefaultBranch })
-                  : t('tasks:wizard.gitOptions.useProjectDefault')
-                }
-                searchPlaceholder={t('tasks:wizard.gitOptions.searchBranches')}
-                emptyMessage={t('tasks:wizard.gitOptions.noBranchesFound')}
-                disabled={isCreating || isLoadingBranches}
-                className="h-9"
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('tasks:wizard.gitOptions.helpText')}
+          {/* Worktree isolation info banner */}
+          <div className="flex items-start gap-3 p-4 bg-info/10 border border-info/30 rounded-lg">
+            <Info className="h-5 w-5 text-info flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-medium text-foreground mb-1">
+                {t('tasks:wizard.worktreeNotice.title')}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                {t('tasks:wizard.worktreeNotice.description')}
               </p>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Main form fields */}
+          <TaskFormFields
+            description={description}
+            onDescriptionChange={handleDescriptionChange}
+            descriptionPlaceholder={t('tasks:wizard.descriptionPlaceholder')}
+            descriptionOverlay={descriptionOverlay}
+            descriptionRef={descriptionRef}
+            title={title}
+            onTitleChange={setTitle}
+            profileId={profileId}
+            model={model}
+            thinkingLevel={thinkingLevel}
+            phaseModels={phaseModels}
+            phaseThinking={phaseThinking}
+            onProfileChange={(newProfileId, newModel, newThinkingLevel) => {
+              setProfileId(newProfileId);
+              setModel(newModel);
+              setThinkingLevel(newThinkingLevel);
+            }}
+            onModelChange={setModel}
+            onThinkingLevelChange={setThinkingLevel}
+            onPhaseModelsChange={setPhaseModels}
+            onPhaseThinkingChange={setPhaseThinking}
+            category={category}
+            priority={priority}
+            complexity={complexity}
+            impact={impact}
+            onCategoryChange={setCategory}
+            onPriorityChange={setPriority}
+            onComplexityChange={setComplexity}
+            onImpactChange={setImpact}
+            showClassification={showClassification}
+            onShowClassificationChange={setShowClassification}
+            images={images}
+            onImagesChange={setImages}
+            requireReviewBeforeCoding={requireReviewBeforeCoding}
+            onRequireReviewChange={setRequireReviewBeforeCoding}
+            fastMode={fastMode}
+            onFastModeChange={setFastMode}
+            showFastModeToggle={showFastModeToggle}
+            disabled={isCreating}
+            error={error}
+            onError={setError}
+            onFileReferenceDrop={handleFileReferenceDrop}
+            idPrefix="create"
+          >
+            {/* File autocomplete popup - positioned relative to TaskFormFields */}
+            {autocomplete?.show && projectPath && (
+              <FileAutocomplete
+                query={autocomplete.query}
+                projectPath={projectPath}
+                position={autocomplete.position}
+                onSelect={handleAutocompleteSelect}
+                onClose={() => setAutocomplete(null)}
+              />
+            )}
+          </TaskFormFields>
+
+          {/* Git Options Toggle - unique to creation */}
+          <button
+            type="button"
+            onClick={() => setShowGitOptions(!showGitOptions)}
+            className={cn(
+              'flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors',
+              'w-full justify-between py-2 px-3 rounded-md hover:bg-muted/50'
+            )}
+            disabled={isCreating}
+            aria-expanded={showGitOptions}
+            aria-controls="git-options-section"
+          >
+            <span className="flex items-center gap-2">
+              <GitBranch className="h-4 w-4" />
+              {t('tasks:wizard.gitOptions.title')}
+              {baseBranch && baseBranch !== PROJECT_DEFAULT_BRANCH && (
+                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                  {baseBranch}
+                </span>
+              )}
+            </span>
+            {showGitOptions ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </button>
+
+          {/* Git Options */}
+          {showGitOptions && (
+            <div id="git-options-section" className="space-y-4 p-4 rounded-lg border border-border bg-muted/30">
+              <div className="space-y-2">
+                <Label htmlFor="base-branch" className="text-sm font-medium text-foreground">
+                  {t('tasks:wizard.gitOptions.baseBranchLabel')}
+                </Label>
+                <Combobox
+                  id="base-branch"
+                  value={baseBranch}
+                  onValueChange={setBaseBranch}
+                  options={branchOptions}
+                  placeholder={projectDefaultBranch
+                    ? t('tasks:wizard.gitOptions.useProjectDefaultWithBranch', { branch: projectDefaultBranch })
+                    : t('tasks:wizard.gitOptions.useProjectDefault')
+                  }
+                  searchPlaceholder={t('tasks:wizard.gitOptions.searchBranches')}
+                  emptyMessage={t('tasks:wizard.gitOptions.noBranchesFound')}
+                  disabled={isCreating || isLoadingBranches}
+                  className="h-9"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('tasks:wizard.gitOptions.helpText')}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </TaskModalLayout>
   );
 }
