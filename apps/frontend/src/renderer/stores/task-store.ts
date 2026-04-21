@@ -180,16 +180,12 @@ function getTaskOrderKey(projectId: string): string {
  */
 function createEmptyTaskOrder(): TaskOrderState {
   return {
-    backlog: [],
+    inbox: [],
     brainstorming: [],
-    spec_review: [],
     planning: [],
-    plan_review: [],
-    in_progress: [],
-    preview: [],
-    pr_ready: [],
-    done: [],
-    error: []
+    executing: [],
+    verifying: [],
+    done: []
   };
 }
 
@@ -228,7 +224,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   addTask: (task) =>
     set((state) => {
       // Determine which column the task belongs to based on its status
-      const status = task.status || 'backlog';
+      const status = task.status || 'inbox';
 
       // Update task order if it exists - new tasks go to top of their column
       let taskOrder = state.taskOrder;
@@ -289,7 +285,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       taskId,
       oldStatus,
       newStatus: status,
-      allInProgress: state.tasks.filter(t => t.status === 'in_progress' && !t.metadata?.archivedAt).map(t => t.id)
+      allInProgress: state.tasks.filter(t => t.status === 'executing' && !t.metadata?.archivedAt).map(t => t.id)
     });
 
     // Perform the state update
@@ -303,11 +299,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           const previousStatus = t.status;
           const statusChanged = previousStatus !== status;
 
-          if (status === 'backlog') {
-            // When status goes to backlog, reset execution progress to idle
+          if (status === 'inbox') {
+            // When status goes to inbox, reset execution progress to idle
             // This ensures the planning/coding animation stops when task is stopped
             executionProgress = { phase: 'idle' as ExecutionPhase, phaseProgress: 0, overallProgress: 0 };
-          } else if (status === 'in_progress' && !t.executionProgress?.phase) {
+          } else if (status === 'executing' && !t.executionProgress?.phase) {
             // When starting a task and no phase is set yet, default to planning
             // This prevents the "no active phase" UI state during startup race condition
             executionProgress = { phase: 'planning' as ExecutionPhase, phaseProgress: 0, overallProgress: 0 };
@@ -600,16 +596,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         // Merge with empty order to handle partial data and validate each column
         const emptyOrder = createEmptyTaskOrder();
         const validatedOrder: TaskOrderState = {
-          backlog: isValidColumnArray(parsed.backlog) ? parsed.backlog : emptyOrder.backlog,
+          inbox: isValidColumnArray(parsed.inbox) ? parsed.inbox : (isValidColumnArray(parsed.backlog) ? parsed.backlog : emptyOrder.inbox),
           brainstorming: isValidColumnArray(parsed.brainstorming) ? parsed.brainstorming : emptyOrder.brainstorming,
-          spec_review: isValidColumnArray(parsed.spec_review) ? parsed.spec_review : emptyOrder.spec_review,
           planning: isValidColumnArray(parsed.planning) ? parsed.planning : emptyOrder.planning,
-          plan_review: isValidColumnArray(parsed.plan_review) ? parsed.plan_review : emptyOrder.plan_review,
-          in_progress: isValidColumnArray(parsed.in_progress) ? parsed.in_progress : emptyOrder.in_progress,
-          preview: isValidColumnArray(parsed.preview) ? parsed.preview : emptyOrder.preview,
-          pr_ready: isValidColumnArray(parsed.pr_ready) ? parsed.pr_ready : emptyOrder.pr_ready,
-          done: isValidColumnArray(parsed.done) ? parsed.done : emptyOrder.done,
-          error: isValidColumnArray(parsed.error) ? parsed.error : emptyOrder.error
+          executing: isValidColumnArray(parsed.executing) ? parsed.executing : (isValidColumnArray(parsed.in_progress) ? parsed.in_progress : emptyOrder.executing),
+          verifying: isValidColumnArray(parsed.verifying) ? parsed.verifying : (isValidColumnArray(parsed.preview) ? parsed.preview : emptyOrder.verifying),
+          done: isValidColumnArray(parsed.done) ? parsed.done : emptyOrder.done
         };
 
         debugLog('[TaskStore.loadTaskOrder] Loaded task order:', {
@@ -845,7 +837,7 @@ export function isQueueAtCapacity(excludeTaskId?: string): boolean {
   const maxParallelTasks = useProjectStore.getState().getActiveProject()?.settings?.maxParallelTasks ?? DEFAULT_MAX_PARALLEL_TASKS;
   const currentTasks = useTaskStore.getState().tasks;
   const inProgressCount = currentTasks.filter((t) =>
-    t.status === 'in_progress' && !t.metadata?.archivedAt && (!excludeTaskId || t.id !== excludeTaskId)
+    t.status === 'executing' && !t.metadata?.archivedAt && (!excludeTaskId || t.id !== excludeTaskId)
   ).length;
   return inProgressCount >= maxParallelTasks;
 }
@@ -870,10 +862,10 @@ export interface StartTaskOrQueueResult {
 export async function startTaskOrQueue(taskId: string): Promise<StartTaskOrQueueResult> {
   const task = useTaskStore.getState().tasks.find(t => t.id === taskId);
   // Exclude this task from the capacity check when it's already in_progress (stuck restart)
-  const excludeId = task?.status === 'in_progress' ? taskId : undefined;
+  const excludeId = task?.status === 'executing' ? taskId : undefined;
 
   if (isQueueAtCapacity(excludeId)) {
-    const result = await persistTaskStatus(taskId, 'backlog');
+    const result = await persistTaskStatus(taskId, 'inbox');
     if (!result.success) {
       console.error('[Queue] Failed to queue task:', taskId, result.error);
       return { action: 'queued', success: false, error: result.error };
@@ -1187,7 +1179,7 @@ export function getTaskByGitHubIssue(issueNumber: number): Task | undefined {
  * and should be resumed rather than reviewed.
  */
 export function isIncompleteHumanReview(task: Task): boolean {
-  if (task.status !== 'preview') return false;
+  if (task.status !== 'verifying') return false;
 
   // If no subtasks defined, task hasn't been planned yet (shouldn't be in preview)
   if (!task.subtasks || task.subtasks.length === 0) return true;

@@ -265,16 +265,16 @@ export function registerTaskExecutionHandlers(
         // This shouldn't happen normally, but handle gracefully
         console.warn('[TASK_START] XState in unexpected state:', currentXState, '- sending PLANNING_STARTED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLANNING_STARTED' }, task, project);
-      } else if (task.status === 'plan_review') {
+      } else if (task.status === 'planning') {
         // No XState actor - fallback to task data (e.g., after app restart)
-        console.warn('[TASK_START] No XState actor, task data: plan_review -> coding via PLAN_APPROVED');
+        console.warn('[TASK_START] No XState actor, task data: planning -> coding via PLAN_APPROVED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLAN_APPROVED' }, task, project);
-      } else if (task.status === 'error' && !planHasSubtasks) {
+      } else if (task.status === 'inbox' && !planHasSubtasks) {
         // FIX (#1562): No XState actor, task crashed during planning (no subtasks).
         // Uses planHasSubtasks from implementation_plan.json (more reliable than task.subtasks.length).
-        console.warn('[TASK_START] No XState actor, error with no plan subtasks -> planning via PLANNING_STARTED');
+        console.warn('[TASK_START] No XState actor, inbox with no plan subtasks -> planning via PLANNING_STARTED');
         taskStateManager.handleUiEvent(taskId, { type: 'PLANNING_STARTED' }, task, project);
-      } else if (task.status === 'verifying' || task.status === 'error') {
+      } else if (task.status === 'verifying') {
         // No XState actor - fallback to task data for resuming
         console.warn('[TASK_START] No XState actor, task data:', task.status, '-> coding via USER_RESUMED');
         taskStateManager.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
