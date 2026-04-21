@@ -197,6 +197,22 @@
     "backgroundTaskTitle": "Task continues in background",
     "backgroundTaskDescription": "The task is still running. You can reopen this dialog to monitor progress."
   },
+  "chat": {
+    "opening": "What do you want to build or fix?",
+    "stepIndicator": "step {{current}} of max {{max}}",
+    "skip": "Skip questions and go to form →",
+    "inputPlaceholder": "Type your answer...",
+    "send": "Send",
+    "aiReady": "I have enough to write a good task description.",
+    "aiReadyQuestion": "Anything else to add, or shall I continue?",
+    "addMore": "Add more",
+    "generate": "Yes, generate →",
+    "generating": "Generating description...",
+    "summaryBanner": "Summarised from conversation",
+    "viewConversation": "View conversation ↓",
+    "error": "Something went wrong. Try again or skip.",
+    "retry": "Retry"
+  },
   "wizard": {
     "createTitle": "Create New Task",
     "createDescription": "Describe what you want to build. The AI will analyze your request and create a detailed specification.",

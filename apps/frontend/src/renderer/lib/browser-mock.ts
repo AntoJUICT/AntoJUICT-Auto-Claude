@@ -317,6 +317,12 @@ const browserMockAPI: ElectronAPI = {
     data: { path: cliPath }
   }),
 
+  // Task Chat
+  taskChatMessage: async () => ({
+    success: false,
+    error: 'Not available in browser mode'
+  }),
+
   // Worktree Change Detection
   checkWorktreeChanges: async () => ({
     success: true,

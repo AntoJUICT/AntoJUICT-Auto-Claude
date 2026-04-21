@@ -59,6 +59,11 @@ export interface TaskAPI {
   // Worktree Change Detection
   checkWorktreeChanges: (taskId: string) => Promise<IPCResult<{ hasChanges: boolean; worktreePath?: string; changedFileCount?: number }>>;
 
+  // Task Chat
+  taskChatMessage: (
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>
+  ) => Promise<IPCResult<{ done: boolean; question?: string; description?: string }>>;
+
   // Image Operations
   loadImageThumbnail: (projectPath: string, specId: string, imagePath: string) => Promise<IPCResult<string>>;
 
@@ -169,6 +174,10 @@ export const createTaskAPI = (): TaskAPI => ({
   // Worktree Change Detection
   checkWorktreeChanges: (taskId: string): Promise<IPCResult<{ hasChanges: boolean; worktreePath?: string; changedFileCount?: number }>> =>
     ipcRenderer.invoke(IPC_CHANNELS.TASK_CHECK_WORKTREE_CHANGES, taskId),
+
+  // Task Chat
+  taskChatMessage: (messages) =>
+    ipcRenderer.invoke(IPC_CHANNELS.TASK_CHAT_MESSAGE, messages),
 
   // Image Operations
   loadImageThumbnail: (projectPath: string, specId: string, imagePath: string): Promise<IPCResult<string>> =>

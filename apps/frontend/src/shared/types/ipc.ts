@@ -209,6 +209,11 @@ export interface ElectronAPI {
   checkTaskRunning: (taskId: string) => Promise<IPCResult<boolean>>;
   resumePausedTask: (taskId: string) => Promise<IPCResult>;
 
+  // Task Chat
+  taskChatMessage: (
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>
+  ) => Promise<IPCResult<{ done: boolean; question?: string; description?: string }>>;
+
   // Image operations
   loadImageThumbnail: (projectPath: string, specId: string, imagePath: string) => Promise<IPCResult<string>>;
 
