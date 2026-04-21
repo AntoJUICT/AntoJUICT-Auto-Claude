@@ -1,3 +1,15 @@
+## 2.7.9 - Kanban Phase Progress Bar
+
+### ✨ New Features
+
+- **Phase completion progress bar** — Kanban task cards now show a 4-segment colored progress bar (planning → coding → QA review → QA fixing) that fills in as each pipeline phase completes.
+
+### 🐛 Bug Fixes
+
+- **Send-back routing fix** — The send-back action on tasks in review state now correctly routes to the right phase: `plan_review` returns to Planning, `spec_review` returns to Brainstorming, `approval` (verifying stage) returns to Planning.
+
+---
+
 ## 2.7.8 - Agent Token Optimizations
 
 ### 🛠️ Improvements
