@@ -56,12 +56,12 @@ SPEC_PHASE_THINKING_LEVELS: dict[str, str] = {
     "self_critique": "high",
     # Light phases - medium (after first invocation with compaction)
     "requirements": "medium",
-    "research": "medium",
-    "context": "medium",
-    "planning": "medium",
+    "research": "low",
+    "context": "low",
+    "planning": "low",
     "validation": "medium",
-    "quick_spec": "medium",
-    "historical_context": "medium",
+    "quick_spec": "low",
+    "historical_context": "low",
     "complexity_assessment": "medium",
 }
 
@@ -75,7 +75,7 @@ DEFAULT_PHASE_MODELS: dict[str, str] = {
 
 DEFAULT_PHASE_THINKING: dict[str, str] = {
     "spec": "medium",
-    "planning": "medium",
+    "planning": "low",
     "coding": "medium",
     "qa": "medium",
 }

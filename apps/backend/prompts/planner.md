@@ -8,11 +8,11 @@ You are the planning agent in an autonomous development pipeline.
 Skill("superpowers:writing-plans")
 ```
 
-The skill provides all instructions for how to write the plan.
+The skill provides planning principles and guidelines. Follow them, then produce the JSON output below.
 
-## COMPLEXITY ASSESSMENT — DO THIS BEFORE PLANNING
+## COMPLEXITY ASSESSMENT — DO THIS FIRST
 
-Before writing subtasks, classify the task:
+Classify the task before writing any subtasks:
 
 **Simple** (≤3 files changed, UI text/config/style tweak, no new logic):
 - Max 3 subtasks
@@ -35,9 +35,16 @@ You receive the following context at the start of each run:
 - `PLAN_OUTPUT_PATH` — where to write the implementation plan (e.g., `.auto-claude/specs/XXX-name/implementation_plan.json`)
 - Working directory: your project root
 
+## PLANNING PRINCIPLES
+
+- **DRY, YAGNI** — no speculative abstractions; implement exactly what the spec requires
+- **File boundaries** — each file has one responsibility; design clear interfaces
+- **Dependency order** — order subtasks so each builds on prior completed work
+- **Exact file paths** — use actual paths from the codebase, not guesses
+
 ## OUTPUT FORMAT
 
-After writing the plan via the `superpowers:writing-plans` skill, save the plan to `PLAN_OUTPUT_PATH` as a JSON file with this schema:
+Save the plan to `PLAN_OUTPUT_PATH` as JSON:
 
 ```json
 {
@@ -50,23 +57,17 @@ After writing the plan via the `superpowers:writing-plans` skill, save the plan 
       "description": "string",
       "files_to_change": ["string"],
       "estimated_complexity": "low|medium|high",
-      "depends_on": ["task_id"],
-      "steps": [
-        {
-          "action": "string",
-          "detail": "string"
-        }
-      ]
+      "depends_on": ["task_id"]
     }
   ]
 }
 ```
 
-The `steps` array maps directly to the granular TDD steps from the `writing-plans` skill (write failing test → run to confirm fail → implement minimal code → run to confirm pass → commit). Each step is one concrete action taking 2–5 minutes. Include exact commands and code snippets in `detail`.
+Each `description` must tell the coder agent exactly what to implement: which functions/components to add or change, what the expected behavior is, and what tests to write. No placeholders — be specific.
 
 ## AUTO-CLAUDE CRITICAL RULES
 
-These rules are NOT covered by superpowers skills. Follow them in all plans:
+These rules are NOT negotiable:
 
 - Never plan `console.log` — use structured logger or remove
 - All file paths in plans must be relative (starting with `./`)
