@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, useId } from 'react';
+import { useState, useRef, useLayoutEffect, useId, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Target,
@@ -57,6 +57,8 @@ interface TaskMetadataProps {
 
 // Height threshold for collapsing long descriptions (~8 lines)
 const COLLAPSED_HEIGHT = 200;
+// Height threshold for collapsing spec content (~12 lines)
+const SPEC_COLLAPSED_HEIGHT = 300;
 
 export function TaskMetadata({ task }: TaskMetadataProps) {
   const { t } = useTranslation(['tasks', 'errors']);
@@ -64,6 +66,12 @@ export function TaskMetadata({ task }: TaskMetadataProps) {
   const [hasOverflow, setHasOverflow] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const contentId = useId();
+
+  const [specContent, setSpecContent] = useState<string | null>(null);
+  const [isSpecExpanded, setIsSpecExpanded] = useState(false);
+  const [hasSpecOverflow, setHasSpecOverflow] = useState(false);
+  const specContentRef = useRef<HTMLDivElement>(null);
+  const specContentId = useId();
 
   // Handle JSON error description with i18n
   const displayDescription = (() => {
@@ -87,6 +95,30 @@ export function TaskMetadata({ task }: TaskMetadataProps) {
       setHasOverflow(hasContentOverflow);
     }
   }, [task.id, task.description]);
+
+  useEffect(() => {
+    if (!task.specsPath) return;
+    setSpecContent(null);
+    setIsSpecExpanded(false);
+    const sep = task.specsPath.includes('\\') ? '\\' : '/';
+    const specPath = `${task.specsPath}${sep}spec.md`;
+    window.electronAPI.readFile(specPath)
+      .then((result) => {
+        if (result.success && result.data !== undefined) {
+          setSpecContent(result.data);
+        }
+      })
+      .catch(() => {});
+  }, [task.id, task.specsPath]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: specContent triggers re-render which changes content height
+  useLayoutEffect(() => {
+    setIsSpecExpanded(false);
+    const element = specContentRef.current;
+    if (element) {
+      setHasSpecOverflow(element.scrollHeight > SPEC_COLLAPSED_HEIGHT);
+    }
+  }, [task.id, specContent]);
 
   const hasClassification = task.metadata && (
     task.metadata.category ||
@@ -226,6 +258,60 @@ export function TaskMetadata({ task }: TaskMetadataProps) {
               </Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Specification */}
+      {specContent && (
+        <div className="space-y-2">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+            <FileCode className="h-3 w-3" />
+            {t('tasks:metadata.specification')}
+          </h3>
+          <div className="bg-muted/30 rounded-lg px-4 py-3 border border-border/50 overflow-hidden max-w-full">
+            <div className="relative">
+              <div
+                ref={specContentRef}
+                id={specContentId}
+                className={cn(
+                  'prose prose-sm dark:prose-invert max-w-none overflow-hidden prose-p:text-foreground/90 prose-p:leading-relaxed prose-headings:text-foreground prose-strong:text-foreground prose-li:text-foreground/90 prose-ul:my-2 prose-li:my-0.5 prose-a:break-all prose-pre:overflow-x-auto [&_code]:break-all [&_code]:whitespace-pre-wrap [&_*]:max-w-full',
+                  !isSpecExpanded && hasSpecOverflow && 'max-h-[300px]'
+                )}
+                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+              >
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {specContent}
+                </ReactMarkdown>
+              </div>
+              {!isSpecExpanded && hasSpecOverflow && (
+                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-muted/80 to-transparent pointer-events-none" />
+              )}
+            </div>
+            {hasSpecOverflow && (
+              <div className="flex justify-center mt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSpecExpanded(!isSpecExpanded)}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-expanded={isSpecExpanded}
+                  aria-controls={specContentId}
+                >
+                  {isSpecExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-1" aria-hidden="true" />
+                      {t('tasks:metadata.showLess')}
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-1" aria-hidden="true" />
+                      {t('tasks:metadata.showMore')}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
