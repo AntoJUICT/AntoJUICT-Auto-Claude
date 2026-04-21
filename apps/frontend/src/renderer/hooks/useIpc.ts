@@ -6,6 +6,9 @@ import { useRateLimitStore } from '../stores/rate-limit-store';
 import { useAuthFailureStore } from '../stores/auth-failure-store';
 import { useProjectStore } from '../stores/project-store';
 import type { ImplementationPlan, TaskStatus, RoadmapGenerationStatus, Roadmap, ExecutionProgress, RateLimitInfo, SDKRateLimitInfo, AuthFailureInfo } from '../../shared/types';
+import { SKILL_CHECKLISTS } from '@shared/constants/skills';
+import type { SkillKey } from '@shared/constants/skills';
+import type { TaskReviewState, TaskSkillProgress } from '@shared/types/task';
 
 /** Maximum log entries to buffer in the batch queue between flushes (OOM prevention) */
 const MAX_BATCH_QUEUE_LOGS = 100;
@@ -206,20 +209,52 @@ export function useIpcListeners(): void {
       }
     );
 
+    function mapBackendStatus(raw: string): { status: TaskStatus; reviewState: TaskReviewState } {
+      switch (raw) {
+        case 'brainstorming': return { status: 'brainstorming', reviewState: 'none' };
+        case 'spec_review':   return { status: 'brainstorming', reviewState: 'spec_review' };
+        case 'planning':      return { status: 'planning',      reviewState: 'none' };
+        case 'plan_review':   return { status: 'planning',      reviewState: 'plan_review' };
+        case 'in_progress':   return { status: 'executing',     reviewState: 'none' };
+        case 'preview':       return { status: 'verifying',     reviewState: 'approval' };
+        case 'pr_ready':      return { status: 'done',          reviewState: 'none' };
+        case 'done':          return { status: 'done',          reviewState: 'none' };
+        case 'error':         return { status: 'inbox',         reviewState: 'none' };
+        case 'backlog':       return { status: 'inbox',         reviewState: 'none' };
+        default:              return { status: 'inbox',         reviewState: 'none' };
+      }
+    }
+
+    function skillForStatus(status: TaskStatus): SkillKey | null {
+      switch (status) {
+        case 'brainstorming': return 'brainstorming';
+        case 'planning':      return 'writing-plans';
+        case 'executing':     return 'executing-plans';
+        case 'verifying':     return 'verification';
+        default:              return null;
+      }
+    }
+
     const cleanupStatus = window.electronAPI.onTaskStatusChange(
-      (taskId: string, status: TaskStatus, projectId?: string) => {
+      (taskId: string, rawStatus: string, projectId?: string) => {
         // Debug: Log received status change
-        console.log(`[useIpc] Received TASK_STATUS_CHANGE:`, {
-          taskId,
-          status,
-          projectId
-        });
+        console.log(`[useIpc] Received TASK_STATUS_CHANGE:`, { taskId, rawStatus, projectId });
         // Filter by project to prevent multi-project interference
         if (!isTaskForCurrentProject(projectId)) return;
+        const { status, reviewState } = mapBackendStatus(rawStatus);
+        const skill = skillForStatus(status);
+        const steps = skill ? SKILL_CHECKLISTS[skill] : [];
+        const skillProgress: TaskSkillProgress = {
+          skill,
+          currentStepIndex: 0,
+          totalSteps: steps.length,
+        };
         queueUpdate(taskId, { status });
+        // Apply reviewState and skillProgress via updateTask (not in BatchedUpdate interface)
+        useTaskStore.getState().updateTask(taskId, { reviewState, skillProgress });
 
         // Sync roadmap feature when task completes
-        if (status === 'done' || status === 'pr_ready') {
+        if (status === 'done') {
           useRoadmapStore.getState().markFeatureDoneBySpecId(taskId);
           // Re-read state after mutation to get updated roadmap
           const rm = useRoadmapStore.getState().roadmap;
