@@ -1,16 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Wand2 } from 'lucide-react';
 import {
   FullScreenDialog,
   FullScreenDialogContent,
-  FullScreenDialogHeader,
   FullScreenDialogBody,
-  FullScreenDialogTitle,
-  FullScreenDialogDescription
 } from '../ui/full-screen-dialog';
 import { ScrollArea } from '../ui/scroll-area';
 import { WizardProgress, WizardStep } from './WizardProgress';
+import { MeshMark } from '../ui/MeshMark';
 import { WelcomeStep } from './WelcomeStep';
 import { AuthChoiceStep } from './AuthChoiceStep';
 import { OAuthStep } from './OAuthStep';
@@ -236,27 +233,43 @@ export function OnboardingWizard({
     }
   }, [completeWizard, onOpenChange]);
 
+  // Visible step index for eyebrow (exclude welcome/completion from count)
+  const interiorSteps = WIZARD_STEPS.filter(s => s.id !== 'welcome' && s.id !== 'completion');
+  const interiorIndex = interiorSteps.findIndex(s => s.id === currentStepId);
+  const showSidebar = currentStepId !== 'welcome' && currentStepId !== 'completion';
+
   return (
     <FullScreenDialog open={open} onOpenChange={handleOpenChange}>
-      <FullScreenDialogContent>
-        <FullScreenDialogHeader>
-          <FullScreenDialogTitle className="flex items-center gap-3">
-            <Wand2 className="h-6 w-6" />
-            {t('wizard.title')}
-          </FullScreenDialogTitle>
-          <FullScreenDialogDescription>
-            {t('wizard.description')}
-          </FullScreenDialogDescription>
+      <FullScreenDialogContent className="flex flex-row overflow-hidden p-0">
+        {/* Left sidebar panel */}
+        {showSidebar && (
+          <div className="w-[260px] shrink-0 flex flex-col gap-8 border-r border-[var(--border)] bg-[var(--surface)] px-6 py-8">
+            {/* Logo lockup */}
+            <div className="flex items-center gap-2">
+              <MeshMark size={28} />
+              <span
+                className="text-[15px] font-bold text-[var(--foreground)] tracking-tight"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                JUICT
+              </span>
+            </div>
 
-          {/* Progress indicator - show for all steps except welcome and completion */}
-          {currentStepId !== 'welcome' && currentStepId !== 'completion' && (
-            <div className="mt-6">
+            {/* Eyebrow: step counter */}
+            <div>
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-[var(--text-dim)]">
+                {t('wizard.setup')} &middot;{' '}
+                {interiorIndex >= 0 ? interiorIndex + 1 : 1}/{interiorSteps.length}
+              </p>
+
+              {/* Step list */}
               <WizardProgress currentStep={currentStepIndex} steps={steps} />
             </div>
-          )}
-        </FullScreenDialogHeader>
+          </div>
+        )}
 
-        <FullScreenDialogBody>
+        {/* Main content area */}
+        <FullScreenDialogBody className="flex-1 min-w-0">
           <ScrollArea className="h-full">
             {renderStepContent()}
           </ScrollArea>

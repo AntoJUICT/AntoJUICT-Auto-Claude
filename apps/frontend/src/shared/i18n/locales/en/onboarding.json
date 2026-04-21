@@ -2,7 +2,8 @@
   "wizard": {
     "title": "Setup Wizard",
     "description": "Configure your JUICT agentic OS environment in a few simple steps",
-    "helpText": "This wizard will help you set up your environment in just a few steps. You can configure your Claude OAuth token, set up memory features, and create your first task."
+    "helpText": "This wizard will help you set up your environment in just a few steps. You can configure your Claude OAuth token, set up memory features, and create your first task.",
+    "setup": "Setup"
   },
   "welcome": {
     "title": "Welcome to JUICT agentic OS",

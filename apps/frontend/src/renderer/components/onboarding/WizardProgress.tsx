@@ -14,57 +14,40 @@ interface WizardProgressProps {
 
 /**
  * Step progress indicator component for the onboarding wizard.
- * Displays numbered circles connected by lines, with visual states
- * for completed, current, and upcoming steps.
+ * Sidebar variant: vertical list with filled green dot (past),
+ * cyan ring (current), and muted dot (future).
  */
 export function WizardProgress({ currentStep, steps }: WizardProgressProps) {
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex flex-col gap-2">
       {steps.map((step, index) => {
         const isCompleted = step.completed;
         const isCurrent = index === currentStep;
-        const isUpcoming = index > currentStep;
 
         return (
-          <div key={step.id} className="flex items-center">
-            {/* Step indicator circle */}
-            <div className="flex flex-col items-center">
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-semibold transition-all duration-200',
-                  isCompleted && 'border-primary bg-primary text-primary-foreground',
-                  isCurrent && !isCompleted && 'border-primary bg-background text-primary',
-                  isUpcoming && 'border-muted-foreground/40 bg-background text-muted-foreground'
-                )}
-              >
-                {isCompleted ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  <span>{index + 1}</span>
-                )}
+          <div key={step.id} className="flex items-center gap-3">
+            {/* Step indicator dot */}
+            {isCompleted ? (
+              <div className="h-5 w-5 rounded-full bg-[var(--success)] flex items-center justify-center shrink-0">
+                <Check className="h-3 w-3 text-white" />
               </div>
-              {/* Step label below circle */}
-              <span
-                className={cn(
-                  'mt-2 text-xs font-medium text-center max-w-[80px] truncate',
-                  isCompleted && 'text-primary',
-                  isCurrent && !isCompleted && 'text-primary',
-                  isUpcoming && 'text-muted-foreground'
-                )}
-              >
-                {step.label}
-              </span>
-            </div>
-
-            {/* Connecting line (not after last step) */}
-            {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  'mx-2 h-0.5 w-12 transition-colors duration-200',
-                  step.completed ? 'bg-primary' : 'bg-muted-foreground/40'
-                )}
-              />
+            ) : isCurrent ? (
+              <div className="h-5 w-5 rounded-full border-2 border-[var(--brand-cyan)] bg-transparent shrink-0" />
+            ) : (
+              <div className="h-5 w-5 rounded-full bg-[var(--surface-hi)] shrink-0" />
             )}
+
+            {/* Step label */}
+            <span
+              className={cn(
+                'text-[12px] font-medium leading-none',
+                isCompleted && 'text-[var(--success)]',
+                isCurrent && !isCompleted && 'text-[var(--brand-cyan)]',
+                !isCompleted && !isCurrent && 'text-[var(--text-dim)]'
+              )}
+            >
+              {step.label}
+            </span>
           </div>
         );
       })}
