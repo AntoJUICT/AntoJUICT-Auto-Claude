@@ -55,49 +55,42 @@ export function SortableProjectTab({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative flex items-center min-w-0',
-        // Responsive max-widths: smaller on mobile, larger on desktop
+        'group relative flex items-center h-9 min-w-0',
         isActive
-          ? 'max-w-[180px] sm:max-w-[220px] md:max-w-[280px]'
-          : 'max-w-[120px] sm:max-w-[160px] md:max-w-[200px]',
-        'border-r border-border last:border-r-0',
-        'touch-none transition-all duration-200',
-        isDragging && 'opacity-60 scale-[0.98] shadow-lg'
+          ? 'max-w-[200px] sm:max-w-[240px]'
+          : 'max-w-[140px] sm:max-w-[180px]',
+        'border-r border-[var(--border)] last:border-r-0',
+        'touch-none',
+        isDragging && 'opacity-60 scale-[0.98] shadow-lg',
+        isActive
+          ? 'bg-[var(--background)] border-t-2 border-t-[var(--primary)]'
+          : 'bg-transparent border-t-2 border-t-transparent hover:bg-[var(--surface)]'
       )}
       {...attributes}
     >
       <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
           <div
-            className={cn(
-              'flex-1 flex items-center gap-1 sm:gap-2',
-              // Responsive padding: tighter on mobile, normal on desktop
-              'px-2 sm:px-3 md:px-4 py-2 sm:py-2.5',
-              'text-xs sm:text-sm',
-              'min-w-0 truncate hover:bg-muted/50 transition-colors',
-              'border-b-2 border-transparent cursor-pointer',
-              isActive && [
-                'bg-background border-b-primary text-foreground',
-                'hover:bg-background'
-              ],
-              !isActive && [
-                'text-muted-foreground',
-                'hover:text-foreground'
-              ]
-            )}
+            className="flex-1 flex items-center gap-2 px-3 py-1.5 min-w-0 cursor-pointer"
             onClick={onSelect}
           >
-            {/* Drag handle - visible on hover, hidden on mobile */}
+            {/* Drag handle */}
             <div
               {...listeners}
-              className={cn(
-                'hidden sm:block',
-                'opacity-0 group-hover:opacity-60 transition-opacity',
-                'cursor-grab active:cursor-grabbing',
-                'w-1 h-4 bg-muted-foreground rounded-full flex-shrink-0'
-              )}
+              className="hidden sm:block opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing w-1 h-3 bg-[var(--text-mute)] rounded-full shrink-0"
             />
-            <span className="truncate font-medium">
+            {/* Status dot */}
+            <span className={cn(
+              'h-1.5 w-1.5 rounded-full shrink-0',
+              isActive ? 'bg-[var(--success)]' : 'bg-[var(--text-mute)]'
+            )} />
+            {/* Name */}
+            <span className={cn(
+              'truncate text-[12px]',
+              isActive
+                ? 'font-semibold text-[var(--foreground)]'
+                : 'font-normal text-[var(--text-dim)]'
+            )}>
               {project.name}
             </span>
           </div>
@@ -112,52 +105,34 @@ export function SortableProjectTab({
         </TooltipContent>
       </Tooltip>
 
-      {/* Active tab controls - settings and archive, always accessible */}
-      {isActive && (
-        <div className="flex items-center gap-0.5 mr-0.5 sm:mr-1 flex-shrink-0">
-          {/* Settings icon - responsive sizing */}
-          {onSettingsClick && (
-            <Tooltip delayDuration={200}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    'h-5 w-5 sm:h-6 sm:w-6 p-0 rounded',
-                    'flex items-center justify-center',
-                    'text-muted-foreground hover:text-foreground',
-                    'hover:bg-muted/50 transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSettingsClick();
-                  }}
-                  aria-label={t('projectTab.settings')}
-                >
-                  <Settings2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <span>{t('projectTab.settings')}</span>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+      {/* Settings icon for active tab */}
+      {isActive && onSettingsClick && (
+        <Tooltip delayDuration={200}>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="h-5 w-5 flex items-center justify-center rounded text-[var(--text-mute)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors focus-visible:outline-none"
+              onClick={(e) => { e.stopPropagation(); onSettingsClick(); }}
+              aria-label={t('projectTab.settings')}
+            >
+              <Settings2 className="h-3 w-3" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{t('projectTab.settings')}</TooltipContent>
+        </Tooltip>
       )}
 
+      {/* Close button */}
       {canClose && (
         <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <button
               type="button"
               className={cn(
-                'h-5 w-5 sm:h-6 sm:w-6 p-0 mr-0.5 sm:mr-1',
-                'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
-                'transition-opacity duration-200 rounded flex-shrink-0',
-                'hover:bg-destructive hover:text-destructive-foreground',
-                'flex items-center justify-center',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-                isActive && 'opacity-100'
+                'h-5 w-5 mr-1 flex items-center justify-center rounded shrink-0',
+                'opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity',
+                'text-[var(--text-mute)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]',
+                isActive && 'opacity-60'
               )}
               onClick={onClose}
               aria-label={t('projectTab.closeTabAriaLabel')}

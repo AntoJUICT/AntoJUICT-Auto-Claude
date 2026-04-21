@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { Button } from './ui/button';
 import { SortableProjectTab } from './SortableProjectTab';
 import { UsageIndicator } from './UsageIndicator';
 import { AuthStatusIndicator } from './AuthStatusIndicator';
@@ -86,11 +85,11 @@ export function ProjectTabBar({
 
   return (
     <div className={cn(
-      'flex items-center border-b border-border bg-background',
-      'overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent',
+      'flex h-9 items-center border-b bg-[var(--bg-elev)]',
+      'border-[var(--border)] overflow-x-auto scrollbar-none',
       className
     )}>
-      <div className="flex items-center flex-1 min-w-0">
+      <div className="flex items-center flex-1 min-w-0 h-full">
         {projects.map((project, index) => {
           const isActiveTab = activeProjectId === project.id;
           return (
@@ -105,25 +104,25 @@ export function ProjectTabBar({
                 e.stopPropagation();
                 onProjectClose(project.id);
               }}
-              // Pass control props only for active tab
               onSettingsClick={isActiveTab ? onSettingsClick : undefined}
             />
           );
         })}
       </div>
 
-      <div className="flex items-center gap-2 px-2 py-1">
+      <div className="flex items-center gap-1 px-2 h-full border-l border-[var(--border)]">
         <AuthStatusIndicator />
         <UsageIndicator />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
+        <span className="hidden sm:flex font-mono text-[10px] text-[var(--text-mute)] items-center gap-1 px-2">
+          4 agents running · 12 tools connected
+        </span>
+        <button
           onClick={onAddProject}
           aria-label={t('projectTab.addProjectAriaLabel')}
+          className="flex h-6 w-6 items-center justify-center rounded-[4px] text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
         >
-          <Plus className="h-4 w-4" />
-        </Button>
+          <Plus className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
