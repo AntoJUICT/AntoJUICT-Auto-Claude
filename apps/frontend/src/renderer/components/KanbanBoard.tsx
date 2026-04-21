@@ -57,11 +57,10 @@ function isValidDropColumn(id: string): id is typeof TASK_STATUS_COLUMNS[number]
 /**
  * Get the visual column for a task status.
  * Most statuses map directly to a column in TASK_STATUS_COLUMNS.
- * The 'error' status has no dedicated column — error tasks are dropped from the board.
- * This is used to compare visual positions during drag-and-drop operations.
+ * Error tasks fall back to the backlog column so they stay visible on the board.
  */
 function getVisualColumn(status: TaskStatus): TaskStatusColumn | null {
-  if (status === 'error') return null;
+  if (status === 'error') return 'backlog';
   return status;
 }
 
@@ -737,7 +736,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     };
 
     filteredTasks.forEach((task) => {
-      // Map task status to a visible column; error tasks have no column and are omitted
+      // Map task status to a visible column; error tasks fall back to backlog
       const targetColumn = getVisualColumn(task.status);
       if (targetColumn && grouped[targetColumn]) {
         grouped[targetColumn].push(task);

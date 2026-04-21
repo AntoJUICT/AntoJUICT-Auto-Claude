@@ -3,6 +3,8 @@ import { IPC_CHANNELS, AUTO_BUILD_PATHS, getSpecsDir } from '../../../shared/con
 import * as pipeline from '../../pipeline';
 import { getBestAvailableProfileEnv } from '../../rate-limit-detector';
 import { getAugmentedEnv } from '../../env-utils';
+import { pythonEnvManager } from '../../python-env-manager';
+import { getPathDelimiter } from '../../platform';
 import type { IPCResult, TaskStartOptions, TaskStatus, ImageAttachment } from '../../../shared/types';
 import path from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
@@ -114,9 +116,16 @@ export function registerTaskExecutionHandlers(
     getSpawnEnv: () => {
       const profileResult = getBestAvailableProfileEnv();
       const augmented = getAugmentedEnv();
+      const pythonEnv = pythonEnvManager.getPythonEnv();
+      const autoBuildSource = agentManager.getAutoBuildSourcePath();
+      const pythonPathParts: string[] = [];
+      if (pythonEnv.PYTHONPATH) pythonPathParts.push(pythonEnv.PYTHONPATH);
+      if (autoBuildSource) pythonPathParts.push(autoBuildSource);
       return {
         ...augmented,
+        ...pythonEnv,
         ...profileResult.env,
+        ...(pythonPathParts.length ? { PYTHONPATH: pythonPathParts.join(getPathDelimiter()) } : {}),
         PYTHONUNBUFFERED: '1',
         PYTHONIOENCODING: 'utf-8',
         PYTHONUTF8: '1',

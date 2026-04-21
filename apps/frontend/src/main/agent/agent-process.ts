@@ -872,7 +872,7 @@ export class AgentProcessManager {
       stderrBuffer = processBufferedOutput(stderrBuffer, data.toString('utf-8'));
     });
 
-    childProcess.on('exit', (code: number | null) => {
+    childProcess.on('close', (code: number | null) => {
       if (stdoutBuffer.trim()) {
         this.emitter.emit('log', taskId, stdoutBuffer + '\n', projectId);
         processLog(stdoutBuffer);

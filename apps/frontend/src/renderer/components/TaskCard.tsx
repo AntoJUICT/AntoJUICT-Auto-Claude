@@ -616,7 +616,7 @@ export const TaskCard = memo(function TaskCard({
                 <Archive className="mr-1.5 h-3 w-3" />
                 {t('actions.archive')}
               </Button>
-            ) : (task.status === 'backlog' || task.status === 'in_progress') && (
+            ) : (task.status === 'backlog' || task.status === 'in_progress' || task.status === 'error') && (
               <Button
                 variant={isRunning ? 'destructive' : 'default'}
                 size="sm"

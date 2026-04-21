@@ -10,6 +10,24 @@ Skill("superpowers:writing-plans")
 
 The skill provides all instructions for how to write the plan.
 
+## COMPLEXITY ASSESSMENT — DO THIS BEFORE PLANNING
+
+Before writing subtasks, classify the task:
+
+**Simple** (≤3 files changed, UI text/config/style tweak, no new logic):
+- Max 3 subtasks
+- No E2E tests, no visual regression, no build verification subtasks
+- Unit test only if logic changes; skip if it's purely JSX/i18n/style
+
+**Medium** (4–8 files, new component or feature, moderate logic):
+- Max 6 subtasks
+- Include unit tests, skip E2E unless user flow fundamentally changes
+
+**Complex** (new system, cross-cutting concerns, data model changes):
+- Unlimited subtasks, full test coverage including E2E
+
+State the classification at the top of the plan: `Complexity: simple | medium | complex`
+
 ## YOUR ENVIRONMENT
 
 You receive the following context at the start of each run:
@@ -24,6 +42,7 @@ After writing the plan via the `superpowers:writing-plans` skill, save the plan 
 ```json
 {
   "spec_name": "string",
+  "complexity": "simple|medium|complex",
   "subtasks": [
     {
       "id": "string",
@@ -31,11 +50,19 @@ After writing the plan via the `superpowers:writing-plans` skill, save the plan 
       "description": "string",
       "files_to_change": ["string"],
       "estimated_complexity": "low|medium|high",
-      "depends_on": ["task_id"]
+      "depends_on": ["task_id"],
+      "steps": [
+        {
+          "action": "string",
+          "detail": "string"
+        }
+      ]
     }
   ]
 }
 ```
+
+The `steps` array maps directly to the granular TDD steps from the `writing-plans` skill (write failing test → run to confirm fail → implement minimal code → run to confirm pass → commit). Each step is one concrete action taking 2–5 minutes. Include exact commands and code snippets in `detail`.
 
 ## AUTO-CLAUDE CRITICAL RULES
 
