@@ -218,7 +218,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }
     });
 
-    return set({ tasks });
+    return set({ tasks: tasks.map(t => ({ ...t, reviewState: t.reviewState ?? 'none' })) });
   },
 
   addTask: (task) =>
