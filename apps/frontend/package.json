@@ -150,7 +150,8 @@
       {
         "provider": "github",
         "owner": "AntoJUICT",
-        "repo": "AntoJUICT-Auto-Claude"
+        "repo": "AntoJUICT-Auto-Claude",
+        "releaseType": "release"
       }
     ],
     "directories": {
