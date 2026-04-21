@@ -107,7 +107,7 @@ function taskCardPropsAreEqual(prevProps: TaskCardProps, nextProps: TaskCardProp
     prevTask.skillProgress?.currentStepIndex === nextTask.skillProgress?.currentStepIndex &&
     prevTask.executionProgress?.phase === nextTask.executionProgress?.phase &&
     prevTask.executionProgress?.phaseProgress === nextTask.executionProgress?.phaseProgress &&
-    prevTask.executionProgress?.completedPhases?.length === nextTask.executionProgress?.completedPhases?.length &&
+    prevTask.executionProgress?.completedPhases?.join() === nextTask.executionProgress?.completedPhases?.join() &&
     prevTask.subtasks.length === nextTask.subtasks.length &&
     prevTask.metadata?.fastMode === nextTask.metadata?.fastMode &&
     prevTask.metadata?.category === nextTask.metadata?.category &&
@@ -286,7 +286,7 @@ export const TaskCard = memo(function TaskCard({
 
   const handleSendBack = async () => {
     const target: SendBackTarget =
-      task.reviewState === 'plan_review' || task.status === 'verifying'
+      task.reviewState === 'approval' || task.reviewState === 'plan_review'
         ? 'plan_review'
         : 'spec_review';
     await window.electronAPI.sendBack(task.id, target);
