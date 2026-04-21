@@ -99,7 +99,15 @@ export function PhaseCard({
           {visibleFeatures.map((feature) => (
             <div
               key={feature.id}
-              className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+              className={`flex h-8 items-center justify-between rounded-[4px] px-2 transition-colors hover:brightness-110 ${
+                feature.priority === 'must'
+                  ? 'bg-destructive/[0.13] border border-destructive/[0.53]'
+                  : feature.priority === 'should'
+                  ? 'bg-warning/[0.13] border border-warning/[0.53]'
+                  : feature.priority === 'could'
+                  ? 'bg-info/[0.13] border border-info/[0.53]'
+                  : 'bg-muted/[0.13] border border-muted-foreground/[0.53]'
+              }`}
             >
               <button
                 type="button"

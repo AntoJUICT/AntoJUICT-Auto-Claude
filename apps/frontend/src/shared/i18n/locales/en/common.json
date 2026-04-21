@@ -607,7 +607,10 @@
     "taskArchived": "Archived",
     "showMoreFeatures": "Show {{count}} more feature",
     "showMoreFeatures_plural": "Show {{count}} more features",
-    "showLessFeatures": "Show less"
+    "showLessFeatures": "Show less",
+    "addFeature": "Add Feature",
+    "addFeatureTooltip": "Add a new feature to the roadmap",
+    "regenerate": "Regenerate Roadmap"
   },
   "roadmapGeneration": {
     "progress": "Progress",
