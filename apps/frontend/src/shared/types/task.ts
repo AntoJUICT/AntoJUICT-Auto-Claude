@@ -6,22 +6,28 @@ import type { ThinkingLevel, PhaseModelConfig, PhaseThinkingConfig } from './set
 import type { ExecutionPhase as ExecutionPhaseType, CompletablePhase } from '../constants/phase-protocol';
 
 export type TaskStatus =
-  | 'backlog'
+  | 'inbox'
   | 'brainstorming'
-  | 'spec_review'
   | 'planning'
-  | 'plan_review'
-  | 'in_progress'
-  | 'preview'
-  | 'pr_ready'
-  | 'done'
-  | 'error';
+  | 'executing'
+  | 'verifying'
+  | 'done';
 
 // Maps task status columns to ordered task IDs for kanban board reordering
 export type TaskOrderState = Record<TaskStatus, string[]>;
 
-// Reason why a task was sent back (used in sendBack IPC call)
+// IPC contract with backend — kept for sendBack calls
 export type SendBackTarget = 'spec_review' | 'plan_review';
+
+// Review state — replaces review columns (badge on card instead)
+export type TaskReviewState = 'none' | 'spec_review' | 'plan_review' | 'approval';
+
+// Skill progress shown on task card
+export interface TaskSkillProgress {
+  skill: 'brainstorming' | 'writing-plans' | 'executing-plans' | 'verification' | null;
+  currentStepIndex: number;
+  totalSteps: number;
+}
 
 export type SubtaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
 
@@ -273,6 +279,8 @@ export interface Task {
   title: string;
   description: string;
   status: TaskStatus;
+  reviewState: TaskReviewState;
+  skillProgress?: TaskSkillProgress;
   subtasks: Subtask[];
   qaReport?: QAReport;
   logs: string[];
