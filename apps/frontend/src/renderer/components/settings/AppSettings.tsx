@@ -247,12 +247,12 @@ export function AppSettingsDialog({ open, onOpenChange, initialSection, initialP
         <FullScreenDialogBody>
           <div className="flex h-full">
             {/* Navigation sidebar */}
-            <nav className="w-80 border-r border-border bg-muted/30 p-4">
+            <nav className="w-[200px] border-r border-[var(--border-strong)] bg-[var(--bg-elev)] p-4">
               <ScrollArea className="h-full">
                 <div className="space-y-6">
                   {/* APPLICATION Section */}
                   <div>
-                    <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="mb-2 px-3 text-[15px] font-semibold text-[var(--foreground)]">
                       {t('tabs.app')}
                     </h3>
                     <div className="space-y-1">
@@ -267,17 +267,14 @@ export function AppSettingsDialog({ open, onOpenChange, initialSection, initialP
                               setAppSection(item.id);
                             }}
                             className={cn(
-                              'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all',
+                              'w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all',
                               isActive
-                                ? 'bg-accent text-accent-foreground'
-                                : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                                ? 'bg-[var(--primary-wash)] text-[var(--foreground)]'
+                                : 'text-[13px] text-[var(--text-dim)] hover:bg-[var(--primary-wash)]/50 hover:text-[var(--foreground)]'
                             )}
                           >
-                            <Icon className="h-5 w-5 mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <div className="font-medium text-sm">{t(`sections.${item.id}.title`)}</div>
-                              <div className="text-xs text-muted-foreground truncate">{t(`sections.${item.id}.description`)}</div>
-                            </div>
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span className="text-[13px] font-medium truncate">{t(`sections.${item.id}.title`)}</span>
                           </button>
                         );
                       })}
@@ -290,16 +287,13 @@ export function AppSettingsDialog({ open, onOpenChange, initialSection, initialP
                             onRerunWizard();
                           }}
                           className={cn(
-                            'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all mt-2',
-                            'border border-dashed border-muted-foreground/30',
-                            'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                            'w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all mt-2',
+                            'border border-dashed border-[var(--border-strong)]/50',
+                            'text-[13px] text-[var(--text-dim)] hover:bg-[var(--primary-wash)]/50 hover:text-[var(--foreground)]'
                           )}
                         >
-                          <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
-                          <div className="min-w-0">
-                            <div className="font-medium text-sm">{t('actions.rerunWizard')}</div>
-                            <div className="text-xs text-muted-foreground truncate">{t('actions.rerunWizardDescription')}</div>
-                          </div>
+                          <Sparkles className="h-4 w-4 shrink-0" />
+                          <span className="text-[13px] font-medium truncate">{t('actions.rerunWizard')}</span>
                         </button>
                       )}
                     </div>
@@ -307,7 +301,7 @@ export function AppSettingsDialog({ open, onOpenChange, initialSection, initialP
 
                   {/* PROJECT Section */}
                   <div>
-                    <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="mb-2 px-3 text-[15px] font-semibold text-[var(--foreground)]">
                       {t('tabs.project')}
                     </h3>
 
@@ -333,19 +327,16 @@ export function AppSettingsDialog({ open, onOpenChange, initialSection, initialP
                             }}
                             disabled={projectNavDisabled}
                             className={cn(
-                              'w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all',
+                              'w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-all',
                               isActive
-                                ? 'bg-accent text-accent-foreground'
+                                ? 'bg-[var(--primary-wash)] text-[var(--foreground)]'
                                 : projectNavDisabled
-                                  ? 'opacity-50 cursor-not-allowed text-muted-foreground'
-                                  : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                                  ? 'opacity-50 cursor-not-allowed text-[13px] text-[var(--text-dim)]'
+                                  : 'text-[13px] text-[var(--text-dim)] hover:bg-[var(--primary-wash)]/50 hover:text-[var(--foreground)]'
                             )}
                           >
-                            <Icon className="h-5 w-5 mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <div className="font-medium text-sm">{t(`projectSections.${item.id}.title`)}</div>
-                              <div className="text-xs text-muted-foreground truncate">{t(`projectSections.${item.id}.description`)}</div>
-                            </div>
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span className="text-[13px] font-medium truncate">{t(`projectSections.${item.id}.title`)}</span>
                           </button>
                         );
                       })}
