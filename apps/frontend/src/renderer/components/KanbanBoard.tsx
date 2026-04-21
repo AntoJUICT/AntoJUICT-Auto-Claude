@@ -27,7 +27,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { TaskCard } from './TaskCard';
 import { SortableTaskCard } from './SortableTaskCard';
 import { QueueSettingsModal } from './QueueSettingsModal';
-import { TASK_STATUS_COLUMNS, TASK_STATUS_LABELS, type TaskStatusColumn } from '../../shared/constants';
+import { TASK_STATUS_COLUMNS, TASK_STATUS_LABELS, SKILL_COLUMN_META, type TaskStatusColumn } from '../../shared/constants';
 import { cn } from '../lib/utils';
 import { persistTaskStatus, forceCompleteTask, archiveTasks, deleteTasks, useTaskStore, isQueueAtCapacity, DEFAULT_MAX_PARALLEL_TASKS } from '../stores/task-store';
 import { updateProjectSettings, useProjectStore } from '../stores/project-store';
@@ -60,7 +60,6 @@ function isValidDropColumn(id: string): id is typeof TASK_STATUS_COLUMNS[number]
  * Error tasks fall back to the backlog column so they stay visible on the board.
  */
 function getVisualColumn(status: TaskStatus): TaskStatusColumn | null {
-  if (status === 'error') return 'backlog';
   return status;
 }
 
@@ -185,19 +184,19 @@ function droppableColumnPropsAreEqual(
 // Empty state content for each column
 const getEmptyStateContent = (status: TaskStatus, t: (key: string) => string): { icon: React.ReactNode; message: string; subtext?: string } => {
   switch (status) {
-    case 'backlog':
+    case 'inbox':
       return {
         icon: <Inbox className="h-6 w-6 text-muted-foreground/50" />,
         message: t('kanban.emptyBacklog'),
         subtext: t('kanban.emptyBacklogHint')
       };
-    case 'in_progress':
+    case 'executing':
       return {
         icon: <Loader2 className="h-6 w-6 text-muted-foreground/50" />,
         message: t('kanban.emptyInProgress'),
         subtext: t('kanban.emptyInProgressHint')
       };
-    case 'preview':
+    case 'verifying':
       return {
         icon: <Eye className="h-6 w-6 text-muted-foreground/50" />,
         message: t('kanban.emptyHumanReview'),
@@ -218,10 +217,12 @@ const getEmptyStateContent = (status: TaskStatus, t: (key: string) => string): {
 };
 
 const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskClick, onStatusChange, isOver, onAddClick, onArchiveAll, onQueueSettings, onQueueAll, maxParallelTasks, archivedCount, showArchived, onToggleArchived, selectedTaskIds, onSelectAll, onDeselectAll, onToggleSelect, isCollapsed, onToggleCollapsed, columnWidth, isResizing, onResizeStart, onResizeEnd, isLocked, onToggleLocked }: DroppableColumnProps) {
-  const { t } = useTranslation(['tasks', 'common']);
+  const { t } = useTranslation(['tasks', 'common', 'kanban']);
   const { setNodeRef } = useDroppable({
     id: status
   });
+
+  const columnMeta = SKILL_COLUMN_META.find(m => m.id === status);
 
   // Calculate selection state for this column
   const taskCount = tasks.length;
@@ -293,21 +294,6 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
     ));
   }, [tasks, onClickHandlers, onStatusChangeHandlers, onToggleSelectHandlers, selectedTaskIds]);
 
-  const getColumnBorderColor = (): string => {
-    switch (status) {
-      case 'backlog':
-        return 'column-backlog';
-      case 'in_progress':
-        return 'column-in-progress';
-      case 'preview':
-        return 'column-human-review';
-      case 'done':
-        return 'column-done';
-      default:
-        return 'border-t-muted-foreground/30';
-    }
-  };
-
   const emptyState = getEmptyStateContent(status, t);
 
   // Collapsed state: show narrow vertical strip with rotated title and task count
@@ -317,11 +303,10 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
         ref={setNodeRef}
         className={cn(
           'flex flex-col rounded-[6px] border border-[var(--border)] bg-[var(--surface)] transition-all duration-200',
-          getColumnBorderColor(),
           'border-t-2',
           isOver && 'drop-zone-highlight'
         )}
-        style={{ width: COLLAPSED_COLUMN_WIDTH_REM, minWidth: COLLAPSED_COLUMN_WIDTH_REM, maxWidth: COLLAPSED_COLUMN_WIDTH_REM }}
+        style={{ width: COLLAPSED_COLUMN_WIDTH_REM, minWidth: COLLAPSED_COLUMN_WIDTH_REM, maxWidth: COLLAPSED_COLUMN_WIDTH_REM, borderTopColor: columnMeta?.color }}
       >
         {/* Expand button at top */}
         <div className="flex justify-center p-2 border-b border-[var(--border)]">
@@ -371,10 +356,10 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
         className={cn(
           'flex flex-1 flex-col rounded-[6px] border border-[var(--border)] bg-[var(--surface)] transition-all duration-200',
           !columnWidth && 'min-w-80 max-w-[30rem]',
-          getColumnBorderColor(),
           'border-t-2',
           isOver && 'drop-zone-highlight'
         )}
+        style={{ borderTopColor: columnMeta?.color }}
       >
         {/* Column header - enhanced styling */}
         <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border)]">
@@ -417,13 +402,18 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
               </TooltipContent>
             </Tooltip>
           )}
-          {status === 'in_progress' && tasks.length > 0 && (
+          {status === 'executing' && tasks.length > 0 && (
             <span className="h-2 w-2 rounded-full bg-[var(--brand-cyan)] animate-pulse-subtle" />
           )}
           <h2 className="text-[12px] font-semibold text-[var(--foreground)] uppercase tracking-wide">
             {t(TASK_STATUS_LABELS[status])}
           </h2>
-          {status === 'in_progress' && maxParallelTasks ? (
+          {columnMeta?.skill && (
+            <span className="text-[9px] font-medium opacity-70" style={{ color: columnMeta.color }}>
+              {t(`kanban:skills.${columnMeta.skill}`)}
+            </span>
+          )}
+          {status === 'executing' && maxParallelTasks ? (
             <span className={cn(
               'rounded-[4px] px-1.5 py-0.5 font-mono text-[10px]',
               tasks.length >= maxParallelTasks
@@ -464,7 +454,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
               </TooltipContent>
             </Tooltip>
           )}
-          {status === 'backlog' && (
+          {status === 'inbox' && (
             <>
               {onQueueAll && tasks.length > 0 && (
                 <Button
@@ -490,7 +480,7 @@ const DroppableColumn = memo(function DroppableColumn({ status, tasks, onTaskCli
               )}
             </>
           )}
-          {status === 'in_progress' && onQueueSettings && (
+          {status === 'executing' && onQueueSettings && (
             <Button
               variant="ghost"
               size="icon"
@@ -729,14 +719,11 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
 
   const tasksByStatus = useMemo(() => {
     const grouped: Record<TaskStatusColumn, Task[]> = {
-      backlog: [],
+      inbox: [],
       brainstorming: [],
-      spec_review: [],
       planning: [],
-      plan_review: [],
-      in_progress: [],
-      preview: [],
-      pr_ready: [],
+      executing: [],
+      verifying: [],
       done: [],
     };
 
@@ -950,9 +937,9 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     // status change or race with auto-promotion). processQueue auto-promotion
     // calls persistTaskStatus directly, never this function.
     // ============================================
-    if (newStatus === 'in_progress' && isQueueAtCapacity(taskId)) {
+    if (newStatus === 'executing' && isQueueAtCapacity(taskId)) {
       console.log('[Queue] In Progress full, redirecting task to Backlog');
-      newStatus = 'backlog';
+      newStatus = 'inbox';
     }
 
     const oldStatus = task?.status;
@@ -1016,12 +1003,12 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
    * Move all backlog tasks to in_progress
    */
   const handleQueueAll = async () => {
-    const backlogTasks = tasksByStatus.backlog;
+    const backlogTasks = tasksByStatus.inbox;
     if (backlogTasks.length === 0) return;
 
     let movedCount = 0;
     for (const task of backlogTasks) {
-      const result = await persistTaskStatus(task.id, 'in_progress');
+      const result = await persistTaskStatus(task.id, 'executing');
       if (result.success) {
         movedCount++;
       } else {
@@ -1087,10 +1074,10 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         // Get CURRENT state from store to ensure accuracy
         const currentTasks = useTaskStore.getState().tasks;
         const inProgressCount = currentTasks.filter((t) =>
-          t.status === 'in_progress' && !t.metadata?.archivedAt
+          t.status === 'executing' && !t.metadata?.archivedAt
         ).length;
         const queuedTasks = currentTasks.filter((t) =>
-          t.status === 'backlog' && !t.metadata?.archivedAt && !attemptedTaskIds.has(t.id)
+          t.status === 'inbox' && !t.metadata?.archivedAt && !attemptedTaskIds.has(t.id)
         );
 
         // Stop if no capacity, no queued tasks, or too many consecutive failures
@@ -1111,7 +1098,7 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         })[0];
 
         console.log(`[Queue] Auto-promoting task ${nextTask.id} from Queue to In Progress (${inProgressCount + 1}/${maxParallelTasks})`);
-        const result = await persistTaskStatus(nextTask.id, 'in_progress');
+        const result = await persistTaskStatus(nextTask.id, 'executing');
 
         if (result.success) {
           // Reset consecutive failures on success
@@ -1139,8 +1126,8 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     const unregister = useTaskStore.getState().registerTaskStatusChangeListener(
       (taskId, oldStatus, newStatus) => {
         // When a task leaves in_progress (e.g., goes to human_review), process the queue
-        if (oldStatus === 'in_progress' && newStatus !== 'in_progress') {
-          console.log(`[Queue] Task ${taskId} left in_progress, processing queue to fill slot`);
+        if (oldStatus === 'executing' && newStatus !== 'executing') {
+          console.log(`[Queue] Task ${taskId} left executing, processing queue to fill slot`);
           processQueue();
         }
       }
@@ -1309,16 +1296,12 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
     // Check each column for stale IDs
     let hasStaleIds = false;
     const cleanedOrder: typeof taskOrder = {
-      backlog: [],
+      inbox: [],
       brainstorming: [],
-      spec_review: [],
       planning: [],
-      plan_review: [],
-      in_progress: [],
-      preview: [],
-      pr_ready: [],
+      executing: [],
+      verifying: [],
       done: [],
-      error: []
     };
 
     for (const status of Object.keys(taskOrder) as Array<keyof typeof taskOrder>) {
@@ -1431,10 +1414,10 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
         </h1>
 
         {/* Active runs chip */}
-        {tasksByStatus['in_progress']?.length > 0 && (
+        {tasksByStatus['executing']?.length > 0 && (
           <span className="flex items-center gap-1.5 rounded-[5px] bg-[var(--primary-wash)] px-2 py-0.5 text-[11px] text-[var(--primary)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-cyan)] animate-pulse" />
-            {tasksByStatus['in_progress'].length} running
+            {tasksByStatus['executing'].length} running
           </span>
         )}
 
@@ -1480,16 +1463,16 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
               onTaskClick={onTaskClick}
               onStatusChange={handleStatusChange}
               isOver={overColumnId === status}
-              onAddClick={status === 'backlog' ? onNewTaskClick : undefined}
-              onQueueAll={status === 'backlog' ? handleQueueAll : undefined}
-              onQueueSettings={status === 'in_progress' ? () => {
+              onAddClick={status === 'inbox' ? onNewTaskClick : undefined}
+              onQueueAll={status === 'inbox' ? handleQueueAll : undefined}
+              onQueueSettings={status === 'executing' ? () => {
                 // Only open modal if we have a valid projectId
                 if (!projectId) return;
                 queueSettingsProjectIdRef.current = projectId;
                 setShowQueueSettings(true);
               } : undefined}
               onArchiveAll={status === 'done' ? handleArchiveAll : undefined}
-              maxParallelTasks={status === 'in_progress' ? maxParallelTasks : undefined}
+              maxParallelTasks={status === 'executing' ? maxParallelTasks : undefined}
               archivedCount={status === 'done' ? archivedCount : undefined}
               showArchived={status === 'done' ? showArchived : undefined}
               onToggleArchived={status === 'done' ? toggleShowArchived : undefined}
