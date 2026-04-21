@@ -57,27 +57,27 @@ export const XSTATE_TO_PHASE: Record<TaskStateName, ExecutionPhase> & Record<str
 export function mapStateToStatus(state: string): TaskStatus {
   switch (state) {
     case 'backlog':
-      return 'backlog';
+      return 'inbox';
     case 'planning':
     case 'coding':
-      return 'in_progress';
+      return 'executing';
     case 'plan_review':
-      return 'plan_review';
+      return 'planning';
     case 'qa_review':
     case 'qa_fixing':
-      return 'in_progress';
+      return 'executing';
     case 'preview':
-      return 'preview';
+      return 'verifying';
     case 'error':
-      return 'error';
+      return 'inbox';
     case 'creating_pr':
-      return 'preview';
+      return 'verifying';
     case 'pr_ready':
-      return 'pr_ready';
+      return 'done';
     case 'done':
       return 'done';
     default:
-      return 'backlog';
+      return 'inbox';
   }
 }
 

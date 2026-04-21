@@ -13,5 +13,5 @@ import type { TaskStatus } from '../types';
  * @returns true if the task is completed, false otherwise
  */
 export function isCompletedTask(status: TaskStatus): boolean {
-  return status === 'done' || status === 'pr_ready' || status === 'preview';
+  return status === 'done' || status === 'verifying';
 }

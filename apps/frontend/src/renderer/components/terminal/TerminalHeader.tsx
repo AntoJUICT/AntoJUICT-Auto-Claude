@@ -70,7 +70,7 @@ export function TerminalHeader({
   pendingClaudeResume,
 }: TerminalHeaderProps) {
   const { t } = useTranslation(['terminal', 'common']);
-  const backlogTasks = tasks.filter((t) => t.status === 'backlog');
+  const backlogTasks = tasks.filter((t) => t.status === 'inbox');
 
   // Check if 2+ terminals have pending Claude resume
   // Use a derived selector returning a primitive to avoid re-renders on unrelated terminal changes

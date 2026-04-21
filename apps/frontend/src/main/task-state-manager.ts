@@ -105,29 +105,19 @@ export class TaskStateManager {
       case 'done':
         this.handleUiEvent(taskId, { type: 'MARK_DONE' }, task, project);
         return true;
-      case 'pr_ready':
-        this.handleUiEvent(
-          taskId,
-          { type: 'PR_CREATED', prUrl: task.metadata?.prUrl ?? '' },
-          task,
-          project
-        );
-        return true;
-      case 'in_progress': {
+      case 'executing': {
         const currentState = this.getCurrentState(taskId);
         if (currentState === 'plan_review') {
           this.handleUiEvent(taskId, { type: 'PLAN_APPROVED' }, task, project);
-        } else if (currentState === 'error') {
-          this.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
         } else {
           this.handleUiEvent(taskId, { type: 'USER_RESUMED' }, task, project);
         }
         return true;
       }
-      case 'preview':
+      case 'verifying':
         this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: true }, task, project);
         return true;
-      case 'backlog':
+      case 'inbox':
         this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: false }, task, project);
         return true;
       default:
@@ -390,14 +380,10 @@ export class TaskStateManager {
 
     switch (status) {
       case 'brainstorming':
-      case 'spec_review':
       case 'planning':
         stateValue = 'planning';
         break;
-      case 'plan_review':
-        stateValue = 'plan_review';
-        break;
-      case 'in_progress':
+      case 'executing':
         if (executionPhase === 'planning') {
           stateValue = 'planning';
         } else if (executionPhase === 'qa_review') {
@@ -408,17 +394,14 @@ export class TaskStateManager {
           stateValue = 'coding';
         }
         break;
-      case 'preview':
+      case 'verifying':
         stateValue = 'preview';
-        break;
-      case 'pr_ready':
-        stateValue = 'pr_ready';
         break;
       case 'done':
         stateValue = 'done';
         break;
-      case 'error':
-        stateValue = 'error';
+      case 'inbox':
+        stateValue = 'backlog';
         break;
       default:
         stateValue = 'backlog';

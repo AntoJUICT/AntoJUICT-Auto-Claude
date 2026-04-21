@@ -2777,7 +2777,7 @@ export function registerWorktreeHandlers(
         // (skip when caller will set a different status, e.g., 'done')
         if (!skipStatusChange) {
           // Route through TaskStateManager (XState) to avoid dual emission
-          taskStateManager.handleManualStatusChange(taskId, 'backlog', task, project);
+          taskStateManager.handleManualStatusChange(taskId, 'inbox', task, project);
         }
 
         return {

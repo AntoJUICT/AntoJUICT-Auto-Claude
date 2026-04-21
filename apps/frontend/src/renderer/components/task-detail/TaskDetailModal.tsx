@@ -283,7 +283,7 @@ function TaskDetailModalContent({ open, task, onOpenChange, onSwitchToTerminals,
       );
     }
 
-    if (task.status === 'backlog' || task.status === 'in_progress') {
+    if (task.status === 'inbox' || task.status === 'executing') {
       return (
         <Button
           variant={state.isRunning ? 'destructive' : 'default'}
@@ -399,11 +399,11 @@ function TaskDetailModalContent({ open, task, onOpenChange, onSwitchToTerminals,
                         <>
                            <Badge
                              variant={getStatusBadgeVariant(task.status, state.isStuck)}
-                             className={cn('text-xs', (task.status === 'in_progress' && !state.isStuck) && 'status-running')}
+                             className={cn('text-xs', (task.status === 'executing' && !state.isStuck) && 'status-running')}
                            >
                              {t(TASK_STATUS_LABELS[task.status])}
                            </Badge>
-                          {task.status === 'preview' && (
+                          {task.status === 'verifying' && (
                             <Badge
                               variant="success"
                               className="text-xs"

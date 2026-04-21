@@ -761,7 +761,7 @@ Please confirm you're ready by saying: I'm ready to work on ${selectedTask.title
   }, [terminal?.worktreeConfig?.worktreePath, settings.preferredIDE, settings.customIDEPath, toast]);
 
   // Get backlog tasks for worktree dialog
-  const backlogTasks = tasks.filter((t) => t.status === 'backlog');
+  const backlogTasks = tasks.filter((t) => t.status === 'inbox');
 
   // Determine border color based on Claude busy state
   // Red (busy) = Claude is actively processing

@@ -79,19 +79,16 @@ export function getPlanPath(project: Project, task: Task): string {
 export function mapStatusToPlanStatus(status: TaskStatus): string {
   switch (status) {
     case 'brainstorming':
-    case 'spec_review':
     case 'planning':
-    case 'plan_review':
       return 'planning';
-    case 'in_progress':
+    case 'executing':
       return 'in_progress';
-    case 'preview':
-    case 'pr_ready':
+    case 'verifying':
       return 'review';
     case 'done':
       return 'completed';
-    case 'error':
-      return 'failed';
+    case 'inbox':
+      return 'pending';
     default:
       return 'pending';
   }
@@ -318,12 +315,12 @@ export function persistPlanPhaseSync(
     // Also update status to match the phase so the card stays in the correct column on refresh
     // Map execution phase to TaskStatus for column placement
     const phaseToStatus: Record<string, TaskStatus> = {
-      'planning': 'in_progress',
-      'coding': 'in_progress',
-      'qa_review': 'in_progress',
-      'qa_fixing': 'in_progress',
-      'complete': 'preview',
-      'failed': 'error'
+      'planning': 'executing',
+      'coding': 'executing',
+      'qa_review': 'executing',
+      'qa_fixing': 'executing',
+      'complete': 'verifying',
+      'failed': 'inbox'
     };
     const mappedStatus = phaseToStatus[phase];
     if (mappedStatus) {

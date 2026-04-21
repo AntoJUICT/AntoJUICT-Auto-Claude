@@ -17,10 +17,17 @@ import { updateRoadmapFeatureOutcome, revertRoadmapFeatureOutcome } from './util
  */
 export function migrateTaskStatus(status: string): TaskStatus {
   const migrations: Record<string, TaskStatus> = {
-    queue: 'backlog',
-    ai_review: 'in_progress',
-    pr_created: 'pr_ready',
-    human_review: 'plan_review',
+    queue: 'inbox',
+    backlog: 'inbox',
+    ai_review: 'executing',
+    in_progress: 'executing',
+    pr_created: 'done',
+    pr_ready: 'done',
+    human_review: 'planning',
+    plan_review: 'planning',
+    spec_review: 'brainstorming',
+    preview: 'verifying',
+    error: 'inbox',
   };
   return (migrations[status] ?? status) as TaskStatus;
 }
@@ -572,6 +579,7 @@ export class ProjectStore {
           title,
           description: finalDescription,
           status: correctedStatus,
+          reviewState: 'none' as const,
           subtasks,
           logs: [],
           metadata,
@@ -616,8 +624,8 @@ export class ProjectStore {
     const allCompleted = completedCount === subtasks.length;
 
     // Only auto-correct if all subtasks are done and status is in an incomplete coding state.
-    // Preserve preview (user review), error (needs investigation), done, pr_ready.
-    if (!allCompleted || finalStatus === 'preview' || finalStatus === 'done' || finalStatus === 'pr_ready' || finalStatus === 'error') {
+    // Preserve verifying (user review), done.
+    if (!allCompleted || finalStatus === 'verifying' || finalStatus === 'done') {
       return { status: finalStatus };
     }
 
@@ -630,16 +638,16 @@ export class ProjectStore {
       }
     }
 
-    console.warn(`[ProjectStore] Auto-correcting task ${taskName}: all ${subtasks.length} subtasks completed but status was ${finalStatus}. Setting to preview.`);
+    console.warn(`[ProjectStore] Auto-correcting task ${taskName}: all ${subtasks.length} subtasks completed but status was ${finalStatus}. Setting to verifying.`);
 
     if (plan) {
       // Clone before mutation — only apply to the original plan object if the write succeeds
       const correctedPlan = {
         ...plan,
-        status: 'preview' as const,
+        status: 'verifying' as const,
         planStatus: 'review',
         updated_at: new Date().toISOString(),
-        xstateState: 'preview',
+        xstateState: 'verifying',
         executionPhase: 'complete'
       };
       try {
@@ -657,7 +665,7 @@ export class ProjectStore {
       }
     }
 
-    return { status: 'preview' };
+    return { status: 'verifying' };
   }
 
   /**
@@ -671,29 +679,32 @@ export class ProjectStore {
     plan: ImplementationPlan | null
   ): { status: TaskStatus } {
     if (!plan?.status) {
-      return { status: 'backlog' };
+      return { status: 'inbox' };
     }
 
     const statusMap: Record<string, TaskStatus> = {
-      'pending': 'backlog',
-      'planning': 'in_progress',
-      'in_progress': 'in_progress',
-      'coding': 'in_progress',
-      'review': 'in_progress',
+      'pending': 'inbox',
+      'planning': 'planning',
+      'in_progress': 'executing',
+      'coding': 'executing',
+      'review': 'executing',
       'completed': 'done',
       'done': 'done',
-      'human_review': 'preview',
-      'ai_review': 'in_progress',
-      'pr_created': 'pr_ready',
-      'backlog': 'backlog',
-      'error': 'error',
-      'queue': 'backlog',
-      'queued': 'backlog',
+      'human_review': 'verifying',
+      'ai_review': 'executing',
+      'pr_created': 'done',
+      'backlog': 'inbox',
+      'inbox': 'inbox',
+      'error': 'inbox',
+      'queue': 'inbox',
+      'queued': 'inbox',
       'brainstorming': 'brainstorming',
-      'spec_review': 'spec_review',
-      'plan_review': 'plan_review',
-      'preview': 'preview',
-      'pr_ready': 'pr_ready'
+      'spec_review': 'brainstorming',
+      'plan_review': 'planning',
+      'preview': 'verifying',
+      'pr_ready': 'done',
+      'executing': 'executing',
+      'verifying': 'verifying'
     };
 
     // Apply legacy status migration first, then map through statusMap

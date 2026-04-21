@@ -2,7 +2,7 @@
  * Mock implementation for task operations
  */
 
-import type { TaskRecoveryOptions } from '../../../shared/types';
+import type { TaskRecoveryOptions, TaskStatus } from '../../../shared/types';
 import { mockTasks } from './mock-data';
 
 export const taskMock = {
@@ -19,7 +19,8 @@ export const taskMock = {
       specId: `00${mockTasks.length + 1}-new-task`,
       title,
       description,
-      status: 'backlog' as const,
+      status: 'inbox' as const,
+      reviewState: 'none' as const,
       subtasks: [],
       logs: [],
       createdAt: new Date(),
@@ -37,7 +38,8 @@ export const taskMock = {
       specId: '001-updated',
       title: updates.title || 'Updated Task',
       description: updates.description || 'Updated description',
-      status: 'backlog' as const,
+      status: 'inbox' as const,
+      reviewState: 'none' as const,
       subtasks: [],
       logs: [],
       createdAt: new Date(),
@@ -72,7 +74,7 @@ export const taskMock = {
     data: {
       taskId,
       recovered: true,
-      newStatus: options?.targetStatus || 'backlog',
+      newStatus: (options?.targetStatus || 'inbox') as TaskStatus,
       message: '[Browser Mock] Task recovered successfully'
     }
   }),

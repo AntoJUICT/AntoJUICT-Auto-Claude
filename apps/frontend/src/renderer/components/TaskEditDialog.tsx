@@ -132,7 +132,7 @@ export function TaskEditDialog({ task, open, onOpenChange, onSaved }: TaskEditDi
   }, [phaseModels]);
 
   // Disable fast mode toggle for tasks that have moved past backlog
-  const isFastModeEditable = task.status === 'backlog';
+  const isFastModeEditable = task.status === 'inbox';
 
   // Reset form when task changes or dialog opens
   useEffect(() => {

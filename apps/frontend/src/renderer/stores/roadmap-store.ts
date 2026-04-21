@@ -299,7 +299,7 @@ async function reconcileLinkedFeatures(projectId: string, roadmap: Roadmap): Pro
         store.markFeatureDoneBySpecId(feature.linkedSpecId!, 'deleted');
         hasChanges = true;
       }
-    } else if (task.status === 'done' || task.status === 'pr_ready') {
+    } else if (task.status === 'done') {
       // Task is completed → mark feature as done
       if (feature.status !== 'done' || !feature.taskOutcome) {
         store.markFeatureDoneBySpecId(feature.linkedSpecId!, 'completed');

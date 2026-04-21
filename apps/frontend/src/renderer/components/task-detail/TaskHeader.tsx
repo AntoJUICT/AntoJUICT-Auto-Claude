@@ -75,12 +75,12 @@ export function TaskHeader({
           ) : (
             <>
               <Badge
-                variant={task.status === 'done' ? 'success' : task.status === 'preview' ? 'purple' : task.status === 'in_progress' ? 'info' : 'secondary'}
-                className={cn('text-xs', (task.status === 'in_progress' && !isStuck) && 'status-running')}
+                variant={task.status === 'done' ? 'success' : task.status === 'verifying' ? 'purple' : task.status === 'executing' ? 'info' : 'secondary'}
+                className={cn('text-xs', (task.status === 'executing' && !isStuck) && 'status-running')}
               >
                 {t(TASK_STATUS_LABELS[task.status])}
               </Badge>
-              {task.status === 'preview' && (
+              {task.status === 'verifying' && (
                 <Badge
                   variant="success"
                   className="text-xs"

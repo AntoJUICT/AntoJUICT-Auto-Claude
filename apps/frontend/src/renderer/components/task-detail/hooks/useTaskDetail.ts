@@ -97,10 +97,10 @@ export function useTaskDetail({ task }: UseTaskDetailOptions) {
 
   const selectedProject = useProjectStore((state) => state.getSelectedProject());
   const logOrder = useSettingsStore(s => s.settings.logOrder);
-  const isRunning = task.status === 'in_progress';
+  const isRunning = task.status === 'executing';
   // isActiveTask: task is currently being processed
-  const isActiveTask = task.status === 'in_progress';
-  const needsReview = task.status === 'preview';
+  const isActiveTask = task.status === 'executing';
+  const needsReview = task.status === 'verifying';
   const executionPhase = task.executionProgress?.phase;
   const hasActiveExecution = executionPhase && executionPhase !== 'idle' && executionPhase !== 'complete' && executionPhase !== 'failed';
   const isIncomplete = isIncompleteHumanReview(task);

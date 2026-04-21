@@ -72,7 +72,7 @@ export function startPipeline(
   emitStatusChange(window, taskId, 'brainstorming');
   runPhase(window, task, 'brainstorming').catch((err) => {
     console.error('[PipelineRunner] startPipeline error:', err);
-    emitStatusChange(window, taskId, 'error');
+    emitStatusChange(window, taskId, 'inbox');
   });
 }
 
@@ -83,7 +83,7 @@ export function approveSpec(window: BrowserWindow, taskId: string): void {
   emitStatusChange(window, taskId, 'planning');
   runPhase(window, task, 'planning').catch((err) => {
     console.error('[PipelineRunner] approveSpec error:', err);
-    emitStatusChange(window, taskId, 'error');
+    emitStatusChange(window, taskId, 'inbox');
   });
 }
 
@@ -91,10 +91,10 @@ export function approvePlan(window: BrowserWindow, taskId: string): void {
   const task = activePipelines.get(taskId);
   if (!task || task.phase !== 'plan_review') return;
   task.phase = 'in_progress';
-  emitStatusChange(window, taskId, 'in_progress');
+  emitStatusChange(window, taskId, 'executing');
   runPhase(window, task, 'implementation').catch((err) => {
     console.error('[PipelineRunner] approvePlan error:', err);
-    emitStatusChange(window, taskId, 'error');
+    emitStatusChange(window, taskId, 'inbox');
   });
 }
 
@@ -102,7 +102,7 @@ export function approvePreview(window: BrowserWindow, taskId: string): void {
   const task = activePipelines.get(taskId);
   if (!task || task.phase !== 'preview') return;
   task.phase = 'pr_ready';
-  emitStatusChange(window, taskId, 'pr_ready');
+  emitStatusChange(window, taskId, 'done');
 }
 
 export function sendBack(
@@ -119,7 +119,7 @@ export function sendBack(
   emitStatusChange(window, taskId, nextPhase);
   runPhase(window, task, pythonPhase, note).catch((err) => {
     console.error('[PipelineRunner] sendBack error:', err);
-    emitStatusChange(window, taskId, 'error');
+    emitStatusChange(window, taskId, 'inbox');
   });
 }
 
@@ -167,14 +167,14 @@ async function runPhase(
   const envCheck = await _config.ensurePythonEnvReady();
   if (!envCheck.ready) {
     console.error('[PipelineRunner] Python environment not ready:', envCheck.error);
-    emitStatusChange(window, task.taskId, 'error');
+    emitStatusChange(window, task.taskId, 'inbox');
     return;
   }
 
   const backendSource = _config.getAutoBuildSourcePath();
   if (!backendSource) {
     console.error('[PipelineRunner] Cannot locate backend source directory');
-    emitStatusChange(window, task.taskId, 'error');
+    emitStatusChange(window, task.taskId, 'inbox');
     return;
   }
 
@@ -266,7 +266,7 @@ async function runPhase(
 
     if (code !== 0) {
       console.error(`[PipelineRunner] Phase ${phase} exited with code ${code} for task ${task.taskId}`);
-      emitStatusChange(window, task.taskId, 'error');
+      emitStatusChange(window, task.taskId, 'inbox');
     }
   });
 }
@@ -279,13 +279,13 @@ function handleTaskEvent(
   switch (event.type) {
     case 'BRAINSTORMING_COMPLETE':
       task.phase = 'spec_review';
-      emitStatusChange(window, task.taskId, 'spec_review');
+      emitStatusChange(window, task.taskId, 'brainstorming');
       break;
 
     case 'PLANNING_COMPLETE':
       task.totalSubtasks = (event as { subtaskCount?: number }).subtaskCount ?? 0;
       task.phase = 'plan_review';
-      emitStatusChange(window, task.taskId, 'plan_review');
+      emitStatusChange(window, task.taskId, 'planning');
       break;
 
     case 'SUBTASK_STARTED': {
@@ -304,13 +304,13 @@ function handleTaskEvent(
 
     case 'ALL_SUBTASKS_DONE':
       task.phase = 'preview';
-      emitStatusChange(window, task.taskId, 'preview');
+      emitStatusChange(window, task.taskId, 'verifying');
       break;
 
     case 'IMPLEMENTATION_FAILED':
     case 'PIPELINE_ERROR':
       task.phase = 'error';
-      emitStatusChange(window, task.taskId, 'error');
+      emitStatusChange(window, task.taskId, 'inbox');
       break;
 
     default:

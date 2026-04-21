@@ -68,7 +68,8 @@ export const mockTasks = [
     specId: '001-add-auth',
     title: 'Add user authentication',
     description: 'Implement JWT-based user authentication with login/logout functionality',
-    status: 'backlog' as const,
+    status: 'inbox' as const,
+    reviewState: 'none' as const,
     subtasks: [],
     logs: [],
     createdAt: new Date(Date.now() - 86400000),
@@ -80,7 +81,8 @@ export const mockTasks = [
     specId: '002-dashboard',
     title: 'Build analytics dashboard',
     description: 'Create a real-time analytics dashboard with charts and metrics',
-    status: 'in_progress' as const,
+    status: 'executing' as const,
+    reviewState: 'none' as const,
     subtasks: [
       { id: 'subtask-1', title: 'Setup chart library', description: 'Install and configure Chart.js', status: 'completed' as const, files: ['src/lib/charts.ts'] },
       { id: 'subtask-2', title: 'Create dashboard layout', description: 'Build responsive grid layout', status: 'in_progress' as const, files: ['src/components/Dashboard.tsx'] },
@@ -96,7 +98,8 @@ export const mockTasks = [
     specId: '003-fix-bug',
     title: 'Fix pagination bug',
     description: 'Fix off-by-one error in table pagination',
-    status: 'preview' as const,
+    status: 'verifying' as const,
+    reviewState: 'none' as const,
     subtasks: [
       { id: 'subtask-1', title: 'Fix pagination logic', description: 'Correct the offset calculation', status: 'completed' as const, files: ['src/utils/pagination.ts'] }
     ],
@@ -111,6 +114,7 @@ export const mockTasks = [
     title: 'Refactor API layer',
     description: 'Consolidate API calls into a single service',
     status: 'done' as const,
+    reviewState: 'none' as const,
     subtasks: [
       { id: 'subtask-1', title: 'Create API service', description: 'Build centralized API client', status: 'completed' as const, files: ['src/services/api.ts'] },
       { id: 'subtask-2', title: 'Migrate endpoints', description: 'Update all components to use new service', status: 'completed' as const, files: ['src/components/*.tsx'] }
@@ -125,7 +129,8 @@ export const mockTasks = [
     specId: '005-add-search',
     title: 'Add search functionality',
     description: 'Implement full-text search across all entities',
-    status: 'pr_ready' as const,
+    status: 'done' as const,
+    reviewState: 'none' as const,
     subtasks: [
       { id: 'subtask-1', title: 'Setup search index', description: 'Configure search indexing', status: 'completed' as const, files: ['src/lib/search.ts'] },
       { id: 'subtask-2', title: 'Add search UI', description: 'Create search component', status: 'completed' as const, files: ['src/components/Search.tsx'] }

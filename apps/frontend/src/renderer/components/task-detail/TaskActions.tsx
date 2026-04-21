@@ -78,7 +78,7 @@ export function TaskActions({
             <Play className="mr-2 h-4 w-4" />
             Resume Task
           </Button>
-        ) : (task.status === 'backlog' || task.status === 'in_progress') && (
+        ) : (task.status === 'inbox' || task.status === 'executing') && (
           <Button
             className="w-full"
             variant={isRunning ? 'destructive' : 'default'}
