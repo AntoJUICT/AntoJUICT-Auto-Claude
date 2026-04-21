@@ -20,9 +20,7 @@ import {
   GitBranch,
   Wrench,
   PanelLeft,
-  PanelLeftClose,
-  Clock,
-  Star
+  PanelLeftClose
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { MeshMark } from './ui/MeshMark';
@@ -457,29 +455,6 @@ export function Sidebar({
               <TooltipContent side={isCollapsed ? 'right' : 'top'}>{t('tooltips.settings')}</TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
-                  onClick={() => window.open('https://github.com/AndyMik90/Auto-Claude/issues', '_blank')}
-                >
-                  <Clock className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side={isCollapsed ? 'right' : 'top'}>{t('tooltips.help')}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[var(--text-dim)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
-                  onClick={() => window.open('https://github.com/sponsors/AndyMik90', '_blank')}
-                >
-                  <Star className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side={isCollapsed ? 'right' : 'top'}>{t('actions.sponsor')}</TooltipContent>
-            </Tooltip>
           </div>
 
           {/* New Task gradient button */}
