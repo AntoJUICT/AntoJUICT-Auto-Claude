@@ -66,8 +66,8 @@ import { GlobalDownloadIndicator } from './components/GlobalDownloadIndicator';
 import { useIpcListeners } from './hooks/useIpc';
 import { useGlobalTerminalListeners } from './hooks/useGlobalTerminalListeners';
 import { useTerminalProfileChange } from './hooks/useTerminalProfileChange';
-import { COLOR_THEMES, UI_SCALE_MIN, UI_SCALE_MAX, UI_SCALE_DEFAULT } from '../shared/constants';
-import type { Task, Project, ColorTheme } from '../shared/types';
+import { UI_SCALE_MIN, UI_SCALE_MAX, UI_SCALE_DEFAULT } from '../shared/constants';
+import type { Task, Project } from '../shared/types';
 import { ProjectTabBar } from './components/ProjectTabBar';
 import { AddProjectModal } from './components/AddProjectModal';
 import { ViewStateProvider } from './contexts/ViewStateContext';
@@ -454,39 +454,28 @@ export function App() {
     const root = document.documentElement;
 
     const applyTheme = () => {
-      // Apply light/dark mode
-      if (settings.theme === 'dark') {
-        root.classList.add('dark');
-      } else if (settings.theme === 'light') {
+      if (settings.theme === 'light') {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      } else if (settings.theme === 'dark') {
+        root.classList.remove('light');
         root.classList.remove('dark');
       } else {
-        // System preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          root.classList.add('dark');
+        // System preference — light only if system prefers light
+        if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+          root.classList.add('light');
+          root.classList.remove('dark');
         } else {
+          root.classList.remove('light');
           root.classList.remove('dark');
         }
       }
     };
 
-    // Apply color theme via data-theme attribute
-    // Validate colorTheme against known themes, fallback to 'default' if invalid
-    const validThemeIds = COLOR_THEMES.map((t) => t.id);
-    const rawColorTheme = settings.colorTheme ?? 'default';
-    const colorTheme: ColorTheme = validThemeIds.includes(rawColorTheme as ColorTheme)
-      ? (rawColorTheme as ColorTheme)
-      : 'default';
-
-    if (colorTheme === 'default') {
-      root.removeAttribute('data-theme');
-    } else {
-      root.setAttribute('data-theme', colorTheme);
-    }
-
     applyTheme();
 
     // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
     const handleChange = () => {
       if (settings.theme === 'system') {
         applyTheme();
@@ -497,7 +486,7 @@ export function App() {
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
     };
-  }, [settings.theme, settings.colorTheme]);
+  }, [settings.theme]);
 
   // Apply UI scale
   useEffect(() => {
