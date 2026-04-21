@@ -184,3 +184,7 @@ Agents.md
 
 # Auto Claude data directory
 .juict-agentic-os/
+
+# Auto Claude generated files
+.juict-agentic-os-security.json
+.juict-agentic-os-status
