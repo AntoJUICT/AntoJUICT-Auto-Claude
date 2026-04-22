@@ -35,6 +35,7 @@ import { registerProfileHandlers } from './profile-handlers';
 import { registerScreenshotHandlers } from './screenshot-handlers';
 import { registerTerminalWorktreeIpcHandlers } from './terminal';
 import { registerPreviewHandlers } from './preview-handlers';
+import { registerPipelineHandlers } from './pipeline-handlers';
 import { notificationService } from '../notification-service';
 import { setAgentManagerRef } from './utils';
 
@@ -130,6 +131,9 @@ export function setupIpcHandlers(
   // Preview handlers (dev server control and visual preview)
   registerPreviewHandlers();
 
+  // Pipeline handlers (brainstorm, plan writing, functional plan read, finisher)
+  registerPipelineHandlers(agentManager, getMainWindow);
+
   console.warn('[IPC] All handler modules registered successfully');
 }
 
@@ -158,5 +162,6 @@ export {
   registerMcpHandlers,
   registerProfileHandlers,
   registerScreenshotHandlers,
-  registerPreviewHandlers
+  registerPreviewHandlers,
+  registerPipelineHandlers
 };
