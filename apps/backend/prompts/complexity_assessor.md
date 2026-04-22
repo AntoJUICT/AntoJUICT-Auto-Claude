@@ -74,12 +74,12 @@ Determine the type of work being requested:
 ## COMPLEXITY TIERS
 
 ### SIMPLE
-- 1-2 files modified
+- 1-4 files modified (i18n locale files like `en/*.json` / `fr/*.json` do NOT count toward this limit — they are translation-only and add no logic complexity)
 - Single service
 - No external integrations
 - No infrastructure changes
 - No new dependencies
-- Examples: typo fixes, color changes, text updates, simple bug fixes
+- Examples: typo fixes, color changes, text updates, simple bug fixes, small UI tweaks that touch a component + its translation keys
 
 ### STANDARD
 - 3-10 files modified
@@ -651,7 +651,7 @@ START
 ## CRITICAL RULES
 
 1. **ALWAYS output complexity_assessment.json** - The orchestrator needs this file
-2. **Be conservative** - When in doubt, go higher complexity (better to over-prepare)
+2. **Prefer lower complexity** - When in doubt, go lower (a lean plan is better than over-engineering; the planner can always add subtasks based on what it finds in the codebase)
 3. **Flag research needs** - If ANY unfamiliar technology is involved, set `needs_research: true`
 4. **Consider hidden complexity** - "Optional layer" = feature flags = more files than obvious
 5. **Validate JSON** - Output must be valid JSON
@@ -673,3 +673,14 @@ START
 1. Read `requirements.json` to understand the full task context
 2. Analyze the requirements against all assessment criteria
 3. Create `complexity_assessment.json` with your assessment
+
+---
+
+## CHANGE LOG (original values — revert here if needed)
+
+| Date | What changed | Original value |
+|------|-------------|----------------|
+| 2026-04-22 | SIMPLE tier file limit | Was `1-2 files modified` with no i18n exception |
+| 2026-04-22 | CRITICAL RULES #2 bias | Was `Be conservative — When in doubt, go higher complexity (better to over-prepare)` |
+
+**To revert:** replace the SIMPLE tier back to `1-2 files modified` (remove i18n note), and restore CRITICAL RULES #2 to the original text above.
