@@ -1,3 +1,12 @@
+## 2.7.13 - Snellere coding fase
+
+### ⚡ Performance
+
+- **Alle subtasks in één agent sessie** — De coding fase startte voorheen een nieuwe Claude sessie per subtask (cold start, context opnieuw opbouwen, 2-3s wachttijd). Nu werkt één sessie door alle pending subtasks heen in volgorde, identiek aan hoe de superpowers executing-plans skill werkt.
+- **Geen sessie-overhead tussen subtasks** — De agent markeert elke subtask als `completed` in `implementation_plan.json` en gaat direct door naar de volgende, zonder onderbreking.
+
+---
+
 ## 2.7.12 - Pipeline Review Flow Fix
 
 ### 🐛 Bug Fixes
