@@ -59,9 +59,9 @@ load_dotenv = import_dotenv()
 # NOTE: graphiti_config is imported lazily in validate_environment() to avoid
 # triggering graphiti_core -> real_ladybug -> pywintypes import chain before
 # platform dependency validation can run. See ACS-253.
+from init import init_auto_claude_dir
 from linear_integration import LinearManager
 from linear_updater import is_linear_enabled
-from spec.pipeline import get_specs_dir
 from ui import (
     Icons,
     bold,
@@ -94,6 +94,12 @@ def setup_environment() -> Path:
         load_dotenv(dev_env_file)
 
     return script_dir
+
+
+def get_specs_dir(project_dir: Path) -> Path:
+    """Get the specs directory path, initialising .juict-agentic-os if needed."""
+    init_auto_claude_dir(project_dir)
+    return project_dir / ".juict-agentic-os" / "specs"
 
 
 def find_spec(project_dir: Path, spec_identifier: str) -> Path | None:

@@ -127,7 +127,7 @@ export class ChangelogService extends EventEmitter {
     ];
 
     for (const p of possiblePaths) {
-      if (existsSync(p) && existsSync(path.join(p, 'runners', 'spec_runner.py'))) {
+      if (existsSync(p) && existsSync(path.join(p, 'runners', 'insights_runner.py'))) {
         return p;
       }
     }

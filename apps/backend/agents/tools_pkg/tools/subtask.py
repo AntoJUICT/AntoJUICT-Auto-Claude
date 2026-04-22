@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 
 from core.file_utils import write_json_atomic
-from spec.validate_pkg.auto_fix import auto_fix_plan
 
 try:
     from claude_agent_sdk import tool
@@ -141,49 +140,6 @@ def create_subtask_tools(spec_dir: Path, project_dir: Path) -> list:
             }
 
         except json.JSONDecodeError as e:
-            # Attempt to auto-fix the plan and retry
-            if auto_fix_plan(spec_dir):
-                # Retry after fix
-                try:
-                    with open(plan_file, encoding="utf-8") as f:
-                        plan = json.load(f)
-
-                    subtask_found = _update_subtask_in_plan(
-                        plan, subtask_id, status, notes
-                    )
-
-                    if subtask_found:
-                        write_json_atomic(plan_file, plan, indent=2)
-                        return {
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": f"Successfully updated subtask '{subtask_id}' to status '{status}' (after auto-fix)",
-                                }
-                            ]
-                        }
-                    else:
-                        return {
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": f"Error: Subtask '{subtask_id}' not found in implementation plan (after auto-fix)",
-                                }
-                            ]
-                        }
-                except Exception as retry_err:
-                    logging.warning(
-                        f"Subtask update retry failed after auto-fix: {retry_err}"
-                    )
-                    return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error: Subtask update failed after auto-fix: {retry_err}",
-                            }
-                        ]
-                    }
-
             return {
                 "content": [
                     {

@@ -151,7 +151,7 @@ vi.mock('fs', async (importOriginal) => {
       // Return true for the fake auto-build path and its expected files
       if (normalizedPath === '/fake/auto-build' ||
           normalizedPath === '/fake/auto-build/runners' ||
-          normalizedPath === '/fake/auto-build/runners/spec_runner.py') {
+          normalizedPath === '/fake/auto-build/runners/insights_runner.py') {
         return true;
       }
       return false;

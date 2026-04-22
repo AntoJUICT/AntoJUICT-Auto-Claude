@@ -405,7 +405,7 @@ app.whenReady().then(() => {
     // Uses EAFP pattern (try/catch with accessSync) instead of existsSync to avoid TOCTOU race conditions
     let validAutoBuildPath = settings.autoBuildPath;
     if (validAutoBuildPath) {
-      const specRunnerPath = join(validAutoBuildPath, 'runners', 'spec_runner.py');
+      const specRunnerPath = join(validAutoBuildPath, 'runners', 'insights_runner.py');
       let specRunnerExists = false;
       try {
         accessSync(specRunnerPath);
@@ -422,7 +422,7 @@ app.whenReady().then(() => {
         if (validAutoBuildPath.endsWith('/auto-claude') || validAutoBuildPath.endsWith('\\auto-claude')) {
           const basePath = validAutoBuildPath.replace(/[/\\]auto-claude$/, '');
           const correctedPath = join(basePath, 'apps', 'backend');
-          const correctedSpecRunnerPath = join(correctedPath, 'runners', 'spec_runner.py');
+          const correctedSpecRunnerPath = join(correctedPath, 'runners', 'insights_runner.py');
 
           let correctedPathExists = false;
           try {
@@ -449,7 +449,7 @@ app.whenReady().then(() => {
         }
 
         if (!migrated) {
-          console.warn('[main] Configured autoBuildPath is invalid (missing runners/spec_runner.py), will use auto-detection:', validAutoBuildPath);
+          console.warn('[main] Configured autoBuildPath is invalid (missing runners/insights_runner.py), will use auto-detection:', validAutoBuildPath);
           validAutoBuildPath = undefined; // Let auto-detection find the correct path
         }
       }

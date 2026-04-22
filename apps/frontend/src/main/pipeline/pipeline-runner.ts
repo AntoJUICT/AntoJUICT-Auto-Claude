@@ -210,6 +210,8 @@ async function runPhase(
     return;
   }
 
+  // TODO(pipeline-redesign): pipeline_runner.py has been removed. Update this path
+  // once the new superpowers-based pipeline script is in place.
   const scriptPath = path.join(backendSource, 'runners', 'pipeline_runner.py');
   const pythonPath = _config.getPythonPath();
   const [pythonCmd, pythonBaseArgs] = parsePythonCommand(pythonPath);

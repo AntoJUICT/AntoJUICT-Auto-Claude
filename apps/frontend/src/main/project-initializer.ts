@@ -243,7 +243,7 @@ export interface InitializationResult {
 export function hasLocalSource(projectPath: string): boolean {
   const localSourcePath = path.join(projectPath, 'apps', 'backend');
   // Use runners/spec_runner.py as marker - ensures valid backend
-  const markerFile = path.join(localSourcePath, 'runners', 'spec_runner.py');
+  const markerFile = path.join(localSourcePath, 'runners', 'insights_runner.py');
   return existsSync(localSourcePath) && existsSync(markerFile);
 }
 

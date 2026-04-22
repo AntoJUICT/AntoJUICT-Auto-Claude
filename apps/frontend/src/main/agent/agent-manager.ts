@@ -259,12 +259,17 @@ export class AgentManager extends EventEmitter {
       return;
     }
 
-    const specRunnerPath = path.join(autoBuildSource, 'runners', 'spec_runner.py');
+    // Validate backend source by checking for a known runner file
+    const backendMarkerPath = path.join(autoBuildSource, 'runners', 'insights_runner.py');
 
-    if (!existsSync(specRunnerPath)) {
-      this.emit('error', taskId, `Spec runner not found at: ${specRunnerPath}`);
+    if (!existsSync(backendMarkerPath)) {
+      this.emit('error', taskId, `Backend source not found at: ${autoBuildSource}`);
       return;
     }
+
+    // TODO(pipeline-redesign): spec_runner.py has been removed. Update this path
+    // once the new superpowers-based pipeline script is in place.
+    const specRunnerPath = path.join(autoBuildSource, 'runners', 'spec_runner.py');
 
     // Reset stuck subtasks if restarting an existing spec creation task
     if (specDir) {

@@ -428,20 +428,9 @@ async def run_autonomous_agent(
     max_planning_validation_retries = 3
 
     def _validate_and_fix_implementation_plan() -> tuple[bool, list[str]]:
-        from spec.validate_pkg import SpecValidator, auto_fix_plan
-
-        spec_validator = SpecValidator(spec_dir)
-        result = spec_validator.validate_implementation_plan()
-        if result.valid:
-            return True, []
-
-        fixed = auto_fix_plan(spec_dir)
-        if fixed:
-            result = spec_validator.validate_implementation_plan()
-            if result.valid:
-                return True, []
-
-        return False, result.errors
+        # Validation via the old spec.validate_pkg has been removed.
+        # The pipeline redesign no longer requires a separate validation step here.
+        return True, []
 
     if first_run:
         print_status(

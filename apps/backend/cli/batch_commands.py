@@ -10,8 +10,48 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from qa.criteria import is_fixes_applied, is_qa_approved, is_qa_rejected
 from ui import highlight, print_status
+
+
+# ---------------------------------------------------------------------------
+# QA status helpers (inlined from the removed qa.criteria module)
+# ---------------------------------------------------------------------------
+
+def _load_implementation_plan(spec_dir: Path) -> dict | None:
+    """Load implementation_plan.json from a spec directory."""
+    plan_file = spec_dir / "implementation_plan.json"
+    if not plan_file.exists():
+        return None
+    try:
+        with open(plan_file, encoding="utf-8") as f:
+            import json as _json
+            return _json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def _get_qa_signoff_status(spec_dir: Path) -> dict | None:
+    plan = _load_implementation_plan(spec_dir)
+    return plan.get("qa_signoff") if plan else None
+
+
+def is_qa_approved(spec_dir: Path) -> bool:
+    status = _get_qa_signoff_status(spec_dir)
+    return bool(status and status.get("status") == "approved")
+
+
+def is_qa_rejected(spec_dir: Path) -> bool:
+    status = _get_qa_signoff_status(spec_dir)
+    return bool(status and status.get("status") == "rejected")
+
+
+def is_fixes_applied(spec_dir: Path) -> bool:
+    status = _get_qa_signoff_status(spec_dir)
+    return bool(
+        status
+        and status.get("status") == "fixes_applied"
+        and status.get("ready_for_qa_revalidation", False)
+    )
 
 
 def handle_batch_create_command(batch_file: str, project_dir: str) -> bool:

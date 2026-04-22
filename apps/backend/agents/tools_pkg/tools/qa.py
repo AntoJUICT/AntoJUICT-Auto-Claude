@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 
 from core.file_utils import write_json_atomic
-from spec.validate_pkg.auto_fix import auto_fix_plan
 
 try:
     from claude_agent_sdk import tool
@@ -154,37 +153,6 @@ def create_qa_tools(spec_dir: Path, project_dir: Path) -> list:
             }
 
         except json.JSONDecodeError as e:
-            # Attempt to auto-fix the plan and retry
-            if auto_fix_plan(spec_dir):
-                # Retry after fix
-                try:
-                    with open(plan_file, encoding="utf-8") as f:
-                        plan = json.load(f)
-
-                    qa_session = _apply_qa_update(plan, status, issues, tests_passed)
-                    write_json_atomic(plan_file, plan, indent=2)
-
-                    return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Updated QA status to '{status}' (session {qa_session}) (after auto-fix)",
-                            }
-                        ]
-                    }
-                except Exception as retry_err:
-                    logging.warning(
-                        f"QA update retry failed after auto-fix: {retry_err} (original error: {e})"
-                    )
-                    return {
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Error: QA update failed after auto-fix: {retry_err} (original JSON error: {e})",
-                            }
-                        ]
-                    }
-
             return {
                 "content": [
                     {

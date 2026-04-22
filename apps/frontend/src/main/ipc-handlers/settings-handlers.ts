@@ -73,7 +73,7 @@ const detectAutoBuildSourcePath = (): string | null => {
   for (const p of possiblePaths) {
     // Use runners/spec_runner.py as marker - this is the file actually needed for task execution
     // This prevents matching legacy 'auto-claude/' directories that don't have the runners
-    const markerPath = path.join(p, 'runners', 'spec_runner.py');
+    const markerPath = path.join(p, 'runners', 'insights_runner.py');
     const exists = existsSync(p) && existsSync(markerPath);
 
     if (debug) {

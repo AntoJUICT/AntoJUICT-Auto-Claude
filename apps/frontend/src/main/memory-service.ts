@@ -112,7 +112,7 @@ function getQueryScriptPath(): string | null {
   for (const p of possiblePaths) {
     // Validate backend structure by checking for spec_runner.py marker
     const backendPath = path.dirname(p);
-    const specRunnerPath = path.join(backendPath, 'runners', 'spec_runner.py');
+    const specRunnerPath = path.join(backendPath, 'runners', 'insights_runner.py');
     if (fs.existsSync(p) && fs.existsSync(specRunnerPath)) {
       return p;
     }

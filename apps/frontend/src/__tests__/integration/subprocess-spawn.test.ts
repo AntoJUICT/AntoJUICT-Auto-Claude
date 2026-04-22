@@ -122,13 +122,13 @@ function setupTestDirs(): void {
   // Create auto-claude source directory that getAutoBuildSourcePath looks for
   mkdirSync(AUTO_CLAUDE_SOURCE, { recursive: true });
 
-  // Create runners subdirectory with spec_runner.py marker (used by getAutoBuildSourcePath)
+  // Create runners subdirectory with insights_runner.py marker (used by getAutoBuildSourcePath)
   mkdirSync(path.join(AUTO_CLAUDE_SOURCE, 'runners'), { recursive: true });
 
-  // Create mock spec_runner.py in runners/ subdirectory (used as backend marker)
+  // Create mock insights_runner.py in runners/ subdirectory (used as backend marker)
   writeFileSync(
-    path.join(AUTO_CLAUDE_SOURCE, 'runners', 'spec_runner.py'),
-    '# Mock spec runner\nprint("Starting spec creation")'
+    path.join(AUTO_CLAUDE_SOURCE, 'runners', 'insights_runner.py'),
+    '# Mock insights runner\nprint("Starting insights")'
   );
   // Create mock run.py
   writeFileSync(
