@@ -26,7 +26,10 @@ from core.platform import (
     is_windows,
     validate_cli_path,
 )
-from core.superpowers import SuperpowersNotInstalledError, verify_superpowers_installed  # noqa: F401
+from core.superpowers import (  # noqa: F401
+    SuperpowersNotInstalledError,
+    verify_superpowers_installed,
+)
 
 logger = logging.getLogger(__name__)
 

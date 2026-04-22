@@ -76,7 +76,12 @@ async def run(
     """
     from core.client import create_client
     from core.error_utils import safe_receive_messages
-    from phase_config import get_fast_mode, get_model_betas, get_thinking_kwargs_for_model, resolve_model_id
+    from phase_config import (
+        get_fast_mode,
+        get_model_betas,
+        get_thinking_kwargs_for_model,
+        resolve_model_id,
+    )
 
     prompt_template = _PROMPT_FILE.read_text(encoding="utf-8")
 

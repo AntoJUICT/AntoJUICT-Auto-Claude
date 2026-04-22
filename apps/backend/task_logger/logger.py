@@ -563,7 +563,7 @@ class TaskLogger:
             with open(log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
         except OSError as e:
-            logger.warning(f"Failed to write token usage log: {e}")
+            debug_error(f"Failed to write token usage log: {e}")
 
     def clear(self) -> None:
         """Clear all logs (useful for testing)."""

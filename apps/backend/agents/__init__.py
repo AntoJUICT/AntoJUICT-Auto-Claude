@@ -26,11 +26,6 @@ Uses lazy imports to avoid circular dependencies.
 
 # Explicit import required by CodeQL static analysis
 # (CodeQL doesn't recognize __getattr__ dynamic exports)
-from .utils import sync_spec_to_source
-
-# Superpowers pipeline — import directly (no circular deps)
-from .model_selector import AgentRole, ModelSelector
-from .pipeline_orchestrator import PipelineOrchestrator, PipelineState
 from . import (
     brainstorming_agent,
     final_reviewer_agent,
@@ -39,6 +34,11 @@ from . import (
     quality_reviewer_agent,
     spec_reviewer_agent,
 )
+
+# Superpowers pipeline — import directly (no circular deps)
+from .model_selector import AgentRole, ModelSelector
+from .pipeline_orchestrator import PipelineOrchestrator, PipelineState
+from .utils import sync_spec_to_source
 
 __all__ = [
     # Main API

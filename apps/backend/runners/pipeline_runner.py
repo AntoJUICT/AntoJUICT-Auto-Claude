@@ -109,7 +109,8 @@ async def _run_implementation(
     emitter: TaskEventEmitter,
 ) -> None:
     from agents.final_reviewer_agent import run as final_review
-    from agents.implementer_agent import parse_status, run as implement
+    from agents.implementer_agent import parse_status
+    from agents.implementer_agent import run as implement
     from agents.model_selector import AgentRole, ModelSelector
     from agents.quality_reviewer_agent import run as quality_review
     from agents.spec_reviewer_agent import run as spec_review

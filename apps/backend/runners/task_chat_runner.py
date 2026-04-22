@@ -13,7 +13,6 @@ import asyncio
 import json
 import sys
 
-
 SYSTEM_PROMPT = """You are a task clarification assistant embedded in a task management app.
 Your job is to ask targeted follow-up questions to help a developer write a detailed task description.
 

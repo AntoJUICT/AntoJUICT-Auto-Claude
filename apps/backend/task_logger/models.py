@@ -2,7 +2,7 @@
 Data models for task logging.
 """
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from enum import Enum
 
 
