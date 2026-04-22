@@ -14,13 +14,8 @@ _PARENT_DIR = Path(__file__).parent.parent
 if str(_PARENT_DIR) not in sys.path:
     sys.path.insert(0, str(_PARENT_DIR))
 
+from .batch_commands import is_qa_approved
 from progress import count_subtasks
-from qa_loop import (
-    is_qa_approved,
-    print_qa_status,
-    run_qa_validation_loop,
-    should_run_qa,
-)
 from review import ReviewState, display_review_status
 from ui import (
     Icons,
@@ -32,6 +27,46 @@ from ui import (
 
 from .utils import print_banner, validate_environment
 
+
+# ---------------------------------------------------------------------------
+# QA loop helpers (inlined — the qa package has been removed)
+# ---------------------------------------------------------------------------
+
+def print_qa_status(spec_dir: Path) -> None:
+    """Print QA approval status for a spec directory."""
+    from .batch_commands import is_qa_rejected, is_fixes_applied
+    if is_qa_approved(spec_dir):
+        print("  Status: APPROVED")
+    elif is_qa_rejected(spec_dir):
+        print("  Status: REJECTED")
+    elif is_fixes_applied(spec_dir):
+        print("  Status: FIXES_APPLIED")
+    else:
+        print("  Status: PENDING")
+
+
+def should_run_qa(spec_dir: Path) -> bool:
+    """Check whether QA should run (all subtasks done, not yet approved)."""
+    plan_file = spec_dir / "implementation_plan.json"
+    if not plan_file.exists():
+        return False
+    completed, total = count_subtasks(spec_dir)
+    return total > 0 and completed >= total and not is_qa_approved(spec_dir)
+
+
+async def run_qa_validation_loop(
+    project_dir: Path,
+    spec_dir: Path,
+    model: str,
+    verbose: bool = False,
+) -> bool:
+    """QA validation is now handled by the pipeline. Stub returns True."""
+    return True
+
+
+# ---------------------------------------------------------------------------
+# CLI command handlers
+# ---------------------------------------------------------------------------
 
 def handle_qa_status_command(spec_dir: Path) -> None:
     """

@@ -145,7 +145,7 @@ def handle_batch_create_command(batch_file: str, project_dir: str) -> bool:
 
     # Show summary
     print(highlight("Next steps:"))
-    print("  1. Generate specs: spec_runner.py --continue <spec_id>")
+    print("  1. Approve specs in the desktop UI and start building")
     print("  2. Approve specs and build them")
     print("  3. Run: python run.py --spec <id> to execute")
 

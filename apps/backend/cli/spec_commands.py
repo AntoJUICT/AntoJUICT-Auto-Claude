@@ -99,66 +99,17 @@ def print_specs_list(project_dir: Path, auto_create: bool = True) -> None:
         project_dir: Project root directory
         auto_create: If True and no specs exist, automatically launch spec creation
     """
-    import subprocess
-
     specs = list_specs(project_dir)
 
     if not specs:
         print("\nNo specs found.")
 
         if auto_create:
-            # Get the backend directory and find spec_runner.py
-            backend_dir = Path(__file__).parent.parent
-            spec_runner = backend_dir / "runners" / "spec_runner.py"
-
-            # Find Python executable - use current interpreter
-            python_path = sys.executable
-
-            if spec_runner.exists() and python_path:
-                # Quick prompt for task description
-                print("\n" + "=" * 60)
-                print("  QUICK START")
-                print("=" * 60)
-                print("\nWhat do you want to build?")
-                print(
-                    "(Enter a brief description, or press Enter for interactive mode)\n"
-                )
-
-                try:
-                    task = input("> ").strip()
-                except (EOFError, KeyboardInterrupt):
-                    print("\nCancelled.")
-                    return
-
-                if task:
-                    # Direct mode: create spec and start building
-                    print(f"\nStarting build for: {task}\n")
-                    subprocess.run(
-                        [
-                            python_path,
-                            str(spec_runner),
-                            "--task",
-                            task,
-                            "--complexity",
-                            "simple",
-                            "--auto-approve",
-                        ],
-                        cwd=project_dir,
-                    )
-                else:
-                    # Interactive mode
-                    print("\nLaunching interactive mode...\n")
-                    subprocess.run(
-                        [python_path, str(spec_runner), "--interactive"],
-                        cwd=project_dir,
-                    )
-                return
-            else:
-                print("\nCreate your first spec:")
-                print("  python runners/spec_runner.py --interactive")
+            print("\nCreate your first spec via the desktop UI or:")
+            print("  python run.py --spec <spec-name>")
         else:
-            print("\nCreate your first spec:")
-            print("  python runners/spec_runner.py --interactive")
+            print("\nCreate your first spec via the desktop UI or:")
+            print("  python run.py --spec <spec-name>")
         return
 
     print("\n" + "=" * 70)

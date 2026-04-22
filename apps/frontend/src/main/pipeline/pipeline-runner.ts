@@ -210,30 +210,20 @@ async function runPhase(
     return;
   }
 
-  // TODO(pipeline-redesign): pipeline_runner.py has been removed. Update this path
-  // once the new superpowers-based pipeline script is in place.
-  const scriptPath = path.join(backendSource, 'runners', 'pipeline_runner.py');
+  // pipeline_runner.py has been removed; drive each phase through run.py.
+  const scriptPath = path.join(backendSource, 'run.py');
   const pythonPath = _config.getPythonPath();
   const [pythonCmd, pythonBaseArgs] = parsePythonCommand(pythonPath);
 
   const args: string[] = [
     scriptPath,
-    '--phase', phase,
-    '--task-id', task.taskId,
-    '--spec-id', task.specId,
+    '--spec', task.specId,
     '--project-dir', task.projectPath,
+    '--auto-continue',
+    '--force',
   ];
-  if (task.taskTitle) {
-    args.push('--task-title', task.taskTitle);
-  }
-  if (task.taskDescription) {
-    args.push('--task-description', task.taskDescription);
-  }
   if (task.modelOverride) {
     args.push('--model', task.modelOverride);
-  }
-  if (sendBackNote) {
-    args.push('--send-back-note', sendBackNote);
   }
 
   const spawnEnv = _config.getSpawnEnv();

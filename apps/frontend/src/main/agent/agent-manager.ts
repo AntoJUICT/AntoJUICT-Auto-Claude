@@ -267,9 +267,14 @@ export class AgentManager extends EventEmitter {
       return;
     }
 
-    // TODO(pipeline-redesign): spec_runner.py has been removed. Update this path
-    // once the new superpowers-based pipeline script is in place.
-    const specRunnerPath = path.join(autoBuildSource, 'runners', 'spec_runner.py');
+    // spec_runner.py has been removed; route spec creation through run.py.
+    // The spec directory is created by the pipeline before this point.
+    const runPath = path.join(autoBuildSource, 'run.py');
+
+    if (!existsSync(runPath)) {
+      this.emit('error', taskId, `Run script not found at: ${runPath}`);
+      return;
+    }
 
     // Reset stuck subtasks if restarting an existing spec creation task
     if (specDir) {
@@ -285,15 +290,21 @@ export class AgentManager extends EventEmitter {
       }
     }
 
+    // Derive spec ID from specDir (e.g. "/path/to/specs/001-my-task" → "001-my-task")
+    const specId = specDir ? path.basename(specDir) : '';
+
     // Get combined environment variables
     const combinedEnv = this.processManager.getCombinedEnv(projectPath);
 
-    // spec_runner.py will auto-start run.py after spec creation completes
-    const args = [specRunnerPath, '--task', taskDescription, '--project-dir', projectPath];
+    // run.py drives the full pipeline (planning + coding + QA)
+    const args = [runPath, '--spec', specId, '--project-dir', projectPath];
 
-    // Pass spec directory if provided (for UI-created tasks that already have a directory)
-    if (specDir) {
-      args.push('--spec-dir', specDir);
+    // Always use auto-continue when running from UI (non-interactive)
+    args.push('--auto-continue');
+
+    // Force: When user starts a task from the UI, that IS their approval
+    if (!metadata?.requireReviewBeforeCoding) {
+      args.push('--force');
     }
 
     // Pass base branch if specified (ensures worktrees are created from the correct branch)
@@ -301,17 +312,10 @@ export class AgentManager extends EventEmitter {
       args.push('--base-branch', baseBranch);
     }
 
-    // Check if user requires review before coding
-    if (!metadata?.requireReviewBeforeCoding) {
-      // Auto-approve: When user starts a task from the UI without requiring review
-      args.push('--auto-approve');
-    }
-
     // Pass model and thinking level configuration
     // For auto profile, use phase-specific config; otherwise use single model/thinking
     // Validate thinking levels to prevent legacy values (e.g. 'ultrathink') from reaching the backend
     if (metadata?.isAutoProfile && metadata.phaseModels && metadata.phaseThinking) {
-      // Pass the spec phase model and thinking level to spec_runner
       args.push('--model', metadata.phaseModels.spec);
       args.push('--thinking-level', sanitizeThinkingLevel(metadata.phaseThinking.spec));
     } else if (metadata?.model) {

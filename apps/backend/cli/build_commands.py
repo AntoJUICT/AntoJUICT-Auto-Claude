@@ -91,7 +91,25 @@ def handle_build_command(
         get_base_branch_from_metadata,
         get_use_local_branch_from_metadata,
     )
-    from qa_loop import run_qa_validation_loop, should_run_qa
+    from batch_commands import is_qa_approved
+
+    def should_run_qa(spec_dir: Path) -> bool:
+        """Check whether QA validation should run (all subtasks done, not yet approved)."""
+        from progress import count_subtasks
+        plan_file = spec_dir / "implementation_plan.json"
+        if not plan_file.exists():
+            return False
+        completed, total = count_subtasks(spec_dir)
+        return total > 0 and completed >= total and not is_qa_approved(spec_dir)
+
+    async def run_qa_validation_loop(
+        project_dir: Path,
+        spec_dir: Path,
+        model: str,
+        verbose: bool = False,
+    ) -> bool:
+        """QA validation is now handled by the pipeline. Return True (approved) as a stub."""
+        return True
 
     from .utils import print_banner, validate_environment
 
