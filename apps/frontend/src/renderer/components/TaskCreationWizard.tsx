@@ -21,7 +21,6 @@ import { TaskFormFields } from './task-form/TaskFormFields';
 import { type FileReferenceData } from './task-form/useImageUpload';
 import { TaskFileExplorerDrawer } from './TaskFileExplorerDrawer';
 import { FileAutocomplete } from './FileAutocomplete';
-import { TaskChatPhase, type ChatMessage } from './TaskChatPhase';
 import { createTask, saveDraft, loadDraft, clearDraft, isDraftEmpty } from '../stores/task-store';
 import { useProjectStore } from '../stores/project-store';
 import { buildBranchOptions } from '../lib/branch-utils';
@@ -129,13 +128,8 @@ export function TaskCreationWizard({
   // Fast mode
   const [fastMode, setFastMode] = useState(false);
 
-  // Chat phase state
-  const [phase, setPhase] = useState<'chat' | 'form'>('chat');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatStep, setChatStep] = useState(1);
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  const [isAiReady, setIsAiReady] = useState(false);
-  const [chatFromConversation, setChatFromConversation] = useState(false);
+  // Chat phase removed — wizard always shows the form directly
+  const [chatFromConversation] = useState(false);
 
   // Show Fast Mode toggle when any phase uses an Opus model
   const showFastModeToggle = useMemo(() => {
@@ -187,8 +181,6 @@ export function TaskCreationWizard({
         if (draft.category || draft.priority || draft.complexity || draft.impact) {
           setShowClassification(true);
         }
-        setPhase('form'); // Bestaande draft — sla chat fase over
-        setChatFromConversation(false);
       } else {
         // No draft - reset to clean state for new task creation
         // This ensures no stale data from previous task creation persists
@@ -213,12 +205,6 @@ export function TaskCreationWizard({
         setShowClassification(false);
         setShowFileExplorer(false);
         setShowGitOptions(false);
-        setPhase('chat');
-        setChatMessages([]);
-        setChatStep(1);
-        setIsAiReady(false);
-        setIsChatLoading(false);
-        setChatFromConversation(false);
       }
     }
   }, [open, projectId, settings.selectedAgentProfile, settings.customPhaseModels, settings.customPhaseThinking, selectedProfile.model, selectedProfile.thinkingLevel, selectedProfile.phaseModels, selectedProfile.phaseThinking]);
@@ -269,12 +255,6 @@ export function TaskCreationWizard({
       isMounted = false;
     };
   }, [open, projectPath, projectId]);
-
-  // Show opening question when chat phase starts with no messages
-  useEffect(() => {
-    if (phase !== 'chat' || chatMessages.length > 0 || !open) return;
-    setChatMessages([{ role: 'assistant', content: t('tasks:chat.opening') }]);
-  }, [phase, chatMessages.length, open, t]);
 
   /**
    * Get current form state as a draft
@@ -519,12 +499,6 @@ export function TaskCreationWizard({
     setShowFileExplorer(false);
     setShowGitOptions(false);
     setIsDraftRestored(false);
-    setPhase('chat');
-    setChatMessages([]);
-    setChatStep(1);
-    setIsAiReady(false);
-    setIsChatLoading(false);
-    setChatFromConversation(false);
   };
 
   const handleClose = () => {
@@ -545,64 +519,6 @@ export function TaskCreationWizard({
     clearDraft(projectId);
     resetForm();
     setError(null);
-  };
-
-  const handleChatSend = async (userText: string) => {
-    const newMessages: ChatMessage[] = [
-      ...chatMessages,
-      { role: 'user', content: userText },
-    ];
-    setChatMessages(newMessages);
-    setIsChatLoading(true);
-
-    try {
-      const result = await window.electronAPI.taskChatMessage(newMessages);
-      if (!result.success || !result.data) {
-        setChatMessages([
-          ...newMessages,
-          { role: 'assistant', content: t('tasks:chat.error') },
-        ]);
-        return;
-      }
-
-      const { done, question, description } = result.data;
-
-      if (done && description) {
-        setDescription(description);
-        setChatFromConversation(true);
-        setIsAiReady(true);
-      } else if (done && !description) {
-        setChatMessages([
-          ...newMessages,
-          { role: 'assistant', content: t('tasks:chat.error') },
-        ]);
-      } else if (question) {
-        setChatMessages([
-          ...newMessages,
-          { role: 'assistant', content: question },
-        ]);
-        setChatStep((s) => Math.min(s + 1, 3));
-      }
-    } finally {
-      setIsChatLoading(false);
-    }
-  };
-
-  const handleChatSkip = () => {
-    setPhase('form');
-    setChatFromConversation(false);
-  };
-
-  const handleConfirmGenerate = () => {
-    setPhase('form');
-  };
-
-  const handleAddMore = () => {
-    setIsAiReady(false);
-    setChatMessages((msgs) => [
-      ...msgs,
-      { role: 'assistant', content: t('tasks:chat.inputPlaceholder') },
-    ]);
   };
 
   // Render @ mention highlight overlay for the description textarea
@@ -707,20 +623,7 @@ export function TaskCreationWizard({
         </div>
       }
     >
-      {phase === 'chat' ? (
-        <TaskChatPhase
-          messages={chatMessages}
-          onSend={handleChatSend}
-          onSkip={handleChatSkip}
-          onConfirmGenerate={handleConfirmGenerate}
-          onAddMore={handleAddMore}
-          isLoading={isChatLoading}
-          isAiReady={isAiReady}
-          step={chatStep}
-          maxSteps={3}
-        />
-      ) : (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Chat summary banner — alleen tonen als beschrijving uit chat komt */}
           {chatFromConversation && (
             <div className="flex items-center gap-2 px-4 py-2.5 bg-info/10 border border-info/30 rounded-lg text-sm">
@@ -856,7 +759,6 @@ export function TaskCreationWizard({
             </div>
           )}
         </div>
-      )}
     </TaskModalLayout>
   );
 }
