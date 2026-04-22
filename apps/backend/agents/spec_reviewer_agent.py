@@ -85,9 +85,10 @@ async def run(
 
     prompt_template = _PROMPT_FILE.read_text(encoding="utf-8")
 
-    criteria_text = "\n".join(
-        f"- {c}" for c in subtask.get("acceptance_criteria", [])
-    ) or "- (no explicit criteria provided)"
+    criteria_text = (
+        "\n".join(f"- {c}" for c in subtask.get("acceptance_criteria", []))
+        or "- (no explicit criteria provided)"
+    )
 
     prompt = (
         f"{prompt_template}\n\n"

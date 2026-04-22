@@ -1,19 +1,19 @@
 from enum import Enum
 
-HAIKU = 'claude-haiku-4-5-20251001'
-SONNET = 'claude-sonnet-4-6'
-OPUS = 'claude-opus-4-7'
+HAIKU = "claude-haiku-4-5-20251001"
+SONNET = "claude-sonnet-4-6"
+OPUS = "claude-opus-4-7"
 
 COMPLEX_FILE_THRESHOLD = 3
 
 
 class AgentRole(Enum):
-    BRAINSTORMING = 'brainstorming'
-    PLANNING = 'planning'
-    IMPLEMENTER = 'implementer'
-    SPEC_REVIEWER = 'spec_reviewer'
-    QUALITY_REVIEWER = 'quality_reviewer'
-    FINAL_REVIEWER = 'final_reviewer'
+    BRAINSTORMING = "brainstorming"
+    PLANNING = "planning"
+    IMPLEMENTER = "implementer"
+    SPEC_REVIEWER = "spec_reviewer"
+    QUALITY_REVIEWER = "quality_reviewer"
+    FINAL_REVIEWER = "final_reviewer"
 
 
 _ROLE_MODELS: dict[AgentRole, str] = {

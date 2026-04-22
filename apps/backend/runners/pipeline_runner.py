@@ -34,7 +34,11 @@ MAX_REVIEW_ITERATIONS = 3
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Superpowers pipeline phase runner")
-    parser.add_argument("--phase", required=True, choices=["brainstorming", "planning", "implementation"])
+    parser.add_argument(
+        "--phase",
+        required=True,
+        choices=["brainstorming", "planning", "implementation"],
+    )
     parser.add_argument("--task-id", required=True)
     parser.add_argument("--spec-id", required=True)
     parser.add_argument("--project-dir", required=True)
@@ -82,7 +86,9 @@ async def _run_planning(
 
     spec_file = spec_dir / "spec.md"
     if not spec_file.exists():
-        raise FileNotFoundError(f"spec.md not found at {spec_file} — run brainstorming first")
+        raise FileNotFoundError(
+            f"spec.md not found at {spec_file} — run brainstorming first"
+        )
     design_spec = spec_file.read_text(encoding="utf-8")
 
     emit_phase(ExecutionPhase.PLANNING, "Creating implementation plan...")
@@ -96,10 +102,14 @@ async def _run_planning(
     )
 
     plan_file = spec_dir / "implementation_plan.json"
-    plan_file.write_text(json.dumps(plan_dict, indent=2, ensure_ascii=False), encoding="utf-8")
+    plan_file.write_text(
+        json.dumps(plan_dict, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     subtask_count = len(plan_dict.get("subtasks", []))
     logger.info("Planning complete, plan saved (%d subtasks)", subtask_count)
-    emitter.emit("PLANNING_COMPLETE", {"planPath": str(plan_file), "subtaskCount": subtask_count})
+    emitter.emit(
+        "PLANNING_COMPLETE", {"planPath": str(plan_file), "subtaskCount": subtask_count}
+    )
 
 
 async def _run_implementation(
@@ -129,7 +139,9 @@ async def _run_implementation(
     selector = ModelSelector(override=args.model or None)
 
     for idx, subtask in enumerate(subtasks):
-        file_count = len(subtask.get("files_to_create", [])) + len(subtask.get("files_to_modify", []))
+        file_count = len(subtask.get("files_to_create", [])) + len(
+            subtask.get("files_to_modify", [])
+        )
         impl_model = selector.model_for(AgentRole.IMPLEMENTER, file_count=file_count)
         review_model = selector.model_for(AgentRole.SPEC_REVIEWER)
         quality_model = selector.model_for(AgentRole.QUALITY_REVIEWER)
@@ -140,14 +152,22 @@ async def _run_implementation(
             progress=int((idx / total) * 100),
             subtask=subtask.get("id", str(idx)),
         )
-        emitter.emit("SUBTASK_STARTED", {"subtaskIndex": idx, "total": total, "agentPhase": "implementing"})
+        emitter.emit(
+            "SUBTASK_STARTED",
+            {"subtaskIndex": idx, "total": total, "agentPhase": "implementing"},
+        )
 
         # First subtask may carry a send_back_note from a previous plan_review rejection
-        send_back_note: str | None = args.send_back_note if (idx == 0 and args.send_back_note) else None
+        send_back_note: str | None = (
+            args.send_back_note if (idx == 0 and args.send_back_note) else None
+        )
 
         for iteration in range(MAX_REVIEW_ITERATIONS):
             impl_output = await implement(
-                design_spec, plan, subtask, send_back_note,
+                design_spec,
+                plan,
+                subtask,
+                send_back_note,
                 project_dir=project_dir,
                 spec_dir=spec_dir,
                 model=impl_model,
@@ -157,35 +177,53 @@ async def _run_implementation(
             if impl_status in ("BLOCKED", "NEEDS_CONTEXT"):
                 logger.warning(
                     "Implementer returned %s on subtask %s (iteration %d): %s",
-                    impl_status, subtask.get("id"), iteration, impl_detail,
+                    impl_status,
+                    subtask.get("id"),
+                    iteration,
+                    impl_detail,
                 )
                 break
 
-            emitter.emit("SUBTASK_STARTED", {"subtaskIndex": idx, "total": total, "agentPhase": "spec_review"})
+            emitter.emit(
+                "SUBTASK_STARTED",
+                {"subtaskIndex": idx, "total": total, "agentPhase": "spec_review"},
+            )
             spec_passed, spec_issues = await spec_review(
-                subtask, impl_output,
+                subtask,
+                impl_output,
                 project_dir=project_dir,
                 spec_dir=spec_dir,
                 model=review_model,
             )
             if not spec_passed:
                 send_back_note = "\n".join(spec_issues)
-                logger.info("Spec review failed (%d issues) — retrying", len(spec_issues))
+                logger.info(
+                    "Spec review failed (%d issues) — retrying", len(spec_issues)
+                )
                 continue
 
-            emitter.emit("SUBTASK_STARTED", {"subtaskIndex": idx, "total": total, "agentPhase": "quality_review"})
+            emitter.emit(
+                "SUBTASK_STARTED",
+                {"subtaskIndex": idx, "total": total, "agentPhase": "quality_review"},
+            )
             quality_passed, quality_issues = await quality_review(
-                subtask, impl_output,
+                subtask,
+                impl_output,
                 project_dir=project_dir,
                 spec_dir=spec_dir,
                 model=quality_model,
             )
             if not quality_passed:
                 send_back_note = "\n".join(quality_issues)
-                logger.info("Quality review failed (%d issues) — retrying", len(quality_issues))
+                logger.info(
+                    "Quality review failed (%d issues) — retrying", len(quality_issues)
+                )
                 continue
 
-            emitter.emit("SUBTASK_STARTED", {"subtaskIndex": idx, "total": total, "agentPhase": "done"})
+            emitter.emit(
+                "SUBTASK_STARTED",
+                {"subtaskIndex": idx, "total": total, "agentPhase": "done"},
+            )
             break
 
         emitter.emit("SUBTASK_COMPLETED", {"subtaskIndex": idx, "total": total})
@@ -193,7 +231,8 @@ async def _run_implementation(
     emit_phase(ExecutionPhase.QA_REVIEW, "Running final review...")
     final_model = selector.model_for(AgentRole.FINAL_REVIEWER)
     final_passed, final_summary = await final_review(
-        design_spec, plan,
+        design_spec,
+        plan,
         project_dir=project_dir,
         spec_dir=spec_dir,
         model=final_model,

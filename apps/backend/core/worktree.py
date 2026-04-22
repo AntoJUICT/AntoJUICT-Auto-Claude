@@ -1678,7 +1678,9 @@ class WorktreeManager:
     def _extract_spec_summary(self, spec_name: str) -> str:
         """Extract a summary from spec.md for PR body."""
         worktree_path = self.get_worktree_path(spec_name)
-        spec_path = worktree_path / ".juict-agentic-os" / "specs" / spec_name / "spec.md"
+        spec_path = (
+            worktree_path / ".juict-agentic-os" / "specs" / spec_name / "spec.md"
+        )
 
         if not spec_path.exists():
             # Try project spec path

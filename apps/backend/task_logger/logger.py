@@ -556,6 +556,7 @@ class TaskLogger:
     def log_token_usage(self, usage: TokenUsage) -> None:
         """Log token usage for a single SDK response to token_usage.jsonl."""
         import json
+
         record = usage.to_dict()
         record["timestamp"] = self._timestamp()
         log_path = self.spec_dir / "token_usage.jsonl"

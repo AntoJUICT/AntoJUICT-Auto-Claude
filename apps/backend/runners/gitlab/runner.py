@@ -94,7 +94,9 @@ def get_config(args) -> GitLabRunnerConfig:
 
     # Auto-detect from project config (takes priority over env var)
     if not project:
-        config_path = Path(args.project_dir) / ".juict-agentic-os" / "gitlab" / "config.json"
+        config_path = (
+            Path(args.project_dir) / ".juict-agentic-os" / "gitlab" / "config.json"
+        )
         if config_path.exists():
             try:
                 with open(config_path, encoding="utf-8") as f:

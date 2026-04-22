@@ -40,7 +40,9 @@ def _entry_exists_in_gitignore(lines: list[str], entry: str) -> bool:
     return False
 
 
-def ensure_gitignore_entry(project_dir: Path, entry: str = ".juict-agentic-os/") -> bool:
+def ensure_gitignore_entry(
+    project_dir: Path, entry: str = ".juict-agentic-os/"
+) -> bool:
     """
     Ensure an entry exists in the project's .gitignore file.
 

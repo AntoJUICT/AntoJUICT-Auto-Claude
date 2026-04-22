@@ -172,7 +172,8 @@ Environment variables:
 
         # Create manager
         manager = PRWorktreeManager(
-            project_dir=project_dir, worktree_dir=".juict-agentic-os/github/pr/worktrees"
+            project_dir=project_dir,
+            worktree_dir=".juict-agentic-os/github/pr/worktrees",
         )
 
         # Execute actions

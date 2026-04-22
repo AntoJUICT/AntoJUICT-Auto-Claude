@@ -48,7 +48,9 @@ class ProjectAnalyzer:
         }
 
         # Get project index (from .juict-agentic-os - the installed instance)
-        project_index_path = self.project_dir / ".juict-agentic-os" / "project_index.json"
+        project_index_path = (
+            self.project_dir / ".juict-agentic-os" / "project_index.json"
+        )
         if project_index_path.exists():
             try:
                 with open(project_index_path, encoding="utf-8") as f:
@@ -83,7 +85,10 @@ class ProjectAnalyzer:
 
             # Also check discovery for audience
             discovery_path = (
-                self.project_dir / ".juict-agentic-os" / "roadmap" / "roadmap_discovery.json"
+                self.project_dir
+                / ".juict-agentic-os"
+                / "roadmap"
+                / "roadmap_discovery.json"
             )
             if discovery_path.exists() and not context["target_audience"]:
                 try:

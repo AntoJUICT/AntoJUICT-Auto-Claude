@@ -128,7 +128,11 @@ def find_spec(project_dir: Path, spec_identifier: str) -> Path | None:
     if worktree_base.exists():
         # Try exact match in worktree
         worktree_spec = (
-            worktree_base / spec_identifier / ".juict-agentic-os" / "specs" / spec_identifier
+            worktree_base
+            / spec_identifier
+            / ".juict-agentic-os"
+            / "specs"
+            / spec_identifier
         )
         if worktree_spec.exists() and (worktree_spec / "spec.md").exists():
             return worktree_spec

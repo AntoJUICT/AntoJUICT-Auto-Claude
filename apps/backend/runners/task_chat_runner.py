@@ -51,10 +51,7 @@ async def run_chat(messages: list) -> None:
         role = "User" if msg["role"] == "user" else "Assistant"
         conversation_text += f"{role}: {msg['content']}\n\n"
 
-    prompt = (
-        conversation_text.strip()
-        + "\n\nAssistant (respond in JSON only):"
-    )
+    prompt = conversation_text.strip() + "\n\nAssistant (respond in JSON only):"
 
     client = ClaudeSDKClient(
         options=ClaudeAgentOptions(
@@ -76,7 +73,11 @@ async def run_chat(messages: list) -> None:
                         response_text += block.text
 
     if not response_text.strip():
-        print(json.dumps({"done": False, "question": "Can you describe what you want to change?"}))
+        print(
+            json.dumps(
+                {"done": False, "question": "Can you describe what you want to change?"}
+            )
+        )
         return
 
     # Strip markdown code fences if the model wrapped the JSON

@@ -25,7 +25,14 @@ def verify_superpowers_installed() -> None:
     skills_root = Path.home() / ".claude" / "skills"
 
     # Collect all skills dirs from the plugin cache (any installed version)
-    plugin_cache = Path.home() / ".claude" / "plugins" / "cache" / "claude-plugins-official" / "superpowers"
+    plugin_cache = (
+        Path.home()
+        / ".claude"
+        / "plugins"
+        / "cache"
+        / "claude-plugins-official"
+        / "superpowers"
+    )
     plugin_skills_roots: list[Path] = []
     if plugin_cache.exists():
         for version_dir in plugin_cache.iterdir():
