@@ -138,6 +138,7 @@ import type {
   GitLabNewCommitsCheck
 } from './integrations';
 import type { APIProfile, ProfilesFile, TestConnectionResult, DiscoverModelsResult } from './profile';
+import type { PipelineAPI } from '../../preload/api/pipeline-api';
 
 // ============================================
 // Branch Types
@@ -896,6 +897,9 @@ export interface ElectronAPI {
 
   // GitHub API (nested for organized access)
   github: import('../../preload/api/modules/github-api').GitHubAPI;
+
+  // Pipeline API (spec brainstorm / plan-writing / finisher pipeline)
+  pipeline: PipelineAPI;
 
   // Claude Code CLI operations
   checkClaudeCodeVersion: () => Promise<IPCResult<import('./cli').ClaudeCodeVersionInfo>>;

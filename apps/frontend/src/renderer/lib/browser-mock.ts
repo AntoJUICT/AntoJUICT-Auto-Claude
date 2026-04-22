@@ -390,7 +390,32 @@ const browserMockAPI: ElectronAPI = {
   openLogsFolder: async () => ({ success: false, error: 'Not available in browser mode' }),
   copyDebugInfo: async () => ({ success: false, error: 'Not available in browser mode' }),
   getRecentErrors: async () => [],
-  listLogFiles: async () => []
+  listLogFiles: async () => [],
+
+  // Pipeline API (spec brainstorm / plan-writing / finisher pipeline)
+  pipeline: {
+    sendBrainstormMessage: async (messages: Array<{ role: string; content: string }>, projectDir: string) => ({
+      success: true,
+      data: {
+        response: 'Mock brainstorm response: I understand you want to build something. Please provide more details.',
+        ready_to_plan: false,
+        spec_summary: null
+      }
+    }),
+
+    writePlan: async () => ({ success: true }),
+
+    getFunctionalPlan: async () => ({
+      success: true,
+      data: '# Mock Functional Plan\n\n## Features\n1. Feature one\n2. Feature two'
+    }),
+
+    finish: async () => ({ success: true }),
+
+    onPlanProgress: () => () => {},
+
+    onFinishProgress: () => () => {}
+  }
 };
 
 /**

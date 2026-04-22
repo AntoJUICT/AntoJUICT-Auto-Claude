@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePipelineStore } from '@/stores/pipeline-store';
-import { cn } from '@lib/utils';
+import { cn } from '@/lib/utils';
 import type { ImplementationPlan } from '@shared/types';
 
 interface ExecutionViewProps {
@@ -36,7 +36,7 @@ export function ExecutionView({ taskId, onComplete }: ExecutionViewProps) {
 
     const setupListener = async () => {
       try {
-        const listener = (window.electronAPI?.tasks as any)?.onTaskProgress?.(
+        const listener = window.electronAPI?.onTaskProgress?.(
           (receivedTaskId: string, plan: ImplementationPlan) => {
             if (receivedTaskId !== taskId) return;
 
