@@ -1,3 +1,16 @@
+## 2.7.12 - Pipeline Review Flow Fix
+
+### 🐛 Bug Fixes
+
+- **Spec review en plan review werken nu correct** — Na de brainstorming fase verschijnt nu de "Approve Spec" knop zodat de gebruiker de specificatie kan beoordelen voor de planning start. Hetzelfde geldt voor de plan review stap.
+- **Fase-bouncing opgelost** — Taken sprongen niet meer razendsnel door alle fases doordat `TASK_START` de oude agent niet langer triggert wanneer een taak in review-status staat.
+- **Review state blijft behouden na herstart** — De `spec_review` en `plan_review` status wordt nu correct hersteld uit het plan-bestand na een app-herstart.
+- **Deduplicatie in pipeline** — Meerdere gelijktijdige pipeline-starts voor dezelfde taak zijn nu geblokkeerd.
+- **Start-knop verborgen tijdens review** — De Start-knop is nu verborgen wanneer de ApprovalActions zichtbaar zijn.
+- **SkillChecklist toont vertaalde tekst** — Stappen in de skill-checklist tonen nu de vertaalde labels in plaats van ruwe i18n-sleutels.
+
+---
+
 ## 2.7.11 - Slimmere taak-complexiteitsbeoordeling
 
 ### 🛠️ Improvements
