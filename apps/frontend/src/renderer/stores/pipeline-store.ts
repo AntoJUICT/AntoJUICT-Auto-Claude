@@ -46,7 +46,7 @@ export interface PipelineState {
   setBrainstormLoading: (v: boolean) => void;
   setPlanWritingProgress: (msg: string) => void;
   setIsPlanWriting: (v: boolean) => void;
-  setFunctionalPlan: (plan: string) => void;
+  setFunctionalPlan: (plan: string | null) => void;
   setSubtasks: (tasks: PipelineState['subtasks']) => void;
   updateSubtaskStatus: (id: string, status: PipelineState['subtasks'][number]['status']) => void;
   addFinishProgress: (event: { status: string; message: string }) => void;
