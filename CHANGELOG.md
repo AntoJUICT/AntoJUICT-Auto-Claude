@@ -1,3 +1,19 @@
+## 2.8.0 - Superpowers Pipeline Redesign
+
+### ✨ New Features
+
+- **Nieuwe pipeline flow** — De volledige pipeline UI is herontworpen rond vier duidelijke fases: Brainstormen → Plan reviewen → Uitvoeren → Afronden (brainstorm → plan → execute → finish).
+- **BrainstormView** — Dedicated view voor de brainstorm- en spec-aanmaakfase met live voortgang en goedkeuringsacties.
+- **PlanReviewView** — Dedicated view voor plan review en goedkeuring: toont het implementatieplan met subtasks en laat de gebruiker het plan goedkeuren of terugsturen.
+- **ExecutionView** — Live subtask-checklist die realtime de codeer- en QA-voortgang toont inclusief statusiconen per subtask.
+- **FinishingView** — Afrondfase met opties voor testen, PR aanmaken en mergen.
+
+### 🗑️ Removed
+
+- **Oude spec/QA pipeline views verwijderd** — De verouderde `TaskChatPhase`, `SpecPhase` en `QaPhase` views zijn volledig verwijderd en vervangen door de nieuwe pipeline-componenten.
+
+---
+
 ## 2.7.13 - Snellere coding fase
 
 ### ⚡ Performance
