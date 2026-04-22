@@ -1,3 +1,12 @@
+## 2.7.11 - Slimmere taak-complexiteitsbeoordeling
+
+### 🛠️ Improvements
+
+- **Minder over-engineering bij kleine taken** — De complexity assessor kiest nu bij twijfel voor lagere complexiteit in plaats van hogere. Kleine aanpassingen krijgen minder snel een uitgebreide pipeline.
+- **i18n-bestanden tellen niet mee als complexiteit** — Vertaalbestanden (`en/*.json`, `fr/*.json`) worden niet langer meegeteld in de bestandslimiet voor `SIMPLE` taken. De SIMPLE-drempel is verhoogd van 1-2 naar 1-4 bestanden.
+
+---
+
 ## 2.7.9 - Kanban Phase Progress Bar
 
 ### ✨ New Features
