@@ -16,6 +16,7 @@ import { ProfileAPI, createProfileAPI } from './profile-api';
 import { ScreenshotAPI, createScreenshotAPI } from './screenshot-api';
 import { PreviewAPI, createPreviewAPI } from './preview-api';
 import { QueueAPI, createQueueAPI } from './queue-api';
+import { PipelineAPI, createPipelineAPI } from './pipeline-api';
 
 export interface ElectronAPI extends
   ProjectAPI,
@@ -38,6 +39,8 @@ export interface ElectronAPI extends
   queue: QueueAPI;
   /** Dev server control and visual preview */
   preview: PreviewAPI;
+  /** Spec brainstorm / plan-writing / finisher pipeline */
+  pipeline: PipelineAPI;
 }
 
 export const createElectronAPI = (): ElectronAPI => ({
@@ -55,7 +58,8 @@ export const createElectronAPI = (): ElectronAPI => ({
   ...createScreenshotAPI(),
   preview: createPreviewAPI(),
   github: createGitHubAPI(),
-  queue: createQueueAPI()  // Queue routing for rate limit recovery
+  queue: createQueueAPI(),  // Queue routing for rate limit recovery
+  pipeline: createPipelineAPI(),  // Spec brainstorm / plan-writing / finisher pipeline
 });
 
 // Export individual API creators for potential use in tests or specialized contexts
@@ -75,7 +79,8 @@ export {
   createMcpAPI,
   createScreenshotAPI,
   createPreviewAPI,
-  createQueueAPI
+  createQueueAPI,
+  createPipelineAPI
 };
 
 export type {
@@ -96,5 +101,6 @@ export type {
   McpAPI,
   ScreenshotAPI,
   PreviewAPI,
-  QueueAPI
+  QueueAPI,
+  PipelineAPI
 };
