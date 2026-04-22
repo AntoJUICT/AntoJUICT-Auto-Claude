@@ -6,4 +6,5 @@ export {
   approvePreview,
   sendBack,
   emitSubtaskProgress,
+  restoreReviewState,
 } from './pipeline-runner';

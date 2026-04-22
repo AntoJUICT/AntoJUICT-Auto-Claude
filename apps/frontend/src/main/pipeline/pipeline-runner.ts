@@ -56,6 +56,12 @@ export function startPipeline(
   taskTitle?: string,
   taskDescription?: string
 ): void {
+  const existing = activePipelines.get(taskId);
+  if (existing && existing.phase !== 'error') {
+    console.warn('[PipelineRunner] startPipeline ignored — pipeline already active for task:', taskId, 'phase:', existing.phase);
+    return;
+  }
+
   const task: PipelineTask = {
     taskId,
     specId,
@@ -74,6 +80,34 @@ export function startPipeline(
     console.error('[PipelineRunner] startPipeline error:', err);
     emitStatusChange(window, taskId, 'inbox');
   });
+}
+
+/**
+ * Restore pipeline review state after app restart.
+ * After restart, activePipelines is cleared. This re-creates the entry so
+ * approveSpec() / approvePlan() work correctly when the user clicks Approve.
+ */
+export function restoreReviewState(
+  window: BrowserWindow,
+  taskId: string,
+  specId: string,
+  projectPath: string,
+  planPath: string,
+  phase: 'spec_review' | 'plan_review'
+): void {
+  if (!activePipelines.has(taskId)) {
+    activePipelines.set(taskId, {
+      taskId,
+      specId,
+      projectPath,
+      planPath,
+      phase,
+      subtaskIndex: 0,
+      totalSubtasks: 0,
+    });
+    console.warn('[PipelineRunner] Restored review state for task:', taskId, 'phase:', phase);
+  }
+  emitStatusChange(window, taskId, phase);
 }
 
 export function approveSpec(window: BrowserWindow, taskId: string): void {
@@ -123,13 +157,14 @@ export function sendBack(
   });
 }
 
-function emitStatusChange(window: BrowserWindow, taskId: string, status: TaskStatus): void {
+function emitStatusChange(window: BrowserWindow, taskId: string, status: TaskStatus | 'spec_review' | 'plan_review'): void {
   // Send as separate args to match the preload handler signature: (taskId, status, projectId?)
+  // 'spec_review' and 'plan_review' are pipeline phases handled by mapBackendStatus in useIpc.ts
   window.webContents.send(IPC_CHANNELS.TASK_STATUS_CHANGE, taskId, status);
   // Persist to disk so page refresh reflects the correct status (not stale 'backlog')
   const task = activePipelines.get(taskId);
   if (task) {
-    persistPlanStatusAndReasonSync(task.planPath, status);
+    persistPlanStatusAndReasonSync(task.planPath, status as TaskStatus);
   }
 }
 
@@ -140,14 +175,11 @@ export function emitSubtaskProgress(
   total: number,
   agentPhase: 'implementing' | 'spec_review' | 'quality_review' | 'done' | 'failed'
 ): void {
-  window.webContents.send(IPC_CHANNELS.TASK_EXECUTION_PROGRESS, {
-    taskId,
-    executionProgress: {
-      phase: 'coding',
-      phaseProgress: Math.round((currentIndex / total) * 100),
-      overallProgress: Math.round(20 + (currentIndex / total) * 60),
-      subtaskProgress: { currentIndex, total, agentPhase },
-    },
+  window.webContents.send(IPC_CHANNELS.TASK_EXECUTION_PROGRESS, taskId, {
+    phase: 'coding',
+    phaseProgress: Math.round((currentIndex / total) * 100),
+    overallProgress: Math.round(20 + (currentIndex / total) * 60),
+    subtaskProgress: { currentIndex, total, agentPhase },
   });
 }
 
@@ -230,15 +262,13 @@ async function runPhase(
       const jsonStart = line.indexOf(PHASE_PREFIX) + PHASE_PREFIX.length;
       try {
         const phaseEvent = JSON.parse(line.slice(jsonStart));
-        window.webContents.send(IPC_CHANNELS.TASK_EXECUTION_PROGRESS, {
-          taskId: task.taskId,
-          executionProgress: {
-            phase: phaseEvent.phase,
-            phaseProgress: phaseEvent.progress ?? 50,
-            overallProgress: phaseEvent.progress ?? 50,
-            message: phaseEvent.message,
-            sequenceNumber: Date.now(),
-          },
+        window.webContents.send(IPC_CHANNELS.TASK_EXECUTION_PROGRESS, task.taskId, {
+          phase: phaseEvent.phase,
+          phaseProgress: phaseEvent.progress ?? 50,
+          overallProgress: phaseEvent.progress ?? 50,
+          message: phaseEvent.message,
+          // Deliberately omit sequenceNumber: Date.now() would set a ~1.7e12 value,
+          // causing all subsequent backend events (seq 1, 2, 3…) to be dropped.
         });
       } catch {
         // malformed JSON — ignore
@@ -279,13 +309,13 @@ function handleTaskEvent(
   switch (event.type) {
     case 'BRAINSTORMING_COMPLETE':
       task.phase = 'spec_review';
-      emitStatusChange(window, task.taskId, 'brainstorming');
+      emitStatusChange(window, task.taskId, 'spec_review');
       break;
 
     case 'PLANNING_COMPLETE':
       task.totalSubtasks = (event as { subtaskCount?: number }).subtaskCount ?? 0;
       task.phase = 'plan_review';
-      emitStatusChange(window, task.taskId, 'planning');
+      emitStatusChange(window, task.taskId, 'plan_review');
       break;
 
     case 'SUBTASK_STARTED': {

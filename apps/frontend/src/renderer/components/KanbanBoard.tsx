@@ -29,7 +29,7 @@ import { SortableTaskCard } from './SortableTaskCard';
 import { QueueSettingsModal } from './QueueSettingsModal';
 import { TASK_STATUS_COLUMNS, TASK_STATUS_LABELS, SKILL_COLUMN_META, type TaskStatusColumn } from '../../shared/constants';
 import { cn } from '../lib/utils';
-import { persistTaskStatus, forceCompleteTask, archiveTasks, deleteTasks, useTaskStore, isQueueAtCapacity, DEFAULT_MAX_PARALLEL_TASKS } from '../stores/task-store';
+import { persistTaskStatus, forceCompleteTask, archiveTasks, deleteTasks, useTaskStore, isQueueAtCapacity, DEFAULT_MAX_PARALLEL_TASKS, isManuallyStoppedTask, clearManuallyStoppedTask } from '../stores/task-store';
 import { updateProjectSettings, useProjectStore } from '../stores/project-store';
 import { useKanbanSettingsStore, DEFAULT_COLUMN_WIDTH, MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH, COLLAPSED_COLUMN_WIDTH_REM, MIN_COLUMN_WIDTH_REM, MAX_COLUMN_WIDTH_REM, BASE_FONT_SIZE, pxToRem } from '../stores/kanban-settings-store';
 import { useToast } from '../hooks/use-toast';
@@ -942,6 +942,12 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
       newStatus = 'inbox';
     }
 
+    // User explicitly moving to executing (drag or menu) — clear the manually-stopped flag
+    // so the queue can promote this task in the future if needed
+    if (newStatus === 'executing') {
+      clearManuallyStoppedTask(taskId);
+    }
+
     const oldStatus = task?.status;
     const result = await persistTaskStatus(taskId, newStatus);
 
@@ -1077,7 +1083,8 @@ export function KanbanBoard({ tasks, onTaskClick, onNewTaskClick, onRefresh, isR
           t.status === 'executing' && !t.metadata?.archivedAt
         ).length;
         const queuedTasks = currentTasks.filter((t) =>
-          t.status === 'inbox' && !t.metadata?.archivedAt && !attemptedTaskIds.has(t.id)
+          t.status === 'inbox' && !t.metadata?.archivedAt && !attemptedTaskIds.has(t.id) &&
+          !isManuallyStoppedTask(t.id)  // Don't auto-promote tasks the user manually stopped
         );
 
         // Stop if no capacity, no queued tasks, or too many consecutive failures

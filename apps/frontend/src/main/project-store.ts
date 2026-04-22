@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { readFileSync, existsSync, mkdirSync, readdirSync, Dirent } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import type { Project, ProjectSettings, Task, TaskStatus, TaskMetadata, ImplementationPlan, PlanSubtask, KanbanPreferences, ExecutionPhase } from '../shared/types';
+import type { Project, ProjectSettings, Task, TaskStatus, TaskReviewState, TaskMetadata, ImplementationPlan, PlanSubtask, KanbanPreferences, ExecutionPhase } from '../shared/types';
 import { DEFAULT_PROJECT_SETTINGS, AUTO_BUILD_PATHS, getSpecsDir, JSON_ERROR_PREFIX, JSON_ERROR_TITLE_SUFFIX, TASK_STATUS_PRIORITY } from '../shared/constants';
 import { getAutoBuildPath, isInitialized } from './project-initializer';
 import { getTaskWorktreeDir } from './worktree-paths';
@@ -514,8 +514,8 @@ export class ProjectStore {
           ? `${JSON_ERROR_PREFIX}${jsonErrorMessage}`
           : description;
         // Tasks with JSON errors go to preview (needs human attention)
-        const { status: finalStatus } = hasJsonError
-          ? { status: 'preview' as TaskStatus }
+        const { status: finalStatus, reviewState: planReviewState } = hasJsonError
+          ? { status: 'preview' as TaskStatus, reviewState: 'none' as TaskReviewState }
           : this.determineTaskStatusAndReason(plan);
 
         // Extract subtasks from plan (handle both 'subtasks' and 'chunks' naming)
@@ -579,7 +579,7 @@ export class ProjectStore {
           title,
           description: finalDescription,
           status: correctedStatus,
-          reviewState: 'none' as const,
+          reviewState: correctedStatus !== finalStatus ? 'none' : planReviewState,
           subtasks,
           logs: [],
           metadata,
@@ -677,10 +677,18 @@ export class ProjectStore {
    */
   private determineTaskStatusAndReason(
     plan: ImplementationPlan | null
-  ): { status: TaskStatus } {
+  ): { status: TaskStatus; reviewState: TaskReviewState } {
     if (!plan?.status) {
-      return { status: 'inbox' };
+      return { status: 'inbox', reviewState: 'none' };
     }
+
+    // Derive reviewState from raw plan status before status mapping
+    const reviewStateMap: Record<string, TaskReviewState> = {
+      'spec_review': 'spec_review',
+      'plan_review': 'plan_review',
+      'preview': 'approval',
+    };
+    const reviewState: TaskReviewState = reviewStateMap[plan.status] ?? 'none';
 
     const statusMap: Record<string, TaskStatus> = {
       'pending': 'inbox',
@@ -711,7 +719,7 @@ export class ProjectStore {
     const migratedStatus = migrateTaskStatus(plan.status);
     const storedStatus = statusMap[migratedStatus] ?? migratedStatus;
 
-    return { status: storedStatus };
+    return { status: storedStatus as TaskStatus, reviewState };
   }
 
   /**

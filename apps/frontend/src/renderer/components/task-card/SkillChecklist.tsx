@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { SKILL_CHECKLISTS } from '@shared/constants/skills';
 import type { TaskSkillProgress } from '@shared/types/task';
 
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export function SkillChecklist({ skillProgress }: Props) {
+  const { t } = useTranslation('kanban');
   const { skill, currentStepIndex } = skillProgress;
   if (!skill) return null;
   const steps = SKILL_CHECKLISTS[skill] ?? [];
@@ -29,7 +31,7 @@ export function SkillChecklist({ skillProgress }: Props) {
             <span className="shrink-0 w-3 text-center">
               {isDone ? '✓' : isActive ? '▶' : '○'}
             </span>
-            <span>{step.label}</span>
+            <span>{t(step.label.replace('kanban:', ''))}</span>
           </div>
         );
       })}

@@ -281,6 +281,13 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       return;
     }
 
+    // When a task goes from executing to inbox without an explicit user stop,
+    // it failed unexpectedly (XState error → inbox). Prevent processQueue from
+    // immediately re-promoting it — the user must explicitly start it again.
+    if (oldStatus === 'executing' && status === 'inbox' && !manuallyStopped.has(taskId)) {
+      manuallyStopped.add(taskId);
+    }
+
     debugLog('[updateTaskStatus] START:', {
       taskId,
       oldStatus,
@@ -741,13 +748,27 @@ export async function createTask(
  * Start a task
  */
 export function startTask(taskId: string, options?: { parallel?: boolean; workers?: number }): void {
+  clearManuallyStoppedTask(taskId);
   window.electronAPI.startTask(taskId, options);
+}
+
+// Tasks stopped manually by the user — the queue must not auto-promote these back to executing.
+// Cleared when the user explicitly starts the task again via startTaskOrQueue or startTask.
+const manuallyStopped = new Set<string>();
+
+export function isManuallyStoppedTask(taskId: string): boolean {
+  return manuallyStopped.has(taskId);
+}
+
+export function clearManuallyStoppedTask(taskId: string): void {
+  manuallyStopped.delete(taskId);
 }
 
 /**
  * Stop a task
  */
 export function stopTask(taskId: string): void {
+  manuallyStopped.add(taskId);
   window.electronAPI.stopTask(taskId);
 }
 
@@ -791,6 +812,11 @@ export async function persistTaskStatus(
   options?: { forceCleanup?: boolean }
 ): Promise<PersistStatusResult> {
   const store = useTaskStore.getState();
+
+  // When explicitly moving to executing, clear failure-block so future auto-promotion works
+  if (status === 'executing') {
+    clearManuallyStoppedTask(taskId);
+  }
 
   try {
     // Persist to file first (don't optimistically update for 'done' status)

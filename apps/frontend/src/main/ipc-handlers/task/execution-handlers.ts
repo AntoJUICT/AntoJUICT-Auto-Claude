@@ -220,11 +220,13 @@ export function registerTaskExecutionHandlers(
       );
       const planFilePath = path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN);
       let planHasSubtasks = false;
+      let rawPlanStatus: string | null = null;
       const planContent = safeReadFileSync(planFilePath);
       if (planContent) {
         try {
           const plan = JSON.parse(planContent);
           planHasSubtasks = checkSubtasksCompletion(plan).totalCount > 0;
+          rawPlanStatus = (plan as { status?: string }).status ?? null;
         } catch {
           // Invalid/corrupt plan file - treat as no subtasks
         }
@@ -233,6 +235,15 @@ export function registerTaskExecutionHandlers(
       // Pre-check: does spec.md exist yet? Used to decide between pipeline and old agent flow.
       const specFilePath = path.join(specDir, AUTO_BUILD_PATHS.SPEC_FILE);
       const hasSpecEarly = existsSync(specFilePath);
+
+      // If task is waiting for pipeline review approval, restore activePipelines state and
+      // re-emit the review status so the renderer shows ApprovalActions. Do NOT dispatch
+      // XState events or start agentManager — the user must click Approve first.
+      if (rawPlanStatus === 'spec_review' || rawPlanStatus === 'plan_review') {
+        console.warn('[TASK_START] Task awaiting pipeline review:', rawPlanStatus, '— restoring state, not starting execution');
+        pipeline.restoreReviewState(mainWindow, taskId, task.specId, project.path, planFilePath, rawPlanStatus as 'spec_review' | 'plan_review');
+        return;
+      }
 
       // Immediately mark as started so the UI moves the card to In Progress.
       // Use XState actor state as source of truth (if actor exists), with task data as fallback.
@@ -395,9 +406,6 @@ export function registerTaskExecutionHandlers(
       task,
       project
     );
-
-    // Clear stale tracking state so a subsequent restart works correctly
-    taskStateManager.prepareForRestart(taskId);
   });
 
   /**
@@ -1315,10 +1323,22 @@ export function registerTaskExecutionHandlers(
             const baseBranchForRecovery = task.metadata?.baseBranch || project.settings?.mainBranch;
 
             if (needsSpecCreation) {
-              // No spec file - need to run spec_runner.py to create the spec
-              const taskDescription = task.description || task.title;
-              console.warn(`[Recovery] Starting spec creation for: ${task.specId}`);
-              agentManager.startSpecCreation(taskId, project.path, taskDescription, mainSpecDir, task.metadata, baseBranchForRecovery, project.id);
+              // No spec file — use the same pipeline used by TASK_START for UI-created tasks.
+              // This ensures the spec_review / plan_review approval steps are presented to the user
+              // instead of bypassing them via the old agentManager.startSpecCreation() path.
+              const pipelineWindow = getMainWindow();
+              if (pipelineWindow) {
+                console.warn(`[Recovery] Starting pipeline for: ${task.specId}`);
+                pipeline.startPipeline(pipelineWindow, taskId, task.specId, project.path, planPath, undefined, task.title, task.description);
+                // Pipeline emits 'brainstorming' itself; align newStatus so the final
+                // TASK_STATUS_CHANGE below doesn't override it with 'executing'.
+                newStatus = 'brainstorming';
+              } else {
+                // Fallback if window is gone (very unlikely during normal operation)
+                const taskDescription = task.description || task.title;
+                console.warn(`[Recovery] No window available, falling back to startSpecCreation for: ${task.specId}`);
+                agentManager.startSpecCreation(taskId, project.path, taskDescription, mainSpecDir, task.metadata, baseBranchForRecovery, project.id);
+              }
             } else {
               // Spec exists - run task execution
               console.warn(`[Recovery] Starting task execution for: ${task.specId}`);

@@ -3,7 +3,7 @@ import type { ActorRefFrom } from 'xstate';
 import type { BrowserWindow } from 'electron';
 import type { TaskEventPayload } from './agent/task-event-schema';
 import type { Project, Task, TaskStatus, ExecutionPhase } from '../shared/types';
-import { taskMachine, XSTATE_TO_PHASE, mapStateToLegacy, type TaskEvent } from '../shared/state-machines';
+import { taskMachine, XSTATE_TO_PHASE, mapStateToLegacy, XSTATE_SETTLED_STATES, type TaskEvent } from '../shared/state-machines';
 import { IPC_CHANNELS } from '../shared/constants';
 import { safeSendToRenderer } from './ipc-handlers/utils';
 import { getPlanPath, persistPlanStatusAndReasonSync } from './ipc-handlers/task/plan-file-utils';
@@ -35,6 +35,7 @@ export class TaskStateManager {
   private lastStateByTask = new Map<string, string>();
   private taskContextById = new Map<string, TaskContextEntry>();
   private terminalEventSeen = new Set<string>();
+  private pendingStopTaskIds = new Set<string>();
   private getMainWindow: (() => BrowserWindow | null) | null = null;
 
   configure(getMainWindow: () => BrowserWindow | null): void {
@@ -49,6 +50,24 @@ export class TaskStateManager {
       console.debug(`[TaskStateManager] Event ${event.type} DROPPED - sequence ${event.sequence} not newer than ${lastSeq}`);
       return false;
     }
+
+    // Reject backend events after USER_STOPPED while the process is still winding down.
+    // Without this guard, buffered PLANNING_STARTED events from the dying process push
+    // backlog → planning → executing (the executing/inbox bounce the user sees).
+    if (this.pendingStopTaskIds.has(taskId)) {
+      console.debug(`[TaskStateManager] Event ${event.type} DROPPED - user stopped, waiting for process exit`);
+      return false;
+    }
+
+    // Reject backend events when XState has settled (preview, plan_review, error, done, etc.).
+    // Buffered events from a dying process (e.g. PLANNING_STARTED) must not override a
+    // user-initiated stop or a naturally completed task.
+    const currentXState = this.actors.get(taskId)?.getSnapshot().value;
+    if (currentXState && XSTATE_SETTLED_STATES.has(String(currentXState))) {
+      console.debug(`[TaskStateManager] Event ${event.type} DROPPED - XState in settled state ${String(currentXState)}`);
+      return false;
+    }
+
     this.setTaskContext(taskId, task, project);
     this.lastSequenceByTask.set(taskId, event.sequence);
 
@@ -74,6 +93,8 @@ export class TaskStateManager {
     if (task && project) {
       this.setTaskContext(taskId, task, project);
     }
+    // Process exited — unblock backend events (in case a restart follows immediately)
+    this.pendingStopTaskIds.delete(taskId);
     if (this.terminalEventSeen.has(taskId)) {
       return;
     }
@@ -116,9 +137,15 @@ export class TaskStateManager {
       }
       case 'verifying':
         this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: true }, task, project);
+        // preview is already in XSTATE_SETTLED_STATES so no extra blocking needed
         return true;
       case 'inbox':
         this.handleUiEvent(taskId, { type: 'USER_STOPPED', hasPlan: false }, task, project);
+        // backlog is NOT in XSTATE_SETTLED_STATES, so block further backend events until
+        // the process exits — prevents buffered PLANNING_STARTED from bouncing back to executing
+        if (this.getCurrentState(taskId) === 'backlog') {
+          this.pendingStopTaskIds.add(taskId);
+        }
         return true;
       default:
         return false;
@@ -165,6 +192,7 @@ export class TaskStateManager {
   prepareForRestart(taskId: string): void {
     this.terminalEventSeen.delete(taskId);
     this.lastSequenceByTask.delete(taskId);
+    this.pendingStopTaskIds.delete(taskId);
 
     const actor = this.actors.get(taskId);
     if (actor) {
@@ -181,6 +209,7 @@ export class TaskStateManager {
     this.lastSequenceByTask.delete(taskId);
     this.lastStateByTask.delete(taskId);
     this.terminalEventSeen.delete(taskId);
+    this.pendingStopTaskIds.delete(taskId);
     this.taskContextById.delete(taskId);
     const actor = this.actors.get(taskId);
     if (actor) {
@@ -207,6 +236,7 @@ export class TaskStateManager {
     // Only clear state that needs to be rebuilt from fresh task data
     this.lastStateByTask.clear();
     this.terminalEventSeen.clear();
+    this.pendingStopTaskIds.clear();
     this.taskContextById.clear();
     console.log('[TaskStateManager] Cleared task actors and state for refresh (preserved sequence tracking)');
   }
@@ -349,7 +379,10 @@ export class TaskStateManager {
 
     const phase = XSTATE_TO_PHASE[xstateState] || 'idle';
 
-    // Emit execution progress with the phase derived from XState
+    // Emit execution progress with the phase derived from XState.
+    // Deliberately omit sequenceNumber so the renderer's sequence guard preserves
+    // the existing process sequence. Without this, Date.now() (~1.7e12) would cause
+    // all subsequent process execution-progress events (seq 1, 2, 3…) to be dropped.
     safeSendToRenderer(
       this.getMainWindow,
       IPC_CHANNELS.TASK_EXECUTION_PROGRESS,
@@ -358,8 +391,7 @@ export class TaskStateManager {
         phase,
         phaseProgress: phase === 'complete' ? 100 : 50,
         overallProgress: phase === 'complete' ? 100 : 50,
-        message: `State: ${xstateState}`,
-        sequenceNumber: Date.now()  // Use timestamp as sequence to ensure it's newer
+        message: `State: ${xstateState}`
       },
       projectId
     );
