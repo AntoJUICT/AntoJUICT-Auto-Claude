@@ -138,6 +138,10 @@
     }
   },
   "execution": {
+    "title": "Execution",
+    "progress": "{{completed}}/{{total}} tasks completed",
+    "loading": "Agent is starting...",
+    "complete": "✅ All tasks completed — proceeding to finish",
     "phases": {
       "idle": "Idle",
       "planning": "Planning",
