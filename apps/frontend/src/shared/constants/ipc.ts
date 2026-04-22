@@ -598,4 +598,15 @@ export const IPC_CHANNELS = {
   PREVIEW_STATUS: 'preview:status',
   PREVIEW_DETECT: 'preview:detect',
   PREVIEW_KEEP_ALIVE: 'preview:keepAlive',
+
+  // Pipeline (Superpowers flow)
+  PIPELINE_BRAINSTORM_MESSAGE: 'pipeline:brainstorm:message',
+  PIPELINE_BRAINSTORM_RESET: 'pipeline:brainstorm:reset',
+  PIPELINE_WRITE_PLAN: 'pipeline:plan:write',
+  PIPELINE_PLAN_PROGRESS: 'pipeline:plan:progress',
+  PIPELINE_GET_FUNCTIONAL_PLAN: 'pipeline:plan:get-functional',
+  PIPELINE_START_EXECUTION: 'pipeline:execution:start',
+  PIPELINE_STOP_EXECUTION: 'pipeline:execution:stop',
+  PIPELINE_FINISH: 'pipeline:finish',
+  PIPELINE_FINISH_PROGRESS: 'pipeline:finish:progress',
 } as const;

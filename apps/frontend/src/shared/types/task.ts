@@ -567,3 +567,11 @@ export interface TaskStartOptions {
   model?: string;
   baseBranch?: string; // Override base branch for worktree creation
 }
+
+export type PipelinePhase =
+  | 'brainstorm'
+  | 'plan_writing'
+  | 'plan_review'
+  | 'executing'
+  | 'finishing'
+  | 'done';
