@@ -439,6 +439,118 @@ async def post_session_processing(
         return False
 
 
+async def post_multi_session_processing(
+    spec_dir: Path,
+    project_dir: Path,
+    pending_subtask_ids_before: list[str],
+    session_num: int,
+    commit_before: str | None,
+    commit_count_before: int,
+    recovery_manager: RecoveryManager,
+    linear_enabled: bool = False,
+    status_manager: StatusManager | None = None,
+    source_spec_dir: Path | None = None,
+    error_info: dict | None = None,
+) -> bool:
+    """
+    Process results after a multi-subtask session.
+
+    Determines which subtasks were completed during the session by comparing
+    the plan state against the list of subtasks that were pending before.
+    Records attempts, commits, and Linear updates for all newly completed subtasks.
+
+    Returns True if at least one subtask was completed.
+    """
+    print()
+    print(muted("--- Post-Session Processing ---"))
+
+    if sync_spec_to_source(spec_dir, source_spec_dir):
+        print_status("Implementation plan synced to main project", "success")
+
+    plan = load_implementation_plan(spec_dir)
+    if not plan:
+        print("  Warning: Could not load implementation plan")
+        return False
+
+    pending_ids_set = set(pending_subtask_ids_before)
+    newly_completed: list[str] = []
+    for phase in plan.get("phases", []):
+        for subtask in phase.get("subtasks", phase.get("chunks", [])):
+            s_id = subtask.get("id")
+            if s_id in pending_ids_set and subtask.get("status") == "completed":
+                newly_completed.append(s_id)
+
+    commit_after = get_latest_commit(project_dir)
+    commit_count_after = get_commit_count(project_dir)
+    new_commits = commit_count_after - commit_count_before
+
+    print_key_value("Subtasks completed this session", str(len(newly_completed)))
+    print_key_value("New commits", str(new_commits))
+
+    if newly_completed:
+        for s_id in newly_completed:
+            print_status(f"Subtask {s_id} completed", "success")
+            recovery_manager.record_attempt(
+                subtask_id=s_id,
+                session=session_num,
+                success=True,
+                approach="Implemented in multi-task session",
+            )
+
+        if commit_after and commit_after != commit_before:
+            recovery_manager.record_good_commit(commit_after, newly_completed[-1])
+            print_status(f"Recorded good commit: {commit_after[:8]}", "success")
+
+        if status_manager:
+            subtasks = count_subtasks_detailed(spec_dir)
+            status_manager.update_subtasks(
+                completed=subtasks["completed"],
+                total=subtasks["total"],
+                in_progress=0,
+            )
+
+        if linear_enabled:
+            subtasks_detail = count_subtasks_detailed(spec_dir)
+            for s_id in newly_completed:
+                try:
+                    await linear_subtask_completed(
+                        spec_dir=spec_dir,
+                        subtask_id=s_id,
+                        completed_count=subtasks_detail["completed"],
+                        total_count=subtasks_detail["total"],
+                    )
+                except Exception as e:
+                    logger.warning(f"Linear update failed for {s_id}: {e}")
+
+        return True
+
+    # No progress — record failure against the first pending subtask
+    first_id = pending_subtask_ids_before[0] if pending_subtask_ids_before else None
+    if first_id:
+        recovery_manager.record_attempt(
+            subtask_id=first_id,
+            session=session_num,
+            success=False,
+            approach="Multi-task session ended without completing any subtask",
+            error=error_info.get("message", "No subtasks marked as completed")
+            if error_info
+            else "No subtasks marked as completed",
+        )
+        if linear_enabled:
+            try:
+                attempt_count = recovery_manager.get_attempt_count(first_id)
+                await linear_subtask_failed(
+                    spec_dir=spec_dir,
+                    subtask_id=first_id,
+                    attempt=attempt_count,
+                    error_summary="Session ended without progress",
+                )
+            except Exception as e:
+                logger.warning(f"Linear failure update failed: {e}")
+
+    return False
+
+
 async def run_agent_session(
     client: ClaudeSDKClient,
     message: str,

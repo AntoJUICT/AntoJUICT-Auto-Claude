@@ -31,6 +31,7 @@ from phase_event import ExecutionPhase, emit_phase
 from progress import (
     count_subtasks,
     count_subtasks_detailed,
+    get_all_pending_subtasks,
     get_current_phase,
     get_next_subtask,
     is_build_complete,
@@ -39,10 +40,8 @@ from progress import (
     print_session_header,
 )
 from prompt_generator import (
-    format_context_for_prompt,
+    generate_all_subtasks_prompt,
     generate_planner_prompt,
-    generate_subtask_prompt,
-    load_subtask_context,
 )
 from prompts import is_first_run
 from recovery import RecoveryManager
@@ -81,12 +80,10 @@ from .base import (
     sanitize_error_message,
 )
 from .memory_manager import debug_memory_system_status, get_graphiti_context
-from .session import post_session_processing, run_agent_session
+from .session import post_multi_session_processing, run_agent_session
 from .utils import (
-    find_phase_for_subtask,
     get_commit_count,
     get_latest_commit,
-    load_implementation_plan,
     sync_spec_to_source,
 )
 
@@ -505,6 +502,7 @@ async def run_autonomous_agent(
 
     # Main loop
     iteration = 0
+    pending_subtasks: list[dict] = []  # All pending subtasks for the current session
     consecutive_concurrency_errors = 0  # Track consecutive 400 tool concurrency errors
     current_retry_delay = INITIAL_RETRY_DELAY_SECONDS  # Exponential backoff delay
     concurrency_error_context: str | None = (
@@ -652,11 +650,12 @@ async def run_autonomous_agent(
                 if sync_spec_to_source(spec_dir, source_spec_dir):
                     print_status("Phase transition synced to main project", "success")
 
-            if not next_subtask:
+            # Get all currently available pending subtasks for this session
+            pending_subtasks = get_all_pending_subtasks(spec_dir)
+
+            if not pending_subtasks:
                 # FIX for Issue #495: Race condition after planning phase
-                # The implementation_plan.json may not be fully flushed to disk yet,
-                # or there may be a brief delay before subtasks become available.
-                # Retry with exponential backoff before giving up.
+                # The implementation_plan.json may not be fully flushed to disk yet.
                 if just_transitioned_from_planning:
                     print_status(
                         "Waiting for implementation plan to be ready...", "progress"
@@ -664,30 +663,30 @@ async def run_autonomous_agent(
                     for retry_attempt in range(3):
                         delay = (retry_attempt + 1) * 2  # 2s, 4s, 6s
                         await asyncio.sleep(delay)
-                        next_subtask = get_next_subtask(spec_dir)
-                        if next_subtask:
-                            # Update subtask_id and phase_name after successful retry
-                            subtask_id = next_subtask.get("id")
-                            phase_name = next_subtask.get("phase_name")
+                        pending_subtasks = get_all_pending_subtasks(spec_dir)
+                        if pending_subtasks:
+                            subtask_id = pending_subtasks[0].get("id")
                             print_status(
-                                f"Found subtask {subtask_id} after {delay}s delay",
+                                f"Found {len(pending_subtasks)} subtask(s) after {delay}s delay",
                                 "success",
                             )
                             break
                         print_status(
-                            f"Retry {retry_attempt + 1}/3: No subtask found yet...",
+                            f"Retry {retry_attempt + 1}/3: No subtasks found yet...",
                             "warning",
                         )
 
-                if not next_subtask:
+                if not pending_subtasks:
                     print("No pending subtasks found - build may be complete!")
                     break
 
-            # Validate that all files_to_modify exist before attempting execution
-            # This prevents infinite retry loops when implementation plan references non-existent files
+            # Use first subtask for display and file validation
+            next_subtask = pending_subtasks[0]
+            subtask_id = next_subtask.get("id")
+
+            # Validate files for the first subtask to catch obvious plan errors early
             validation_result = validate_subtask_files(next_subtask, project_dir)
             if not validation_result["success"]:
-                # File validation failed - record error and skip session
                 error_msg = validation_result["error"]
                 suggestion = validation_result.get("suggestion", "")
 
@@ -697,7 +696,6 @@ async def run_autonomous_agent(
                     print(muted(f"Suggestion: {suggestion}"))
                 print()
 
-                # Record the validation failure in recovery manager
                 recovery_manager.record_attempt(
                     subtask_id=subtask_id,
                     session=iteration,
@@ -706,13 +704,11 @@ async def run_autonomous_agent(
                     error=error_msg,
                 )
 
-                # Log the validation failure
                 if task_logger:
                     task_logger.log_error(
                         f"File validation failed: {error_msg}", LogPhase.CODING
                     )
 
-                # Check if subtask has exceeded max retries
                 attempt_count = recovery_manager.get_attempt_count(subtask_id)
                 if attempt_count >= MAX_SUBTASK_RETRIES:
                     recovery_manager.mark_subtask_stuck(
@@ -729,14 +725,11 @@ async def run_autonomous_agent(
                         )
                     )
 
-                # Update status
                 status_manager.update(state=BuildState.ERROR)
-
-                # Small delay before retry
                 await asyncio.sleep(AUTO_CONTINUE_DELAY_SECONDS)
-                continue  # Skip to next iteration
+                continue
 
-            # Create client for coding phase (after file validation passes)
+            # Create client once for all pending subtasks in this session
             client = create_client(
                 project_dir,
                 spec_dir,
@@ -747,34 +740,15 @@ async def run_autonomous_agent(
                 **thinking_kwargs,
             )
 
-            # Get attempt count for recovery context
-            attempt_count = recovery_manager.get_attempt_count(subtask_id)
-            recovery_hints = (
-                recovery_manager.get_recovery_hints(subtask_id)
-                if attempt_count > 0
-                else None
-            )
-
-            # Find the phase for this subtask
-            plan = load_implementation_plan(spec_dir)
-            phase = find_phase_for_subtask(plan, subtask_id) if plan else {}
-
-            # Generate focused, minimal prompt for this subtask
-            prompt = generate_subtask_prompt(
+            # Generate one prompt covering all pending subtasks
+            prompt = generate_all_subtasks_prompt(
                 spec_dir=spec_dir,
                 project_dir=project_dir,
-                subtask=next_subtask,
-                phase=phase or {},
-                attempt_count=attempt_count,
-                recovery_hints=recovery_hints,
+                pending_subtasks=pending_subtasks,
+                concurrency_error_context=concurrency_error_context,
             )
 
-            # Load and append relevant file context
-            context = load_subtask_context(spec_dir, project_dir, next_subtask)
-            if context.get("patterns") or context.get("files_to_modify"):
-                prompt += "\n\n" + format_context_for_prompt(context)
-
-            # Retrieve and append Graphiti memory context (if enabled)
+            # Retrieve Graphiti memory context using first subtask as anchor
             graphiti_context = await get_graphiti_context(
                 spec_dir, project_dir, next_subtask
             )
@@ -782,19 +756,16 @@ async def run_autonomous_agent(
                 prompt += "\n\n" + graphiti_context
                 print_status("Graphiti memory context loaded", "success")
 
-            # Add concurrency error context if recovering from 400 error
             if concurrency_error_context:
-                prompt += "\n\n" + concurrency_error_context
                 print_status(
                     f"Added tool concurrency error context (retry {consecutive_concurrency_errors}/{MAX_CONCURRENCY_RETRIES})",
                     "warning",
                 )
 
-            # Show what we're working on
-            print(f"Working on: {highlight(subtask_id)}")
+            print(
+                f"Working on {len(pending_subtasks)} subtask(s) starting with: {highlight(subtask_id)}"
+            )
             print(f"Description: {next_subtask.get('description', 'No description')}")
-            if attempt_count > 0:
-                print_status(f"Previous attempts: {attempt_count}", "warning")
             print()
 
         # Set subtask info in logger
@@ -847,14 +818,15 @@ async def run_autonomous_agent(
 
         # === POST-SESSION PROCESSING (100% reliable) ===
         # Only run post-session processing for coding sessions.
-        if subtask_id and current_log_phase == LogPhase.CODING:
+        if pending_subtasks and current_log_phase == LogPhase.CODING:
             linear_is_enabled = (
                 linear_task is not None and linear_task.task_id is not None
             )
-            success = await post_session_processing(
+            pending_ids_before = [s.get("id") for s in pending_subtasks]
+            success = await post_multi_session_processing(
                 spec_dir=spec_dir,
                 project_dir=project_dir,
-                subtask_id=subtask_id,
+                pending_subtask_ids_before=pending_ids_before,
                 session_num=iteration,
                 commit_before=commit_before,
                 commit_count_before=commit_count_before,
@@ -865,7 +837,7 @@ async def run_autonomous_agent(
                 error_info=error_info,
             )
 
-            # Check for stuck subtasks
+            # Check if first subtask is now stuck after repeated failures
             attempt_count = recovery_manager.get_attempt_count(subtask_id)
             if not success and attempt_count >= MAX_SUBTASK_RETRIES:
                 recovery_manager.mark_subtask_stuck(
@@ -878,7 +850,6 @@ async def run_autonomous_agent(
                 )
                 print(muted("Consider: manual intervention or skipping this subtask"))
 
-                # Record stuck subtask in Linear (if enabled)
                 if linear_is_enabled:
                     await linear_task_stuck(
                         spec_dir=spec_dir,

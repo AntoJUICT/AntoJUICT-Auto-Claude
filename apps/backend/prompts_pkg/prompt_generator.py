@@ -349,6 +349,102 @@ Before marking complete, verify:
     return "\n".join(sections)
 
 
+def generate_all_subtasks_prompt(
+    spec_dir: Path,
+    project_dir: Path,
+    pending_subtasks: list[dict],
+    concurrency_error_context: str | None = None,
+) -> str:
+    """
+    Generate a prompt covering all pending subtasks for a single agent session.
+
+    The agent works through all subtasks sequentially in one session, marking each
+    "completed" in implementation_plan.json as it goes — identical to how the
+    superpowers executing-plans skill operates with TodoWrite.
+    """
+    relative_spec = get_relative_spec_path(spec_dir, project_dir)
+    sections: list[str] = []
+
+    sections.append(generate_environment_context(project_dir, spec_dir))
+
+    sections.append(
+        f"""# Implementation Task — {len(pending_subtasks)} subtask(s)
+
+Work through each subtask **in order**. For each one:
+1. Read the relevant files to understand the current state
+2. Implement the required changes
+3. Run the verification step
+4. Commit your changes
+5. Set `"status": "completed"` for that subtask in `{relative_spec}/implementation_plan.json`
+6. Move directly to the next subtask — do **not** stop between them
+
+Complete **all** subtasks in this session before finishing.
+
+---
+"""
+    )
+
+    sections.append("## Subtasks\n")
+    for i, subtask in enumerate(pending_subtasks, 1):
+        subtask_id = subtask.get("id", "unknown")
+        description = subtask.get("description", "No description")
+        phase_name = subtask.get("phase_name", "")
+        files_to_modify = subtask.get("files_to_modify", [])
+        files_to_create = subtask.get("files_to_create", [])
+        verification = subtask.get("verification", {})
+
+        lines = [f"### {i}. `{subtask_id}`"]
+        if phase_name:
+            lines.append(f"**Phase:** {phase_name}")
+        lines.append(f"**Description:** {description}")
+        if files_to_modify:
+            lines.append(
+                "**Files to Modify:** " + ", ".join(f"`{f}`" for f in files_to_modify)
+            )
+        if files_to_create:
+            lines.append(
+                "**Files to Create:** " + ", ".join(f"`{f}`" for f in files_to_create)
+            )
+
+        v_type = verification.get("type", "manual")
+        if v_type == "command":
+            lines.append(f"**Verify:** `{verification.get('command', '')}`")
+        elif v_type == "api":
+            lines.append(
+                f"**Verify:** `curl -X {verification.get('method','GET')} {verification.get('url','')}`"
+            )
+
+        commit_msg = f"auto-claude: {subtask_id} - {description[:50]}"
+        lines.append(
+            f"**When done:** mark `\"status\": \"completed\"` in `{relative_spec}/implementation_plan.json` and commit:\n"
+            f"```bash\ngit add .\ngit commit -m \"{commit_msg}\"\n```"
+        )
+        lines.append("")
+        sections.append("\n".join(lines))
+
+    sections.append(
+        f"""## Quality Checklist (apply to each subtask)
+
+- Follow existing code patterns in the project
+- No debug/print statements left in production code
+- Verification passes before marking complete
+- One clean commit per subtask
+
+## Important
+
+- Work through subtasks **strictly in order**
+- Mark each subtask `"completed"` in `{relative_spec}/implementation_plan.json` immediately after finishing it
+- If a subtask is genuinely blocked, document it in `{relative_spec}/build-progress.txt` and continue to the next
+- Do **not** wait for user input between subtasks
+"""
+    )
+
+    if concurrency_error_context:
+        sections.append(concurrency_error_context)
+
+    return "\n".join(sections)
+
+
 def generate_planner_prompt(spec_dir: Path, project_dir: Path | None = None) -> str:
     """
     Generate the planner prompt (used only once at start).

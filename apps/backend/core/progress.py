@@ -502,6 +502,92 @@ def get_next_subtask(spec_dir: Path) -> dict | None:
         return None
 
 
+def get_all_pending_subtasks(spec_dir: Path) -> list[dict]:
+    """
+    Return all pending, non-stuck subtasks in plan order, respecting phase dependencies.
+
+    Unlike get_next_subtask which returns only the first available subtask, this returns
+    all subtasks that can be worked on right now so a single agent session can handle them.
+    """
+    plan_file = spec_dir / "implementation_plan.json"
+    if not plan_file.exists():
+        return []
+
+    stuck_subtask_ids: set[str] = set()
+    attempt_history_file = spec_dir / "memory" / "attempt_history.json"
+    if attempt_history_file.exists():
+        try:
+            with open(attempt_history_file, encoding="utf-8") as f:
+                attempt_history = json.load(f)
+            stuck_subtask_ids = {
+                entry["subtask_id"]
+                for entry in attempt_history.get("stuck_subtasks", [])
+                if "subtask_id" in entry
+            }
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+            pass
+
+    try:
+        with open(plan_file, encoding="utf-8") as f:
+            plan = json.load(f)
+
+        phases = plan.get("phases", [])
+
+        phase_complete: dict[str, bool] = {}
+        for i, phase in enumerate(phases):
+            phase_id_value = phase.get("id")
+            phase_id_raw = (
+                phase_id_value if phase_id_value is not None else phase.get("phase")
+            )
+            phase_id_key = (
+                str(phase_id_raw) if phase_id_raw is not None else f"unknown:{i}"
+            )
+            subtasks = phase.get("subtasks", phase.get("chunks", []))
+            phase_complete[phase_id_key] = all(
+                s.get("status") == "completed" for s in subtasks
+            )
+
+        pending: list[dict] = []
+        for phase in phases:
+            phase_id_value = phase.get("id")
+            phase_id = (
+                phase_id_value if phase_id_value is not None else phase.get("phase")
+            )
+            depends_on_raw = phase.get("depends_on", [])
+            if isinstance(depends_on_raw, list):
+                depends_on = [str(d) for d in depends_on_raw if d is not None]
+            elif depends_on_raw is None:
+                depends_on = []
+            else:
+                depends_on = [str(depends_on_raw)]
+
+            deps_satisfied = all(phase_complete.get(dep, False) for dep in depends_on)
+            if not deps_satisfied:
+                continue
+
+            for subtask in phase.get("subtasks", phase.get("chunks", [])):
+                status = subtask.get("status", "pending")
+                subtask_id = subtask.get("id")
+                if subtask_id in stuck_subtask_ids:
+                    continue
+                if status in {"pending", "not_started", "not started"}:
+                    subtask_out, _changed = normalize_subtask_aliases(subtask)
+                    subtask_out["status"] = "pending"
+                    pending.append(
+                        {
+                            **subtask_out,
+                            "phase_id": phase_id,
+                            "phase_name": phase.get("name"),
+                            "phase_num": phase.get("phase"),
+                        }
+                    )
+
+        return pending
+
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return []
+
+
 def format_duration(seconds: float) -> str:
     """Format a duration in human-readable form."""
     if seconds < 60:
