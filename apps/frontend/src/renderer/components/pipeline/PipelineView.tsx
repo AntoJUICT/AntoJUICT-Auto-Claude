@@ -9,6 +9,7 @@ interface PipelineViewProps {
   taskId: string;
   specDir: string;
   projectDir: string;
+  taskDescription?: string;
 }
 
 const PHASE_LABELS = {
@@ -20,7 +21,7 @@ const PHASE_LABELS = {
   done: 'Klaar',
 };
 
-export function PipelineView({ taskId, specDir, projectDir }: PipelineViewProps) {
+export function PipelineView({ taskId, specDir, projectDir, taskDescription }: PipelineViewProps) {
   const phase = usePipelineStore((s) => s.phase);
   const setPhase = usePipelineStore((s) => s.setPhase);
   const setTaskContext = usePipelineStore((s) => s.setTaskContext);
@@ -110,7 +111,7 @@ export function PipelineView({ taskId, specDir, projectDir }: PipelineViewProps)
       {/* Phase content */}
       <div className="flex-1 overflow-hidden">
         {(phase === 'brainstorm' || phase === 'plan_writing') && (
-          <BrainstormView onReadyToPlan={handleReadyToPlan} />
+          <BrainstormView onReadyToPlan={handleReadyToPlan} taskDescription={taskDescription} taskId={taskId} />
         )}
         {phase === 'plan_review' && (
           <PlanReviewView onApprove={handleApprove} onRevise={handleRevise} />

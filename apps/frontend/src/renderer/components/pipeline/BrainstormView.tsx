@@ -4,11 +4,14 @@ import { cn } from '../../lib/utils';
 
 interface BrainstormViewProps {
   onReadyToPlan: (specSummary: string) => void;
+  taskDescription?: string;
+  taskId: string;
 }
 
-export function BrainstormView({ onReadyToPlan }: BrainstormViewProps) {
+export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: BrainstormViewProps) {
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const hasAutoSentRef = useRef(false);
 
   const messages = usePipelineStore((s) => s.messages);
   const isBrainstormLoading = usePipelineStore((s) => s.isBrainstormLoading);
@@ -16,19 +19,57 @@ export function BrainstormView({ onReadyToPlan }: BrainstormViewProps) {
   const addMessage = usePipelineStore((s) => s.addMessage);
   const setBrainstormLoading = usePipelineStore((s) => s.setBrainstormLoading);
   const setSpecSummary = usePipelineStore((s) => s.setSpecSummary);
+  const setVisualUrl = usePipelineStore((s) => s.setVisualUrl);
+  const setHasVisual = usePipelineStore((s) => s.setHasVisual);
+  const visualUrl = usePipelineStore((s) => s.visualUrl);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
-    if (messages.length === 0 && projectDir) {
+    return () => {
+      window.electronAPI.pipeline.stopVisualCompanion(taskId);
+    };
+  }, [taskId]);
+
+  useEffect(() => {
+    if (messages.length > 0 || !projectDir || hasAutoSentRef.current) return;
+    hasAutoSentRef.current = true;
+
+    if (taskDescription?.trim()) {
+      const userMsg = { role: 'user' as const, content: taskDescription.trim() };
+      addMessage(userMsg);
+      setBrainstormLoading(true);
+
+      window.electronAPI.pipeline
+        .sendBrainstormMessage([userMsg], projectDir, taskId)
+        .then((result) => {
+          if (result.success && result.data) {
+            addMessage({ role: 'assistant', content: result.data.response });
+            if (result.data.visual_url) {
+              setVisualUrl(result.data.visual_url);
+              setHasVisual(true);
+            }
+            if (result.data.ready_to_plan && result.data.spec_summary) {
+              setSpecSummary(result.data.spec_summary);
+              onReadyToPlan(result.data.spec_summary);
+            }
+          } else {
+            addMessage({ role: 'assistant', content: `Er ging iets mis: ${result.error || 'Onbekende fout'}` });
+          }
+        })
+        .catch((err) => {
+          addMessage({ role: 'assistant', content: `Er ging iets mis: ${err instanceof Error ? err.message : String(err)}` });
+        })
+        .finally(() => setBrainstormLoading(false));
+    } else {
       addMessage({
         role: 'assistant',
         content: 'Wat wil je bouwen? Beschrijf het zo concreet mogelijk.',
       });
     }
-  }, [messages.length, projectDir, addMessage]);
+  }, [messages.length, projectDir, taskDescription, taskId, addMessage, setBrainstormLoading, setSpecSummary, setVisualUrl, setHasVisual, onReadyToPlan]);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -43,10 +84,16 @@ export function BrainstormView({ onReadyToPlan }: BrainstormViewProps) {
       const result = await window.electronAPI.pipeline.sendBrainstormMessage(
         newMessages,
         projectDir,
+        taskId,
       );
 
       if (result.success && result.data) {
         addMessage({ role: 'assistant', content: result.data.response });
+
+        if (result.data.visual_url) {
+          setVisualUrl(result.data.visual_url);
+          setHasVisual(true);
+        }
 
         if (result.data.ready_to_plan && result.data.spec_summary) {
           setSpecSummary(result.data.spec_summary);
@@ -131,6 +178,14 @@ export function BrainstormView({ onReadyToPlan }: BrainstormViewProps) {
           >
             Sturen
           </button>
+          {visualUrl && (
+            <button
+              onClick={() => window.electronAPI.openExternal(visualUrl)}
+              className="px-3 py-2 rounded-md bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
+            >
+              Open Preview
+            </button>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           Shift+Enter voor nieuwe regel
