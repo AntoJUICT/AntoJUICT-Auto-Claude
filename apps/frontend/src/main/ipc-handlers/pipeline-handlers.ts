@@ -1,8 +1,9 @@
-import { ipcMain } from 'electron';
+import { ipcMain, app } from 'electron';
 import type { BrowserWindow } from 'electron';
 import { spawn } from 'child_process';
+import type { ChildProcess } from 'child_process';
 import path from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
 import { IPC_CHANNELS } from '../../shared/constants';
 import type { IPCResult } from '../../shared/types';
 import { AgentManager } from '../agent';
@@ -12,6 +13,127 @@ import { pythonEnvManager } from '../python-env-manager';
 import { getPathDelimiter } from '../platform';
 import { parsePythonCommand } from '../python-detector';
 import { safeSendToRenderer } from './utils';
+
+// ---------------------------------------------------------------------------
+// Visual Companion — session management
+// ---------------------------------------------------------------------------
+
+interface VisualSession {
+  process: ChildProcess;
+  url: string;
+  screenDir: string;
+  stateDir: string;
+}
+
+const visualSessions = new Map<string, VisualSession>();
+
+/**
+ * Resolve the path to the bundled Visual Companion server script.
+ * In a packaged build the file lives under process.resourcesPath;
+ * in development it is relative to this compiled file's __dirname.
+ */
+function getServerScriptPath(): string {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'visual-companion', 'server.cjs');
+  }
+  return path.join(__dirname, '../../../../resources/visual-companion/server.cjs');
+}
+
+/**
+ * Start (or return an existing) Visual Companion server for the given taskId.
+ * Uses app.getPath('temp') so the directory is always writable on Windows.
+ */
+function ensureVisualSession(taskId: string): Promise<VisualSession> {
+  const existing = visualSessions.get(taskId);
+  if (existing) return Promise.resolve(existing);
+
+  return new Promise((resolve, reject) => {
+    const sessionDir = path.join(app.getPath('temp'), 'brainstorm', taskId);
+    mkdirSync(sessionDir, { recursive: true });
+
+    const serverPath = getServerScriptPath();
+    const child = spawn(process.execPath, [serverPath], {
+      env: {
+        ...process.env,
+        BRAINSTORM_DIR: sessionDir,
+        BRAINSTORM_OWNER_PID: String(process.pid),
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdoutBuf = '';
+    let settled = false;
+
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill();
+      reject(new Error('Visual Companion server did not start within 10s'));
+    }, 10_000);
+
+    child.stdout?.on('data', (chunk: Buffer) => {
+      stdoutBuf += chunk.toString('utf-8');
+      const lines = stdoutBuf.split('\n');
+      stdoutBuf = lines.pop() ?? '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const msg = JSON.parse(trimmed);
+          if (msg.type === 'server-started') {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            const session: VisualSession = {
+              process: child,
+              url: msg.url as string,
+              screenDir: msg.screen_dir as string,
+              stateDir: msg.state_dir as string,
+            };
+            visualSessions.set(taskId, session);
+            resolve(session);
+          }
+        } catch {
+          // Non-JSON line — ignore
+        }
+      }
+    });
+
+    child.stderr?.on('data', (chunk: Buffer) => {
+      console.debug('[VisualCompanion stderr]', chunk.toString('utf-8').trimEnd());
+    });
+
+    child.on('error', (err) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      reject(err);
+    });
+
+    child.on('exit', (code) => {
+      visualSessions.delete(taskId);
+      if (!settled) {
+        settled = true;
+        clearTimeout(timeout);
+        reject(new Error(`Visual Companion server exited prematurely with code ${code}`));
+      }
+    });
+  });
+}
+
+/**
+ * Stop and remove the Visual Companion session for the given taskId.
+ */
+function stopVisualSession(taskId: string): void {
+  const session = visualSessions.get(taskId);
+  if (!session) return;
+  try {
+    session.process.kill();
+  } catch {
+    // Already dead — ignore
+  }
+  visualSessions.delete(taskId);
+}
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -79,8 +201,12 @@ export function registerPipelineHandlers(
     IPC_CHANNELS.PIPELINE_BRAINSTORM_MESSAGE,
     async (
       _,
-      payload: { messages: Array<{ role: string; content: string }>; project_dir: string }
-    ): Promise<IPCResult<{ response: string; ready_to_plan: boolean; spec_summary: string | null }>> => {
+      payload: {
+        taskId: string;
+        messages: Array<{ role: string; content: string }>;
+        project_dir: string;
+      }
+    ): Promise<IPCResult<{ response: string; ready_to_plan: boolean; spec_summary: string | null; visual_url: string | null }>> => {
       // Ensure Python venv is ready before spawning
       const envCheck = await agentManager.ensurePythonEnvReady();
       if (!envCheck.ready) {
@@ -92,9 +218,25 @@ export function registerPipelineHandlers(
         return { success: false, error: 'Cannot locate backend source directory' };
       }
 
+      // Start (or reuse) the Visual Companion server for this task.
+      // Errors are non-fatal — brainstorm continues without visual companion.
+      let visualSession: VisualSession | null = null;
+      try {
+        visualSession = await ensureVisualSession(payload.taskId);
+      } catch (err) {
+        console.warn('[PipelineHandlers] Visual Companion failed to start (non-fatal):', err);
+      }
+
       const pythonPath = agentManager.getPythonPath();
       const [pythonCmd, pythonBaseArgs] = parsePythonCommand(pythonPath);
       const spawnEnv = buildSpawnEnv(agentManager);
+
+      // Extend the payload with the screen directory so the Python runner can
+      // write screenshots that the Visual Companion server can serve.
+      const runnerPayload = {
+        ...payload,
+        screen_dir: visualSession?.screenDir ?? null,
+      };
 
       return new Promise((resolve) => {
         const child = spawn(pythonCmd, [...pythonBaseArgs, scriptPath], {
@@ -113,7 +255,7 @@ export function registerPipelineHandlers(
 
         // Write payload to stdin and close it
         try {
-          child.stdin?.write(JSON.stringify(payload));
+          child.stdin?.write(JSON.stringify(runnerPayload));
           child.stdin?.end();
         } catch (err) {
           clearTimeout(timeout);
@@ -134,7 +276,13 @@ export function registerPipelineHandlers(
           clearTimeout(timeout);
           try {
             const data = JSON.parse(stdoutBuf.trim());
-            resolve({ success: true, data });
+            resolve({
+              success: true,
+              data: {
+                ...data,
+                visual_url: visualSession?.url ?? null,
+              },
+            });
           } catch {
             resolve({
               success: false,
@@ -347,6 +495,18 @@ export function registerPipelineHandlers(
           resolve({ success: false, error: err.message });
         });
       });
+    }
+  );
+
+  // ============================================================
+  // PIPELINE_VISUAL_COMPANION_STOP
+  // Stops the Visual Companion server for the given taskId.
+  // ============================================================
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_VISUAL_COMPANION_STOP,
+    async (_, taskId: string): Promise<IPCResult<void>> => {
+      stopVisualSession(taskId);
+      return { success: true, data: undefined };
     }
   );
 }

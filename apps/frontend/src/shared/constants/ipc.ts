@@ -609,4 +609,5 @@ export const IPC_CHANNELS = {
   PIPELINE_STOP_EXECUTION: 'pipeline:execution:stop',
   PIPELINE_FINISH: 'pipeline:finish',
   PIPELINE_FINISH_PROGRESS: 'pipeline:finish:progress',
+  PIPELINE_VISUAL_COMPANION_STOP: 'pipeline:visual-companion:stop',
 } as const;
