@@ -23,7 +23,6 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
   const setBrainstormLoading = usePipelineStore((s) => s.setBrainstormLoading);
   const setSpecSummary = usePipelineStore((s) => s.setSpecSummary);
   const setVisualUrl = usePipelineStore((s) => s.setVisualUrl);
-  const setHasVisual = usePipelineStore((s) => s.setHasVisual);
   const visualUrl = usePipelineStore((s) => s.visualUrl);
 
   // Track mount state to guard async callbacks
@@ -37,8 +36,7 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
   // Clear visual state from any previous session on mount
   useEffect(() => {
     setVisualUrl(null);
-    setHasVisual(false);
-  }, [setVisualUrl, setHasVisual]);
+  }, [setVisualUrl]);
 
   // Stop Visual Companion server on unmount
   useEffect(() => {
@@ -68,7 +66,6 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
             addMessage({ role: 'assistant', content: result.data.response });
             if (result.data.visual_url) {
               setVisualUrl(result.data.visual_url);
-              setHasVisual(true);
             }
             if (result.data.ready_to_plan && result.data.spec_summary) {
               setSpecSummary(result.data.spec_summary);
@@ -91,7 +88,7 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
         content: 'Wat wil je bouwen? Beschrijf het zo concreet mogelijk.',
       });
     }
-  }, [messages.length, projectDir, taskDescription, taskId, addMessage, setBrainstormLoading, setSpecSummary, setVisualUrl, setHasVisual, onReadyToPlan]);
+  }, [messages.length, projectDir, taskDescription, taskId, addMessage, setBrainstormLoading, setSpecSummary, setVisualUrl, onReadyToPlan]);
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -116,7 +113,6 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
 
         if (result.data.visual_url) {
           setVisualUrl(result.data.visual_url);
-          setHasVisual(true);
         }
 
         if (result.data.ready_to_plan && result.data.spec_summary) {

@@ -40,7 +40,6 @@ export interface PipelineState {
 
   // Visual Companion
   visualUrl: string | null;
-  hasVisual: boolean;
 
   // Actions
   setPhase: (phase: PipelinePhase) => void;
@@ -56,7 +55,6 @@ export interface PipelineState {
   addFinishProgress: (event: { status: string; message: string }) => void;
   setIsFinishing: (v: boolean) => void;
   setVisualUrl: (url: string | null) => void;
-  setHasVisual: (v: boolean) => void;
   reset: () => void;
 }
 
@@ -75,7 +73,6 @@ const initialState = {
   finishProgress: [],
   isFinishing: false,
   visualUrl: null,
-  hasVisual: false,
 };
 
 export const usePipelineStore = create<PipelineState>((set) => ({
@@ -98,6 +95,5 @@ export const usePipelineStore = create<PipelineState>((set) => ({
     set((s) => ({ finishProgress: [...s.finishProgress, event] })),
   setIsFinishing: (isFinishing) => set({ isFinishing }),
   setVisualUrl: (visualUrl) => set({ visualUrl }),
-  setHasVisual: (hasVisual) => set({ hasVisual }),
   reset: () => set(initialState),
 }));
