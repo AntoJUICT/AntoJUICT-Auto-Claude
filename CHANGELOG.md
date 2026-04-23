@@ -1,3 +1,13 @@
+## 2.8.1 - Pipeline Start Fix
+
+### 🐛 Bug Fixes
+
+- **Start op inbox-taken werkt nu correct** — Klikken op Start bij een nieuwe inbox-taak deed niets na de eerste poging. Oorzaak: de brainstorming-fase startte `run.py` die direct faalde (geen `spec.md`), waarna de taak intern vastliep in een `'brainstorming'`-state zonder op `'error'` te worden gezet. Elke volgende klik op Start werd stil genegeerd.
+- **Pipeline-runner faalt niet meer stil** — Bij een niet-nul exitcode zet de pipeline-runner `task.phase = 'error'` zodat herstart altijd werkt.
+- **Brainstorming is interactief** — De brainstorming-fase start geen achtergrondproces meer. De taak blijft in `'brainstorming'`-status staan zodat de gebruiker via het Pipeline-tabblad in het taakdetail verder kan.
+
+---
+
 ## 2.8.0 - Superpowers Pipeline Redesign
 
 ### ✨ New Features
