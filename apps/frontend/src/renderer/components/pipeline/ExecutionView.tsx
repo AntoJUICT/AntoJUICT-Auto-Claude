@@ -108,9 +108,12 @@ export function ExecutionView({ taskId, onComplete }: ExecutionViewProps) {
       {/* Subtasks List */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
         {subtasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            {t('tasks:execution.loading')}
-          </p>
+          <div className="flex flex-col items-center justify-center h-full gap-3 py-8 text-center">
+            <p className="text-sm font-medium text-foreground">Klaar om te starten</p>
+            <p className="text-xs text-muted-foreground max-w-[240px]">
+              Klik op <span className="font-semibold">Start Task</span> rechtsonder om de uitvoering te beginnen.
+            </p>
+          </div>
         ) : (
           subtasks.map((task) => (
             <div

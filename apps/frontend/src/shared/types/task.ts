@@ -21,7 +21,7 @@ export type TaskOrderState = Record<TaskStatus, string[]>;
 export type SendBackTarget = 'spec_review' | 'plan_review';
 
 // Review state — replaces review columns (badge on card instead)
-export type TaskReviewState = 'none' | 'spec_review' | 'plan_review' | 'approval';
+export type TaskReviewState = 'none' | 'spec_review' | 'plan_review' | 'plan_approved' | 'approval';
 
 // Skill progress shown on task card
 export interface TaskSkillProgress {

@@ -42,6 +42,7 @@
     "awaitingReview": "Waiting for you",
     "spec_review": "Spec ready — review needed",
     "plan_review": "Plan ready — review needed",
+    "plan_approved": "Plan goedgekeurd — klaar om te starten",
     "approval": "Ready for approval"
   },
   "skillSteps": {

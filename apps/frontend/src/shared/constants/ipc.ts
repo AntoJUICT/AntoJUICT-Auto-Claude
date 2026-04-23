@@ -610,4 +610,6 @@ export const IPC_CHANNELS = {
   PIPELINE_FINISH: 'pipeline:finish',
   PIPELINE_FINISH_PROGRESS: 'pipeline:finish:progress',
   PIPELINE_VISUAL_COMPANION_STOP: 'pipeline:visual-companion:stop',
+  PIPELINE_SAVE_BRAINSTORM_HISTORY: 'pipeline:brainstorm:history:save',
+  PIPELINE_LOAD_BRAINSTORM_HISTORY: 'pipeline:brainstorm:history:load',
 } as const;

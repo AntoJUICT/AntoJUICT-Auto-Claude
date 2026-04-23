@@ -417,7 +417,11 @@ const browserMockAPI: ElectronAPI = {
 
     onPlanProgress: () => () => {},
 
-    onFinishProgress: () => () => {}
+    onFinishProgress: () => () => {},
+
+    saveBrainstormHistory: async () => ({ success: true, data: undefined }),
+
+    loadBrainstormHistory: async () => ({ success: true, data: { messages: [], specSummary: null } })
   }
 };
 

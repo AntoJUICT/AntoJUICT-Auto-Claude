@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { usePipelineStore } from '../../stores/pipeline-store';
 import { cn } from '../../lib/utils';
 
@@ -21,6 +23,7 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
   const messages = usePipelineStore((s) => s.messages);
   const isBrainstormLoading = usePipelineStore((s) => s.isBrainstormLoading);
   const projectDir = usePipelineStore((s) => s.projectDir);
+  const specDir = usePipelineStore((s) => s.specDir);
   const addMessage = usePipelineStore((s) => s.addMessage);
   const setBrainstormLoading = usePipelineStore((s) => s.setBrainstormLoading);
   const setSpecSummary = usePipelineStore((s) => s.setSpecSummary);
@@ -70,8 +73,10 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
             }
             if (result.data.ready_to_plan && result.data.spec_summary) {
               setSpecSummary(result.data.spec_summary);
-              // Only trigger phase transition when still mounted
+              persistHistory(usePipelineStore.getState().messages, result.data.spec_summary, specDir);
               if (isMountedRef.current) onReadyToPlan(result.data.spec_summary);
+            } else {
+              persistHistory(usePipelineStore.getState().messages, null, specDir);
             }
           } else {
             addMessage({ role: 'assistant', content: `Er ging iets mis: ${result.error || 'Onbekende fout'}` });
@@ -91,6 +96,15 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
       });
     }
   }, [messages.length, projectDir, taskDescription, taskId, addMessage, setBrainstormLoading, setSpecSummary, setVisualUrl, onReadyToPlan]);
+
+  const persistHistory = (
+    allMessages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    summary: string | null,
+    dir: string | null,
+  ) => {
+    if (!dir) return;
+    window.electronAPI.pipeline.saveBrainstormHistory(dir, allMessages, summary).catch(console.error);
+  };
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -117,7 +131,10 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
 
         if (result.data.ready_to_plan && result.data.spec_summary) {
           setSpecSummary(result.data.spec_summary);
+          persistHistory(usePipelineStore.getState().messages, result.data.spec_summary, specDir);
           if (isMountedRef.current) onReadyToPlan(result.data.spec_summary);
+        } else {
+          persistHistory(usePipelineStore.getState().messages, null, specDir);
         }
       } else {
         addMessage({
@@ -166,7 +183,13 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
                   : 'bg-muted text-foreground',
               )}
             >
-              {msg.content}
+              {msg.role === 'assistant' ? (
+                <div className="max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:mt-1 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-4 [&>ol]:mt-1 [&>ol]:mb-2 [&_li]:mb-0.5 [&>h1]:text-sm [&>h1]:font-semibold [&>h2]:text-sm [&>h2]:font-semibold [&>h3]:text-sm [&>h3]:font-semibold [&>hr]:my-2 [&>hr]:border-border [&_strong]:font-semibold [&_code]:bg-background/50 [&_code]:rounded [&_code]:px-1 [&_code]:text-xs [&_code]:font-mono">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                </div>
+              ) : (
+                msg.content
+              )}
             </div>
           </div>
         ))}

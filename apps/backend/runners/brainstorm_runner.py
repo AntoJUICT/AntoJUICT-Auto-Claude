@@ -99,13 +99,24 @@ def build_messages(history: list[dict], project_context: str = "") -> str:
     lines = [system]
     if project_context:
         lines += ["", project_context]
+
+    lines.append("")
+    lines.append("## Conversation so far")
     lines.append("")
     for msg in history:
         role = msg.get("role", "user")
         content = msg.get("content", "")
-        prefix = "User:" if role == "user" else "Assistant:"
-        lines.append(f"{prefix} {content}")
-    lines.append("Assistant:")
+        prefix = "User" if role == "user" else "Assistant"
+        lines.append(f"**{prefix}:** {content}")
+        lines.append("")
+
+    lines.append("## Your next response")
+    lines.append(
+        "Write your single next message in this conversation. "
+        "Do NOT invent or generate any user messages. "
+        "Do NOT continue the conversation past your own reply. "
+        "Stop after your response."
+    )
     return "\n".join(lines)
 
 

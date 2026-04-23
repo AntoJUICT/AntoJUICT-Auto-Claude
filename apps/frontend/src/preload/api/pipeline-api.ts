@@ -96,6 +96,18 @@ export interface PipelineAPI {
   onFinishProgress: (
     callback: (event: PipelineFinishProgressEvent) => void
   ) => () => void;
+
+  /** Persist brainstorm conversation to specDir/brainstorm_history.json. */
+  saveBrainstormHistory: (
+    specDir: string,
+    messages: Array<{ role: string; content: string }>,
+    specSummary: string | null
+  ) => Promise<IPCResult<void>>;
+
+  /** Load persisted brainstorm conversation from specDir/brainstorm_history.json. */
+  loadBrainstormHistory: (
+    specDir: string
+  ) => Promise<IPCResult<{ messages: Array<{ role: string; content: string }>; specSummary: string | null }>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -165,4 +177,16 @@ export const createPipelineAPI = (): PipelineAPI => ({
     ipcRenderer.on(IPC_CHANNELS.PIPELINE_FINISH_PROGRESS, handler);
     return () => ipcRenderer.removeListener(IPC_CHANNELS.PIPELINE_FINISH_PROGRESS, handler);
   },
+
+  saveBrainstormHistory: (
+    specDir: string,
+    messages: Array<{ role: string; content: string }>,
+    specSummary: string | null
+  ): Promise<IPCResult<void>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.PIPELINE_SAVE_BRAINSTORM_HISTORY, { specDir, messages, specSummary }),
+
+  loadBrainstormHistory: (
+    specDir: string
+  ): Promise<IPCResult<{ messages: Array<{ role: string; content: string }>; specSummary: string | null }>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.PIPELINE_LOAD_BRAINSTORM_HISTORY, specDir),
 });

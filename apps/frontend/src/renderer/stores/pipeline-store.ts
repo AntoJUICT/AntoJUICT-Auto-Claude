@@ -19,6 +19,9 @@ export interface PipelineState {
   specDir: string | null;
   projectDir: string | null;
 
+  // Loading state — true while restoreState is resolving on task open
+  isStateLoaded: boolean;
+
   // Brainstorm
   messages: ChatMessage[];
   specSummary: string | null;
@@ -26,6 +29,7 @@ export interface PipelineState {
 
   // Plan writing
   planWritingProgress: string;
+  planWritingSteps: string[];
   isPlanWriting: boolean;
 
   // Plan review
@@ -48,6 +52,7 @@ export interface PipelineState {
   setSpecSummary: (summary: string) => void;
   setBrainstormLoading: (v: boolean) => void;
   setPlanWritingProgress: (msg: string) => void;
+  addPlanWritingStep: (msg: string) => void;
   setIsPlanWriting: (v: boolean) => void;
   setFunctionalPlan: (plan: string | null) => void;
   setSubtasks: (tasks: PipelineState['subtasks']) => void;
@@ -55,6 +60,12 @@ export interface PipelineState {
   addFinishProgress: (event: { status: string; message: string }) => void;
   setIsFinishing: (v: boolean) => void;
   setVisualUrl: (url: string | null) => void;
+  loadPersistedState: (
+    messages: ChatMessage[],
+    phase: PipelinePhase,
+    specSummary?: string | null,
+    functionalPlan?: string | null
+  ) => void;
   reset: () => void;
 }
 
@@ -63,10 +74,12 @@ const initialState = {
   taskId: null,
   specDir: null,
   projectDir: null,
+  isStateLoaded: false,
   messages: [],
   specSummary: null,
   isBrainstormLoading: false,
   planWritingProgress: '',
+  planWritingSteps: [],
   isPlanWriting: false,
   functionalPlan: null,
   subtasks: [],
@@ -84,6 +97,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
   setSpecSummary: (specSummary) => set({ specSummary }),
   setBrainstormLoading: (isBrainstormLoading) => set({ isBrainstormLoading }),
   setPlanWritingProgress: (planWritingProgress) => set({ planWritingProgress }),
+  addPlanWritingStep: (msg) => set((s) => ({ planWritingSteps: [...s.planWritingSteps, msg] })),
   setIsPlanWriting: (isPlanWriting) => set({ isPlanWriting }),
   setFunctionalPlan: (functionalPlan) => set({ functionalPlan }),
   setSubtasks: (subtasks) => set({ subtasks }),
@@ -95,5 +109,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
     set((s) => ({ finishProgress: [...s.finishProgress, event] })),
   setIsFinishing: (isFinishing) => set({ isFinishing }),
   setVisualUrl: (visualUrl) => set({ visualUrl }),
+  loadPersistedState: (messages, phase, specSummary, functionalPlan) =>
+    set({ ...initialState, isStateLoaded: true, messages, phase, specSummary: specSummary ?? null, functionalPlan: functionalPlan ?? null }),
   reset: () => set(initialState),
 }));

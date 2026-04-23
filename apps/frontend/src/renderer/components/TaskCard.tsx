@@ -691,8 +691,7 @@ export const TaskCard = memo(function TaskCard({
                 {t('actions.archive')}
               </Button>
             ) : (task.status === 'inbox' || task.status === 'executing' ||
-              (task.status === 'brainstorming' && task.reviewState !== 'spec_review') ||
-              (task.status === 'planning' && task.reviewState !== 'plan_review')) && (
+              (task.status === 'brainstorming' && task.reviewState !== 'spec_review')) && (
               <Button
                 variant={isRunning ? 'destructive' : 'default'}
                 size="sm"

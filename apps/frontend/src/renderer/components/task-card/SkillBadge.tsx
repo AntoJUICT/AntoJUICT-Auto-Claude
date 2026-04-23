@@ -10,6 +10,17 @@ interface Props {
 export function SkillBadge({ skillProgress, reviewState }: Props) {
   const { t } = useTranslation('kanban');
 
+  if (reviewState === 'plan_approved') {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-green-600/60 bg-green-900/30 px-2 py-1">
+        <span className="text-sm">✅</span>
+        <span className="text-xs font-bold text-green-400">
+          {t('review.plan_approved')}
+        </span>
+      </div>
+    );
+  }
+
   if (reviewState !== 'none') {
     const reviewMessage = t(`review.${reviewState}`);
     return (

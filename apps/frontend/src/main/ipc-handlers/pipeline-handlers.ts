@@ -3,7 +3,7 @@ import type { BrowserWindow } from 'electron';
 import { spawn } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import path from 'path';
-import { existsSync, readFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { IPC_CHANNELS } from '../../shared/constants';
 import type { IPCResult } from '../../shared/types';
 import { AgentManager } from '../agent';
@@ -517,6 +517,52 @@ export function registerPipelineHandlers(
     async (_, taskId: string): Promise<IPCResult<void>> => {
       stopVisualSession(taskId);
       return { success: true, data: undefined };
+    }
+  );
+
+  // ============================================================
+  // PIPELINE_SAVE_BRAINSTORM_HISTORY
+  // Persists brainstorm messages + spec_summary to specDir.
+  // ============================================================
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_SAVE_BRAINSTORM_HISTORY,
+    async (
+      _,
+      payload: {
+        specDir: string;
+        messages: Array<{ role: string; content: string }>;
+        specSummary: string | null;
+      }
+    ): Promise<IPCResult<void>> => {
+      try {
+        mkdirSync(payload.specDir, { recursive: true });
+        const filePath = path.join(payload.specDir, 'brainstorm_history.json');
+        writeFileSync(filePath, JSON.stringify({ messages: payload.messages, specSummary: payload.specSummary }, null, 2), 'utf-8');
+        return { success: true, data: undefined };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    }
+  );
+
+  // ============================================================
+  // PIPELINE_LOAD_BRAINSTORM_HISTORY
+  // Loads brainstorm messages + spec_summary from specDir.
+  // ============================================================
+  ipcMain.handle(
+    IPC_CHANNELS.PIPELINE_LOAD_BRAINSTORM_HISTORY,
+    async (_, specDir: string): Promise<IPCResult<{ messages: Array<{ role: string; content: string }>; specSummary: string | null }>> => {
+      const filePath = path.join(specDir, 'brainstorm_history.json');
+      if (!existsSync(filePath)) {
+        return { success: true, data: { messages: [], specSummary: null } };
+      }
+      try {
+        const raw = readFileSync(filePath, 'utf-8');
+        const data = JSON.parse(raw);
+        return { success: true, data: { messages: data.messages ?? [], specSummary: data.specSummary ?? null } };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
     }
   );
 }

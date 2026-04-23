@@ -45,6 +45,26 @@ def emit(status: str, message: str) -> None:
     print(json.dumps({"status": status, "message": message}, ensure_ascii=False), flush=True)
 
 
+def _tool_progress(tool_name: str, tool_input: dict) -> str | None:
+    """Vertaal een tool-aanroep naar een leesbaar progressiebericht."""
+    name = tool_name.lower()
+    if "read" in name:
+        path = tool_input.get("file_path") or tool_input.get("path", "")
+        return f"Lezen: {Path(path).name}" if path else None
+    if "write" in name:
+        path = tool_input.get("file_path") or tool_input.get("path", "")
+        return f"Schrijven: {Path(path).name}" if path else None
+    if "bash" in name or "shell" in name:
+        cmd = str(tool_input.get("command", ""))[:60]
+        return f"Uitvoeren: {cmd}" if cmd else "Commando uitvoeren..."
+    if "grep" in name or "search" in name:
+        pattern = str(tool_input.get("pattern", ""))[:40]
+        return f"Zoeken: {pattern}" if pattern else "Zoeken in code..."
+    if "glob" in name or "list" in name:
+        return "Bestandsstructuur verkennen..."
+    return None
+
+
 async def run(spec_summary: str, spec_dir: str, project_dir: str) -> None:
     emit("writing", "Codebase wordt geanalyseerd...")
 
@@ -78,7 +98,13 @@ Explore the codebase, then write functional_plan.md and implementation_plan.json
     async with client:
         await client.query(prompt)
         async for msg in safe_receive_messages(client, caller="plan_writer"):
-            pass  # Agent writes files directly via tools
+            if type(msg).__name__ == "AssistantMessage" and hasattr(msg, "content"):
+                for block in msg.content:
+                    if type(block).__name__ == "ToolUseBlock" and hasattr(block, "name"):
+                        tool_input = getattr(block, "input", {}) or {}
+                        progress = _tool_progress(block.name, tool_input)
+                        if progress:
+                            emit("writing", progress)
 
     # Verify outputs were created
     functional_plan = spec_path / "functional_plan.md"
