@@ -142,7 +142,6 @@ def _get_cached_project_data(
 
     key = str(project_dir.resolve())
     now = time.time()
-    debug = os.environ.get("DEBUG", "").lower() in ("true", "1")
 
     # Check cache with lock
     with _CACHE_LOCK:
@@ -150,15 +149,14 @@ def _get_cached_project_data(
             cached_index, cached_capabilities, cached_time = _PROJECT_INDEX_CACHE[key]
             cache_age = now - cached_time
             if cache_age < _CACHE_TTL_SECONDS:
-                if debug:
-                    print(
-                        f"[ClientCache] Cache HIT for project index (age: {cache_age:.1f}s / TTL: {_CACHE_TTL_SECONDS}s)"
-                    )
+                logger.debug(
+                    f"[ClientCache] Cache HIT for project index (age: {cache_age:.1f}s / TTL: {_CACHE_TTL_SECONDS}s)"
+                )
                 logger.debug(f"Using cached project index for {project_dir}")
                 # Return deep copies to prevent callers from corrupting the cache
                 return copy.deepcopy(cached_index), copy.deepcopy(cached_capabilities)
-            elif debug:
-                print(
+            else:
+                logger.debug(
                     f"[ClientCache] Cache EXPIRED for project index (age: {cache_age:.1f}s > TTL: {_CACHE_TTL_SECONDS}s)"
                 )
 
@@ -168,11 +166,8 @@ def _get_cached_project_data(
     project_index = load_project_index(project_dir)
     project_capabilities = detect_project_capabilities(project_index)
 
-    if debug:
-        load_duration = (time.time() - load_start) * 1000
-        print(
-            f"[ClientCache] Cache MISS - loaded project index in {load_duration:.1f}ms"
-        )
+    load_duration = (time.time() - load_start) * 1000
+    logger.debug(f"[ClientCache] Cache MISS - loaded project index in {load_duration:.1f}ms")
 
     # Store in cache with lock - use double-checked locking pattern
     # Re-check if another thread populated the cache while we were loading
@@ -182,10 +177,7 @@ def _get_cached_project_data(
             cache_age = time.time() - cached_time
             if cache_age < _CACHE_TTL_SECONDS:
                 # Another thread already cached valid data while we were loading
-                if debug:
-                    print(
-                        "[ClientCache] Cache was populated by another thread, using cached data"
-                    )
+                logger.debug("[ClientCache] Cache was populated by another thread, using cached data")
                 # Return deep copies to prevent callers from corrupting the cache
                 return copy.deepcopy(cached_index), copy.deepcopy(cached_capabilities)
         # Either no cache entry or it's expired - store our fresh data
@@ -624,10 +616,7 @@ def create_client(
     # See: https://code.claude.com/docs/en/fast-mode
     if fast_mode:
         ensure_fast_mode_in_user_settings()
-        logger.info("[Fast Mode] ACTIVE — will enable user setting source for fastMode")
-        print(
-            "[Fast Mode] ACTIVE — enabling user settings source for CLI to read fastMode"
-        )
+        logger.info("[Fast Mode] ACTIVE — enabling user settings source for CLI to read fastMode")
     else:
         logger.info("[Fast Mode] inactive — not requested for this client")
 
@@ -787,21 +776,21 @@ def create_client(
     with open(settings_file, "w", encoding="utf-8") as f:
         json.dump(security_settings, f, indent=2)
 
-    print(f"Security settings: {settings_file}")
-    print("   - Sandbox enabled (OS-level bash isolation)")
-    print(f"   - Filesystem restricted to: {project_dir.resolve()}")
+    logger.info(f"Security settings: {settings_file}")
+    logger.info("   - Sandbox enabled (OS-level bash isolation)")
+    logger.info(f"   - Filesystem restricted to: {project_dir.resolve()}")
     if original_project_permissions:
-        print("   - Worktree permissions: granted for original project directories")
-    print("   - Bash commands restricted to allowlist")
+        logger.info("   - Worktree permissions: granted for original project directories")
+    logger.info("   - Bash commands restricted to allowlist")
     if max_thinking_tokens:
         thinking_info = f"{max_thinking_tokens:,} tokens"
         if effort_level:
             thinking_info += f" + effort={effort_level}"
         if fast_mode:
             thinking_info += " + fast mode"
-        print(f"   - Extended thinking: {thinking_info}")
+        logger.info(f"   - Extended thinking: {thinking_info}")
     else:
-        print("   - Extended thinking: disabled")
+        logger.info("   - Extended thinking: disabled")
 
     # Build list of MCP servers for display based on required_servers
     mcp_servers_list = []
@@ -820,9 +809,9 @@ def create_client(
     if "auto-claude" in required_servers and auto_claude_tools_enabled:
         mcp_servers_list.append(f"auto-claude ({agent_type} tools)")
     if mcp_servers_list:
-        print(f"   - MCP servers: {', '.join(mcp_servers_list)}")
+        logger.info(f"   - MCP servers: {', '.join(mcp_servers_list)}")
     else:
-        print("   - MCP servers: none (minimal configuration)")
+        logger.info("   - MCP servers: none (minimal configuration)")
 
     # Show detected project capabilities for QA agents
     if agent_type in ("qa_reviewer", "qa_fixer") and any(project_capabilities.values()):
@@ -831,8 +820,7 @@ def create_client(
             for k, v in project_capabilities.items()
             if v
         ]
-        print(f"   - Project capabilities: {', '.join(caps)}")
-    print()
+        logger.info(f"   - Project capabilities: {', '.join(caps)}")
 
     # Configure MCP servers - ONLY start servers that are required
     # This is the key optimization to reduce context bloat and startup latency
@@ -937,18 +925,15 @@ def create_client(
                         claude_md_content[:max_claude_md_chars]
                         + WINDOWS_TRUNCATION_MESSAGE
                     )
-                    print(
-                        "   - CLAUDE.md: truncated (exceeded Windows command-line limit)"
-                    )
+                    logger.info("   - CLAUDE.md: truncated (exceeded Windows command-line limit)")
                     was_truncated = True
             base_prompt = f"{base_prompt}\n\n# Project Instructions (from CLAUDE.md)\n\n{claude_md_content}"
             if not was_truncated:
-                print("   - CLAUDE.md: included in system prompt")
+                logger.info("   - CLAUDE.md: included in system prompt")
         else:
-            print("   - CLAUDE.md: not found in project root")
+            logger.info("   - CLAUDE.md: not found in project root")
     else:
-        print("   - CLAUDE.md: disabled by project settings")
-    print()
+        logger.info("   - CLAUDE.md: disabled by project settings")
 
     # Build options dict, conditionally including output_format
     options_kwargs: dict[str, Any] = {
