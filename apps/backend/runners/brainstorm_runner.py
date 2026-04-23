@@ -2,12 +2,13 @@
 """
 Brainstorm runner — one-shot, takes conversation history, returns next Claude response.
 
-Input  (stdin JSON):  {"messages": [{"role": "user"|"assistant", "content": str}], "project_dir": str}
-Output (stdout JSON): {"response": str, "ready_to_plan": bool, "spec_summary": str | null}
+Input  (stdin JSON):  {"messages": [{"role": "user"|"assistant", "content": str}], "project_dir": str, "screen_dir": str | null}
+Output (stdout JSON): {"response": str, "ready_to_plan": bool, "spec_summary": str | null, "has_visual": bool}
 """
 
 import asyncio
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -56,7 +57,7 @@ def build_messages(history: list[dict]) -> str:
     return "\n".join(lines)
 
 
-async def run(messages: list[dict], project_dir: str) -> dict:
+async def run(messages: list[dict], project_dir: str, screen_dir=None) -> dict:
     prompt = build_messages(messages)
     project_path = Path(project_dir)
     client = create_client(
@@ -76,6 +77,24 @@ async def run(messages: list[dict], project_dir: str) -> dict:
                     if type(block).__name__ == "TextBlock" and hasattr(block, "text"):
                         response_text += block.text
 
+    # Parse and extract VISUAL_SCREEN markers
+    visual_pattern = re.compile(
+        r'<VISUAL_SCREEN\s+filename="([^"]+)">(.*?)</VISUAL_SCREEN>',
+        re.DOTALL,
+    )
+    matches = visual_pattern.findall(response_text)
+
+    has_visual = False
+    if matches and screen_dir is not None:
+        content_dir = Path(screen_dir) / "content"
+        content_dir.mkdir(parents=True, exist_ok=True)
+        for filename, html_content in matches:
+            (content_dir / filename).write_text(html_content, encoding="utf-8")
+        has_visual = True
+
+    # Strip all VISUAL_SCREEN blocks from the response regardless of screen_dir
+    response_text = visual_pattern.sub("", response_text)
+
     ready = "READY: true" in response_text
     spec_summary = None
     if ready and "SUMMARY:" in response_text:
@@ -90,6 +109,7 @@ async def run(messages: list[dict], project_dir: str) -> dict:
         ),
         "ready_to_plan": ready,
         "spec_summary": spec_summary,
+        "has_visual": has_visual,
     }
 
 
@@ -97,5 +117,6 @@ if __name__ == "__main__":
     data = json.loads(sys.stdin.read())
     messages = data.get("messages", [])
     project_dir = data.get("project_dir", ".")
-    result = asyncio.run(run(messages, project_dir))
+    screen_dir = data.get("screen_dir")
+    result = asyncio.run(run(messages, project_dir, screen_dir))
     print(json.dumps(result, ensure_ascii=False))
