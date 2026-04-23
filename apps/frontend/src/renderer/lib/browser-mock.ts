@@ -394,14 +394,17 @@ const browserMockAPI: ElectronAPI = {
 
   // Pipeline API (spec brainstorm / plan-writing / finisher pipeline)
   pipeline: {
-    sendBrainstormMessage: async (messages: Array<{ role: string; content: string }>, projectDir: string) => ({
+    sendBrainstormMessage: async (_messages: Array<{ role: string; content: string }>, _projectDir: string, _taskId: string) => ({
       success: true,
       data: {
         response: 'Mock brainstorm response: I understand you want to build something. Please provide more details.',
         ready_to_plan: false,
-        spec_summary: null
+        spec_summary: null,
+        visual_url: null
       }
     }),
+
+    stopVisualCompanion: async (_taskId: string) => ({ success: true, data: undefined }),
 
     writePlan: async () => ({ success: true }),
 
