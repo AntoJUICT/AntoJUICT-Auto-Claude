@@ -1,3 +1,21 @@
+## 2.8.2 - Pipeline Brainstorm Verbeteringen
+
+### ✨ New Features
+
+- **Brainstorm history persistentie** — De brainstorm-conversatie wordt na elke wissel opgeslagen naar `specDir/brainstorm_history.json`. Bij het heropenen van een taak wordt de volledige conversatie automatisch hersteld.
+- **Fase-herstel bij heropenen** — PipelineView detecteert de juiste fase (brainstorm, plan_review, executing) op basis van task status en plan-bestaan in plaats van altijd opnieuw te starten.
+- **Technische benaderingen stap** — De brainstorm-agent stelt na de verhelderingsvragen 2-3 concrete technische aanpakken voor (met afwegingen) en wacht op de keuze van de gebruiker vóór het schrijven van de spec.
+- **Live plan-schrijflog** — Tijdens het schrijven van het plan verschijnt een scrollend log met tool-activiteit (Lezen, Zoeken, Schrijven) in plaats van een leeg scherm.
+- **Markdown rendering** — Assistent-berichten in de brainstorm-chat renderen nu als opgemaakt markdown (vet, koppen, lijsten, code).
+
+### 🐛 Bug Fixes
+
+- **Start-knop verborgen tijdens plan schrijven** — De Start-knop verdwijnt zodra de taak status `planning` krijgt (plan wordt automatisch geschreven).
+- **Brainstorm hallucination fix** — Claude genereerde soms meerdere beurten in één response (inclusief verzonnen gebruikersantwoorden). De prompt is geherstructureerd met expliciete instructie om na één antwoord te stoppen.
+- **Race condition bij heropenen opgelost** — Een `isStateLoaded` vlag blokkeert BrainstormView's auto-send totdat de history van disk geladen is.
+
+---
+
 ## 2.8.1 - Pipeline Start Fix
 
 ### 🐛 Bug Fixes

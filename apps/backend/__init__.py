@@ -19,5 +19,5 @@ Quick Start:
 See README.md for full documentation.
 """
 
-__version__ = "2.8.1"
+__version__ = "2.8.2"
 __author__ = "Auto Claude Team"
