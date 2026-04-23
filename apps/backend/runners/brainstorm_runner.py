@@ -44,10 +44,62 @@ def load_brainstorm_prompt() -> str:
     )
 
 
-def build_messages(history: list[dict]) -> str:
+def build_project_context(project_dir: str) -> str:
+    """Build a lightweight context snapshot of the project for the brainstorm agent."""
+    root = Path(project_dir)
+    sections: list[str] = []
+
+    # CLAUDE.md — project-specific instructions and constraints
+    for name in ("CLAUDE.md", "claude.md"):
+        p = root / name
+        if p.exists():
+            text = p.read_text(encoding="utf-8", errors="replace")[:3000]
+            sections.append(f"### CLAUDE.md (project instructions)\n{text}")
+            break
+
+    # README
+    for name in ("README.md", "readme.md", "README.txt"):
+        p = root / name
+        if p.exists():
+            text = p.read_text(encoding="utf-8", errors="replace")[:1500]
+            sections.append(f"### README\n{text}")
+            break
+
+    # Tech stack hints from package.json
+    pkg = root / "package.json"
+    if pkg.exists():
+        try:
+            import json as _json
+            data = _json.loads(pkg.read_text(encoding="utf-8"))
+            deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            top = list(deps.keys())[:30]
+            sections.append(f"### package.json — key dependencies\n{', '.join(top)}")
+        except Exception:
+            pass
+
+    # Top-level directory listing (exclude common noise)
+    _SKIP = {".git", "node_modules", "__pycache__", ".venv", "dist", "build", "out", ".next", "coverage"}
+    try:
+        entries = sorted(
+            e.name for e in root.iterdir()
+            if e.name not in _SKIP and not e.name.startswith(".")
+        )
+        sections.append(f"### Project structure (top-level)\n{chr(10).join(entries)}")
+    except Exception:
+        pass
+
+    if not sections:
+        return ""
+    return "## Existing project context\n\n" + "\n\n".join(sections)
+
+
+def build_messages(history: list[dict], project_context: str = "") -> str:
     """Format conversation history as a single prompt string."""
     system = load_brainstorm_prompt()
-    lines = [system, ""]
+    lines = [system]
+    if project_context:
+        lines += ["", project_context]
+    lines.append("")
     for msg in history:
         role = msg.get("role", "user")
         content = msg.get("content", "")
@@ -58,7 +110,8 @@ def build_messages(history: list[dict]) -> str:
 
 
 async def run(messages: list[dict], project_dir: str, screen_dir=None) -> dict:
-    prompt = build_messages(messages)
+    project_context = build_project_context(project_dir)
+    prompt = build_messages(messages, project_context)
     project_path = Path(project_dir)
     client = create_client(
         project_dir=project_path,
