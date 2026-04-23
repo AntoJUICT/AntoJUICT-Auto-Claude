@@ -32,6 +32,7 @@ export interface BrainstormResponse {
   response: string;
   ready_to_plan: boolean;
   spec_summary: string | null;
+  visual_url: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -41,12 +42,19 @@ export interface BrainstormResponse {
 export interface PipelineAPI {
   /**
    * Send a brainstorm chat message and receive a single AI response.
-   * Returns the assistant reply, a readiness flag, and an optional spec summary.
+   * Returns the assistant reply, a readiness flag, an optional spec summary,
+   * and an optional Visual Companion URL.
    */
   sendBrainstormMessage: (
     messages: Array<{ role: string; content: string }>,
-    projectDir: string
+    projectDir: string,
+    taskId: string
   ) => Promise<IPCResult<BrainstormResponse>>;
+
+  /**
+   * Stop the Visual Companion server for the given task.
+   */
+  stopVisualCompanion: (taskId: string) => Promise<IPCResult<void>>;
 
   /**
    * Stream plan-writing progress.
@@ -97,12 +105,17 @@ export interface PipelineAPI {
 export const createPipelineAPI = (): PipelineAPI => ({
   sendBrainstormMessage: (
     messages: Array<{ role: string; content: string }>,
-    projectDir: string
+    projectDir: string,
+    taskId: string
   ): Promise<IPCResult<BrainstormResponse>> =>
     ipcRenderer.invoke(IPC_CHANNELS.PIPELINE_BRAINSTORM_MESSAGE, {
       messages,
       project_dir: projectDir,
+      taskId,
     }),
+
+  stopVisualCompanion: (taskId: string): Promise<IPCResult<void>> =>
+    ipcRenderer.invoke(IPC_CHANNELS.PIPELINE_VISUAL_COMPANION_STOP, taskId),
 
   writePlan: (
     specSummary: string,
