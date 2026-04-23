@@ -212,6 +212,14 @@
         }
       ]
     },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "JUICT agentic OS",
+      "deleteAppDataOnUninstall": false
+    },
     "win": {
       "icon": "resources/icon.ico",
       "target": [
