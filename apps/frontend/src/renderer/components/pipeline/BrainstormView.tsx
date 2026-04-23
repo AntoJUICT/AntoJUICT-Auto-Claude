@@ -14,6 +14,8 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const hasAutoSentRef = useRef(false);
+  // Only used to guard onReadyToPlan (phase transition callback).
+  // Store actions are safe to call after unmount — no guard needed there.
   const isMountedRef = useRef(true);
 
   const messages = usePipelineStore((s) => s.messages);
@@ -25,7 +27,6 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
   const setVisualUrl = usePipelineStore((s) => s.setVisualUrl);
   const visualUrl = usePipelineStore((s) => s.visualUrl);
 
-  // Track mount state to guard async callbacks
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -33,10 +34,11 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
     };
   }, []);
 
-  // Clear visual state from any previous session on mount
+  // Reset stale visual + loading state from any previous session on mount
   useEffect(() => {
+    setBrainstormLoading(false);
     setVisualUrl(null);
-  }, [setVisualUrl]);
+  }, [setBrainstormLoading, setVisualUrl]);
 
   // Stop Visual Companion server on unmount
   useEffect(() => {
@@ -61,7 +63,6 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
       window.electronAPI.pipeline
         .sendBrainstormMessage([userMsg], projectDir, taskId)
         .then((result) => {
-          if (!isMountedRef.current) return;
           if (result.success && result.data) {
             addMessage({ role: 'assistant', content: result.data.response });
             if (result.data.visual_url) {
@@ -69,18 +70,19 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
             }
             if (result.data.ready_to_plan && result.data.spec_summary) {
               setSpecSummary(result.data.spec_summary);
-              onReadyToPlan(result.data.spec_summary);
+              // Only trigger phase transition when still mounted
+              if (isMountedRef.current) onReadyToPlan(result.data.spec_summary);
             }
           } else {
             addMessage({ role: 'assistant', content: `Er ging iets mis: ${result.error || 'Onbekende fout'}` });
           }
         })
         .catch((err) => {
-          if (!isMountedRef.current) return;
           addMessage({ role: 'assistant', content: `Er ging iets mis: ${err instanceof Error ? err.message : String(err)}` });
         })
         .finally(() => {
-          if (isMountedRef.current) setBrainstormLoading(false);
+          // Always reset loading — Zustand store actions are safe after unmount
+          setBrainstormLoading(false);
         });
     } else {
       addMessage({
@@ -106,8 +108,6 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
         taskId,
       );
 
-      if (!isMountedRef.current) return;
-
       if (result.success && result.data) {
         addMessage({ role: 'assistant', content: result.data.response });
 
@@ -117,7 +117,7 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
 
         if (result.data.ready_to_plan && result.data.spec_summary) {
           setSpecSummary(result.data.spec_summary);
-          onReadyToPlan(result.data.spec_summary);
+          if (isMountedRef.current) onReadyToPlan(result.data.spec_summary);
         }
       } else {
         addMessage({
@@ -126,13 +126,12 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
         });
       }
     } catch (err) {
-      if (!isMountedRef.current) return;
       addMessage({
         role: 'assistant',
         content: `Er ging iets mis: ${err instanceof Error ? err.message : String(err)}`,
       });
     } finally {
-      if (isMountedRef.current) setBrainstormLoading(false);
+      setBrainstormLoading(false);
     }
   };
 
