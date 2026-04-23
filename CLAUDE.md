@@ -317,6 +317,8 @@ npm run dev:mcp    # Electron MCP server for AI debugging
 | 2026-04-20 | CDP smoke test WS_URL hardcoded — verouderd na Electron-herstart | Altijd `curl http://localhost:9222/json/list` vóór smoke test en WS_URL bijwerken | Electron geeft elke run een nieuw CDP page ID |
 | 2026-04-21 | GitHub token `github_pat_ghp_...` → 401 bij electron-builder publish | Gebruik een classic PAT (`ghp_...`) of fine-grained PAT (`github_pat_...`), nooit gecombineerd | Twee token-prefixen samengevoegd = ongeldig token |
 | 2026-04-21 | `latest.yml` url: `JUICT-agentic-OS-...exe` → auto-updater vindt bestand niet | Bij `gh release upload` converteert GitHub spaties naar punten: gebruik `JUICT.agentic.OS-...exe` in `latest.yml` | GitHub hernoemt assets: spaties → punten |
+| 2026-04-23 | `pipeline-runner.ts` riep `run.py` aan voor brainstorming-fase → direct exit(1) omdat geen `spec.md` bestond, taak vastgelopen in 'brainstorming'-state | Brainstorming is interactief via PipelineView — `runPhase('brainstorming')` moet no-op zijn; `task.phase = 'error'` zetten bij non-zero exit zodat herstart werkt | v2.8.0 maakt brainstorming interactief, `run.py` verwacht bestaande spec.md |
+| 2026-04-23 | Push naar `main` triggerde onbedoeld GitHub Actions release-build bij lokale builds | Bij lokale build: gebruik `gh release create` met lokale bestanden — push de code gewoon, annuleer de Actions workflow direct | `main` push triggert automatisch release workflow |
 
 ## Regels
 
@@ -325,3 +327,5 @@ npm run dev:mcp    # Electron MCP server for AI debugging
 - Bij CDP smoke tests: altijd `curl http://localhost:9222/json/list` uitvoeren voor het script en de `WS_URL` bijwerken — nooit een hardcoded page ID vertrouwen.
 - Bij handmatig uploaden via `gh release upload`: GitHub converteert spaties naar punten in asset-namen. Zorg dat `latest.yml` de punt-variant gebruikt als URL, niet de koppelteken-variant.
 - Een GitHub PAT token moet beginnen met óf `ghp_` (classic) óf `github_pat_` (fine-grained) — nooit beide prefixen gecombineerd.
+- `runPhase('brainstorming')` in pipeline-runner.ts is een no-op — brainstorming verloopt interactief via PipelineView/BrainstormView, nooit via run.py.
+- Altijd `task.phase = 'error'` zetten bij non-zero exitcodes in pipeline-runner.ts — anders negeert de `existing.phase !== 'error'` guard elke volgende Start-klik stil.
