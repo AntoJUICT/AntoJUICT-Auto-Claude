@@ -78,6 +78,7 @@ export function startPipeline(
   emitStatusChange(window, taskId, 'brainstorming');
   runPhase(window, task, 'brainstorming').catch((err) => {
     console.error('[PipelineRunner] startPipeline error:', err);
+    task.phase = 'error';
     emitStatusChange(window, taskId, 'inbox');
   });
 }
@@ -117,6 +118,7 @@ export function approveSpec(window: BrowserWindow, taskId: string): void {
   emitStatusChange(window, taskId, 'planning');
   runPhase(window, task, 'planning').catch((err) => {
     console.error('[PipelineRunner] approveSpec error:', err);
+    task.phase = 'error';
     emitStatusChange(window, taskId, 'inbox');
   });
 }
@@ -128,6 +130,7 @@ export function approvePlan(window: BrowserWindow, taskId: string): void {
   emitStatusChange(window, taskId, 'executing');
   runPhase(window, task, 'implementation').catch((err) => {
     console.error('[PipelineRunner] approvePlan error:', err);
+    task.phase = 'error';
     emitStatusChange(window, taskId, 'inbox');
   });
 }
@@ -153,6 +156,7 @@ export function sendBack(
   emitStatusChange(window, taskId, nextPhase);
   runPhase(window, task, pythonPhase, note).catch((err) => {
     console.error('[PipelineRunner] sendBack error:', err);
+    task.phase = 'error';
     emitStatusChange(window, taskId, 'inbox');
   });
 }
@@ -189,6 +193,13 @@ async function runPhase(
   phase: 'brainstorming' | 'planning' | 'implementation',
   sendBackNote?: string
 ): Promise<void> {
+  // Brainstorming is an interactive phase driven by PipelineView/BrainstormView in the UI.
+  // No background Python process is needed — the task stays in 'brainstorming' state so
+  // the user can open the task detail modal and use the Pipeline tab to proceed.
+  if (phase === 'brainstorming') {
+    return;
+  }
+
   if (!_config) {
     console.error('[PipelineRunner] Not configured — call configure() first');
     return;
@@ -288,6 +299,9 @@ async function runPhase(
 
     if (code !== 0) {
       console.error(`[PipelineRunner] Phase ${phase} exited with code ${code} for task ${task.taskId}`);
+      // Mark as error so the next Start attempt is not silently ignored by the
+      // "existing && existing.phase !== 'error'" guard in startPipeline.
+      task.phase = 'error';
       emitStatusChange(window, task.taskId, 'inbox');
     }
   });
