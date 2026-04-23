@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePipelineStore } from '../../stores/pipeline-store';
 import { cn } from '../../lib/utils';
 
@@ -9,9 +10,11 @@ interface BrainstormViewProps {
 }
 
 export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: BrainstormViewProps) {
+  const { t } = useTranslation('tasks');
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const hasAutoSentRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const messages = usePipelineStore((s) => s.messages);
   const isBrainstormLoading = usePipelineStore((s) => s.isBrainstormLoading);
@@ -23,15 +26,30 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
   const setHasVisual = usePipelineStore((s) => s.setHasVisual);
   const visualUrl = usePipelineStore((s) => s.visualUrl);
 
+  // Track mount state to guard async callbacks
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Clear visual state from any previous session on mount
+  useEffect(() => {
+    setVisualUrl(null);
+    setHasVisual(false);
+  }, [setVisualUrl, setHasVisual]);
+
+  // Stop Visual Companion server on unmount
+  useEffect(() => {
+    return () => {
+      void window.electronAPI.pipeline.stopVisualCompanion(taskId).catch(console.error);
+    };
+  }, [taskId]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  useEffect(() => {
-    return () => {
-      window.electronAPI.pipeline.stopVisualCompanion(taskId);
-    };
-  }, [taskId]);
 
   useEffect(() => {
     if (messages.length > 0 || !projectDir || hasAutoSentRef.current) return;
@@ -45,6 +63,7 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
       window.electronAPI.pipeline
         .sendBrainstormMessage([userMsg], projectDir, taskId)
         .then((result) => {
+          if (!isMountedRef.current) return;
           if (result.success && result.data) {
             addMessage({ role: 'assistant', content: result.data.response });
             if (result.data.visual_url) {
@@ -60,9 +79,12 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
           }
         })
         .catch((err) => {
+          if (!isMountedRef.current) return;
           addMessage({ role: 'assistant', content: `Er ging iets mis: ${err instanceof Error ? err.message : String(err)}` });
         })
-        .finally(() => setBrainstormLoading(false));
+        .finally(() => {
+          if (isMountedRef.current) setBrainstormLoading(false);
+        });
     } else {
       addMessage({
         role: 'assistant',
@@ -87,6 +109,8 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
         taskId,
       );
 
+      if (!isMountedRef.current) return;
+
       if (result.success && result.data) {
         addMessage({ role: 'assistant', content: result.data.response });
 
@@ -106,12 +130,13 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
         });
       }
     } catch (err) {
+      if (!isMountedRef.current) return;
       addMessage({
         role: 'assistant',
         content: `Er ging iets mis: ${err instanceof Error ? err.message : String(err)}`,
       });
     } finally {
-      setBrainstormLoading(false);
+      if (isMountedRef.current) setBrainstormLoading(false);
     }
   };
 
@@ -183,7 +208,7 @@ export function BrainstormView({ onReadyToPlan, taskDescription, taskId }: Brain
               onClick={() => window.electronAPI.openExternal(visualUrl)}
               className="px-3 py-2 rounded-md bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
             >
-              Open Preview
+              {t('brainstorm.openPreview')}
             </button>
           )}
         </div>
