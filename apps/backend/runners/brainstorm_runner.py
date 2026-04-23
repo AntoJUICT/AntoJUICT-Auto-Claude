@@ -85,11 +85,13 @@ async def run(messages: list[dict], project_dir: str, screen_dir=None) -> dict:
     matches = visual_pattern.findall(response_text)
 
     has_visual = False
-    if matches and screen_dir is not None:
+    if matches and screen_dir:
         content_dir = Path(screen_dir) / "content"
         content_dir.mkdir(parents=True, exist_ok=True)
         for filename, html_content in matches:
-            (content_dir / filename).write_text(html_content, encoding="utf-8")
+            # Use basename only to prevent path traversal
+            safe_name = Path(filename).name
+            (content_dir / safe_name).write_text(html_content, encoding="utf-8")
         has_visual = True
 
     # Strip all VISUAL_SCREEN blocks from the response regardless of screen_dir
