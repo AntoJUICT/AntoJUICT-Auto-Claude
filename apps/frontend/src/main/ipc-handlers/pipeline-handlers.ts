@@ -36,7 +36,10 @@ function getServerScriptPath(): string {
   if (app.isPackaged) {
     return path.join(process.resourcesPath, 'visual-companion', 'server.cjs');
   }
-  return path.join(__dirname, '../../../../resources/visual-companion/server.cjs');
+  // In dev mode electron-vite compiles all main-process code into a single
+  // out/main/index.js bundle, so __dirname === <project>/apps/frontend/out/main.
+  // Two levels up reaches apps/frontend/, then into resources/.
+  return path.join(__dirname, '../../resources/visual-companion/server.cjs');
 }
 
 /**
@@ -47,10 +50,15 @@ function ensureVisualSession(taskId: string): Promise<VisualSession> {
   const existing = visualSessions.get(taskId);
   if (existing) return Promise.resolve(existing);
 
-  return new Promise((resolve, reject) => {
-    const sessionDir = path.join(app.getPath('temp'), 'brainstorm', taskId);
-    mkdirSync(sessionDir, { recursive: true });
+  const sessionDir = path.join(app.getPath('temp'), 'brainstorm', taskId);
+  try {
+    mkdirSync(path.join(sessionDir, 'content'), { recursive: true });
+    mkdirSync(path.join(sessionDir, 'state'), { recursive: true });
+  } catch (err) {
+    return Promise.reject(new Error(`Failed to create visual companion session dir: ${err}`));
+  }
 
+  return new Promise((resolve, reject) => {
     const serverPath = getServerScriptPath();
     const child = spawn(process.execPath, [serverPath], {
       env: {
@@ -110,12 +118,14 @@ function ensureVisualSession(taskId: string): Promise<VisualSession> {
       reject(err);
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', () => {
+      // Remove session so the next brainstorm message for this task
+      // restarts the server automatically (server has a 30-min idle timeout).
       visualSessions.delete(taskId);
       if (!settled) {
         settled = true;
         clearTimeout(timeout);
-        reject(new Error(`Visual Companion server exited prematurely with code ${code}`));
+        reject(new Error('Visual companion server exited before ready'));
       }
     });
   });
