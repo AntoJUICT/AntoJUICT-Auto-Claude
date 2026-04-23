@@ -172,6 +172,10 @@
         "to": "icon.ico"
       },
       {
+        "from": "resources/visual-companion",
+        "to": "visual-companion"
+      },
+      {
         "from": "../backend",
         "to": "backend",
         "filter": [
